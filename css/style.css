@@ -685,6 +685,66 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
 /* ===================================================
+   AUTH SHELL (login.html)
+=================================================== */
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--bg-sidebar) 0%, #16342a 55%, var(--bg-app) 55%);
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px 30px;
+}
+.auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.auth-brand .brand-badge { width: 42px; height: 42px; }
+.auth-brand .brand-text strong { color: var(--text); }
+.auth-card h1 { font-size: 19px; margin-bottom: 4px; }
+.auth-card .muted { margin-bottom: 22px; }
+.auth-card form { display: flex; flex-direction: column; gap: 14px; }
+.auth-card .btn-primary { width: 100%; padding: 12px; font-size: 14px; margin-top: 6px; }
+.auth-links { display: flex; justify-content: space-between; margin-top: 18px; font-size: 12px; }
+.auth-links a { color: var(--accent-dark); font-weight: 600; }
+.auth-role-hint {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-app);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ===================================================
+   TOPBAR SIMPLES (admin-escolas / responsavel — sem sidebar de técnico)
+=================================================== */
+.simple-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 32px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.simple-topbar .brand { padding: 0; }
+.simple-topbar .brand-text strong { color: var(--text); }
+.simple-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 32px 60px;
+}
+.simple-topbar-right { display: flex; align-items: center; gap: 16px; }
+.link-sair { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.link-sair:hover { color: var(--bad); }
+
+/* ===================================================
    MOBILE
 =================================================== */
 .menu-toggle {
@@ -724,4 +784,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .form-grid { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .search-bar { width: 100%; }
+  .simple-topbar { padding: 16px 18px; }
+  .simple-main { padding: 20px 18px 40px; }
+  .auth-card { padding: 26px 20px; }
 }

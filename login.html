@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <h1>Entrar</h1>
+    <p class="muted">Acesse com o e-mail cadastrado pela sua escola.</p>
+
+    <form data-fake-form="O login será validado assim que o banco de dados (Firebase) estiver conectado.">
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="#" data-fake-action="A recuperação de senha será enviada por e-mail assim que o Firebase estiver conectado.">Esqueci minha senha</a>
+      <a href="sem-acesso.html">Problemas para entrar?</a>
+    </div>
+
+    <p class="auth-role-hint">
+      Técnicos e responsáveis usam o mesmo formulário — o sistema reconhece automaticamente seu papel (dono, técnico ou responsável) depois do login e leva você para a área correta.
+    </p>
+  </div>
+</div>
+
+<script src="js/Script.js"></script>
+</body>
+</html>

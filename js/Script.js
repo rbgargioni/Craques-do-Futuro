@@ -16,6 +16,27 @@ if (elData) {
   elData.textContent = formatado.charAt(0).toUpperCase() + formatado.slice(1);
 }
 
+// ------------------------------------------------------
+// Status de licença (admin-escolas.html) — calcula o badge a partir
+// da data de fim gravada em data-license-fim="AAAA-MM-DD"
+// ------------------------------------------------------
+document.querySelectorAll("[data-license-fim]").forEach((el) => {
+  const fim = new Date(`${el.dataset.licenseFim}T23:59:59`);
+  const hoje = new Date();
+  const diasRestantes = Math.ceil((fim - hoje) / 86400000);
+
+  if (diasRestantes < 0) {
+    el.textContent = "Licença vencida";
+    el.classList.add("badge--bad");
+  } else if (diasRestantes <= 30) {
+    el.textContent = `Vence em ${diasRestantes} dia${diasRestantes === 1 ? "" : "s"}`;
+    el.classList.add("badge--progress");
+  } else {
+    el.textContent = "Ativa";
+    el.classList.add("badge--done");
+  }
+});
+
 // Menu mobile (sidebar retrátil)
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
@@ -62,8 +83,9 @@ document.querySelectorAll("form[data-fake-form]").forEach((form) => {
 });
 
 document.querySelectorAll("[data-fake-action]").forEach((el) => {
-  el.addEventListener("click", (e) => {
-    e.preventDefault();
+  const evento = el.tagName === "SELECT" ? "change" : "click";
+  el.addEventListener(evento, (e) => {
+    if (evento === "click") e.preventDefault();
     showToast(el.dataset.fakeAction || "Essa ação vai funcionar de verdade quando o Firebase estiver conectado.");
   });
 });

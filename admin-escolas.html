@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escolas — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="simple-topbar">
+  <div class="brand">
+    <div class="brand-badge">CF</div>
+    <div class="brand-text">
+      <strong>Craques</strong>
+      <span>do Futuro · Administração</span>
+    </div>
+  </div>
+  <div class="simple-topbar-right">
+    <div class="profile">
+      <div class="avatar">RB</div>
+      <div class="profile-text">
+        <strong>Rafael Bueno</strong>
+        <span>Dono da conta</span>
+      </div>
+    </div>
+    <a href="login.html" class="link-sair">Sair</a>
+  </div>
+</header>
+
+<main class="simple-main">
+
+  <section class="page-header">
+    <h2>Escolas <span class="tag">4 clientes</span></h2>
+    <div class="page-header-actions">
+      <label class="search-bar">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar escola..." data-search=".card-grid">
+      </label>
+      <button class="btn btn-outline" data-toggle-panel="painelTecnico">＋ Adicionar técnico</button>
+      <button class="btn btn-primary" data-toggle-panel="painelEscola">＋ Cadastrar escola</button>
+    </div>
+  </section>
+
+  <!-- PAINEL: NOVA ESCOLA -->
+  <section class="panel is-hidden" id="painelEscola">
+    <div class="panel-head">
+      <h3>Nova escola</h3>
+    </div>
+    <form class="form-grid" data-fake-form="A escola será criada assim que o banco de dados (Firebase) estiver conectado.">
+      <div class="field field--full">
+        <label for="nomeEscola">Nome da escola</label>
+        <input type="text" id="nomeEscola" name="nome" placeholder="Ex: Escolinha Estrela do Futuro" required>
+      </div>
+      <div class="field">
+        <label for="licencaInicio">Início da licença</label>
+        <input type="date" id="licencaInicio" name="licencaInicio" required>
+      </div>
+      <div class="field">
+        <label for="licencaFim">Fim da licença</label>
+        <input type="date" id="licencaFim" name="licencaFim" required>
+      </div>
+      <div class="field">
+        <label for="nomeTecnicoInicial">Nome do primeiro técnico</label>
+        <input type="text" id="nomeTecnicoInicial" name="nomeTecnico" placeholder="Ex: Rafael Terra">
+      </div>
+      <div class="field">
+        <label for="emailTecnicoInicial">E-mail do primeiro técnico</label>
+        <input type="email" id="emailTecnicoInicial" name="emailTecnico" placeholder="tecnico@email.com">
+      </div>
+      <div class="form-actions field--full">
+        <button type="button" class="btn btn-outline" data-toggle-panel="painelEscola">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Criar escola</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- PAINEL: ADICIONAR TÉCNICO A UMA ESCOLA EXISTENTE -->
+  <section class="panel is-hidden" id="painelTecnico">
+    <div class="panel-head">
+      <h3>Adicionar técnico a uma escola</h3>
+    </div>
+    <form class="form-grid" data-fake-form="O técnico será convidado por e-mail assim que o banco de dados (Firebase) estiver conectado.">
+      <div class="field field--full">
+        <label for="escolaDoTecnico">Escola</label>
+        <select id="escolaDoTecnico" name="escola" required>
+          <option value="">Selecione...</option>
+          <option>Escolinha Estrela do Futuro</option>
+          <option>Instituto Bola na Rede</option>
+          <option>Craques da Vila</option>
+          <option>Escola Municipal Gol de Placa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="nomeNovoTecnico">Nome</label>
+        <input type="text" id="nomeNovoTecnico" name="nome" placeholder="Nome do técnico" required>
+      </div>
+      <div class="field">
+        <label for="emailNovoTecnico">E-mail</label>
+        <input type="email" id="emailNovoTecnico" name="email" placeholder="tecnico@email.com" required>
+      </div>
+      <div class="form-actions field--full">
+        <button type="button" class="btn btn-outline" data-toggle-panel="painelTecnico">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Convidar técnico</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- GRID DE ESCOLAS -->
+  <section class="card-grid">
+
+    <div class="entity-card" data-search-item data-name="Escolinha Estrela do Futuro">
+      <div class="entity-card-top">
+        <div>
+          <strong>Escolinha Estrela do Futuro</strong>
+          <span>3 técnicos · 41 atletas</span>
+        </div>
+      </div>
+      <div class="entity-card-foot">
+        <span class="badge" data-license-fim="2027-04-12"></span>
+        <span class="tag">até 12/04/2027</span>
+      </div>
+    </div>
+
+    <div class="entity-card" data-search-item data-name="Instituto Bola na Rede">
+      <div class="entity-card-top">
+        <div>
+          <strong>Instituto Bola na Rede</strong>
+          <span>1 técnico · 18 atletas</span>
+        </div>
+      </div>
+      <div class="entity-card-foot">
+        <span class="badge" data-license-fim="2026-09-15"></span>
+        <span class="tag">até 15/09/2026</span>
+      </div>
+    </div>
+
+    <div class="entity-card" data-search-item data-name="Craques da Vila">
+      <div class="entity-card-top">
+        <div>
+          <strong>Craques da Vila</strong>
+          <span>2 técnicos · 29 atletas</span>
+        </div>
+      </div>
+      <div class="entity-card-foot">
+        <span class="badge" data-license-fim="2026-10-30"></span>
+        <span class="tag">até 30/10/2026</span>
+      </div>
+    </div>
+
+    <div class="entity-card" data-search-item data-name="Escola Municipal Gol de Placa">
+      <div class="entity-card-top">
+        <div>
+          <strong>Escola Municipal Gol de Placa</strong>
+          <span>1 técnico · 12 atletas</span>
+        </div>
+      </div>
+      <div class="entity-card-foot">
+        <span class="badge" data-license-fim="2026-06-01"></span>
+        <span class="tag">venceu em 01/06/2026</span>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<script src="js/Script.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+// ======================================================
+// Craques do Futuro — Regras do Firestore
+//
+// Este arquivo ainda NÃO está conectado a nenhum projeto Firebase.
+// Quando o projeto for criado: Firebase Console > Firestore Database > Rules > colar este conteúdo > Publish.
+// Não depende de Firebase CLI/npm.
+//
+// MODELO DE DADOS
+// ------------------------------------------------------
+// usuarios/{uid}                        uid = Firebase Auth uid
+//   role: "dono" | "tecnico" | "responsavel"
+//   escolaId: string | null             null só para dono
+//   atletaIds: array<string>            só para responsavel
+//
+// escolas/{escolaId}
+//   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa"
+//
+//   escolas/{escolaId}/turmas/{turmaId}
+//     nome, categoria, temporada, ativa
+//
+//   escolas/{escolaId}/atletas/{atletaId}
+//     nome, posicao, nascimento, telefone, observacoes, turmaId, status, responsavelUids
+//
+//   escolas/{escolaId}/avaliacoes/{avaliacaoId}
+//     atletaId, data, tecnico, tatico, fisico, mental, evolucao, geral, observacoes
+//
+//   escolas/{escolaId}/frequencia/{turmaId}_{data}_{atletaId}    id determinístico -> upsert com set()
+//     turmaId, atletaId, data, estado: "presente" | "atrasado" | "ausente"
+//
+//   escolas/{escolaId}/planos/{planoId}
+//   escolas/{escolaId}/mensagens/{mensagemId}
+//
+// Papel e vínculos vêm de usuarios/{uid} (lido via get() nas regras), não de custom claims —
+// custom claims exigiriam Cloud Functions/Admin SDK, e este projeto é 100% client-side.
+// ======================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn()      { return request.auth != null; }
+    function meDoc()         { return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data; }
+    function myRole()        { return signedIn() ? meDoc().role : null; }
+    function myEscolaId()    { return meDoc().escolaId; }
+    function myAtletaIds()   { return meDoc().atletaIds; }
+    function isDono()        { return myRole() == 'dono'; }
+
+    function escolaAtiva(id) {
+      return get(/databases/$(database)/documents/escolas/$(id)).data.licencaFim >= request.time;
+    }
+
+    // técnico só tem acesso (leitura E escrita) enquanto a licença da escola está válida
+    function isTecnicoAtivo(escolaId) {
+      return signedIn() && myRole() == 'tecnico' && myEscolaId() == escolaId && escolaAtiva(escolaId);
+    }
+
+    function isResponsavelDe(escolaId, atletaId) {
+      return signedIn() && myRole() == 'responsavel' && myEscolaId() == escolaId
+             && atletaId in myAtletaIds();
+    }
+
+    match /usuarios/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isDono());
+
+      // dono cria/edita qualquer perfil; técnico só CRIA perfis de responsável da própria escola
+      allow create: if isDono()
+        || (myRole() == 'tecnico' && escolaAtiva(myEscolaId())
+            && request.resource.data.role == 'responsavel'
+            && request.resource.data.escolaId == myEscolaId());
+
+      // técnico pode só adicionar atletaIds a um perfil de responsável que ele mesmo criou na sua escola
+      allow update: if isDono()
+        || (myRole() == 'tecnico' && escolaAtiva(myEscolaId())
+            && resource.data.role == 'responsavel'
+            && resource.data.escolaId == myEscolaId()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['atletaIds']));
+
+      allow delete: if isDono();
+    }
+
+    match /escolas/{escolaId} {
+      allow read:  if isDono() || isTecnicoAtivo(escolaId)
+                   || (myRole() == 'responsavel' && myEscolaId() == escolaId);
+      allow write: if isDono();
+
+      match /turmas/{turmaId} {
+        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+                     || (myRole() == 'responsavel' && myEscolaId() == escolaId);
+        allow write: if isDono() || isTecnicoAtivo(escolaId);
+      }
+
+      match /atletas/{atletaId} {
+        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+                     || isResponsavelDe(escolaId, atletaId);
+        allow write: if isDono() || isTecnicoAtivo(escolaId);
+      }
+
+      match /avaliacoes/{avaliacaoId} {
+        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+                     || isResponsavelDe(escolaId, resource.data.atletaId);
+        allow write: if isDono() || isTecnicoAtivo(escolaId);
+      }
+
+      match /frequencia/{frequenciaId} {
+        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+                     || isResponsavelDe(escolaId, resource.data.atletaId);
+        allow write: if isDono() || isTecnicoAtivo(escolaId);
+      }
+
+      match /planos/{planoId} {
+        allow read, write: if isDono() || isTecnicoAtivo(escolaId);   // responsável não vê planos na v1
+      }
+
+      match /mensagens/{mensagemId} {
+        allow read, write: if isDono() || isTecnicoAtivo(escolaId);   // responsável não vê recados na v1
+      }
+    }
+  }
+}
