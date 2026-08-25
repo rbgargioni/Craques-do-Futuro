@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-allowed-roles="administrador tecnico">
 
 <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
   <span></span><span></span><span></span>
@@ -63,6 +63,7 @@
             <span>Treinador</span>
           </div>
         </div>
+        <a href="#" class="link-sair" data-sair>Sair</a>
       </div>
     </header>
 
@@ -142,6 +143,25 @@
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">8,7</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="9" data-proxima-categoria="Sub-13">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-11</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">9</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
       <div class="entity-card" data-search-item data-name="João Pedro">
@@ -155,6 +175,25 @@
         <div class="entity-card-foot">
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">8,2</span>
+        </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="7" data-proxima-categoria="Sub-13">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-11</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">7</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
         </div>
       </div>
 
@@ -170,6 +209,25 @@
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">8,0</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="6" data-proxima-categoria="Sub-13">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-11</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">6</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
       <div class="entity-card" data-search-item data-name="Enzo Ferreira">
@@ -183,6 +241,25 @@
         <div class="entity-card-foot">
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">7,1</span>
+        </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="4" data-proxima-categoria="Sub-15">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-13</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">4</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
         </div>
       </div>
 
@@ -198,6 +275,25 @@
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">7,5</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="9" data-proxima-categoria="Sub-13">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-11</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">9</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
       <div class="entity-card" data-search-item data-name="Pedro Henrique">
@@ -211,6 +307,25 @@
         <div class="entity-card-foot">
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">6,8</span>
+        </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="3" data-proxima-categoria="Sub-15">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-13</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">3</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
         </div>
       </div>
 
@@ -226,6 +341,25 @@
           <span class="badge badge--done">Ativo</span>
           <span class="pill pill--good">7,0</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="5" data-proxima-categoria="Sub-13">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-11</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">5</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
       <div class="entity-card" data-search-item data-name="Gustavo Lima">
@@ -239,6 +373,25 @@
         <div class="entity-card-foot">
           <span class="badge badge--bad">Atenção</span>
           <span class="pill pill--warn">5,6</span>
+        </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-9" data-nivel="6" data-proxima-categoria="Sub-11">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-9</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">6</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-11</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
         </div>
       </div>
 
@@ -254,6 +407,25 @@
           <span class="badge badge--bad">Atenção</span>
           <span class="pill pill--warn">5,8</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="2" data-proxima-categoria="Sub-15">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-13</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">2</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
       <div class="entity-card" data-search-item data-name="Bruno Alves">
@@ -268,6 +440,25 @@
           <span class="badge badge--bad">Atenção</span>
           <span class="pill pill--warn">6,0</span>
         </div>
+        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-9" data-nivel="4" data-proxima-categoria="Sub-11">
+          <div class="nivel-info">
+            <span class="nivel-categoria">Sub-9</span>
+            <div class="nivel-dots">
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
+            </div>
+          </div>
+          <div class="nivel-stepper">
+            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
+            <strong class="nivel-valor">4</strong>
+            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
+          </div>
+        </div>
+        <div class="nivel-pronto is-hidden">
+          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-11</strong></span>
+          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
+        </div>
       </div>
 
     </section>
@@ -275,6 +466,7 @@
   </main>
 </div>
 
+<script type="module" src="js/auth-guard.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

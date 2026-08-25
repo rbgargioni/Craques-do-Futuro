@@ -18,9 +18,12 @@ if (elData) {
 
 // ------------------------------------------------------
 // Status de licença (admin-escolas.html) — calcula o badge a partir
-// da data de fim gravada em data-license-fim="AAAA-MM-DD"
+// da data de fim gravada em data-license-fim="AAAA-MM-DD". Exposta em
+// window.CFBadgeLicenca porque admin-escolas.js cria cards dinamicamente
+// depois de carregar os dados do Firestore (esse forEach roda só uma vez,
+// ao carregar a página, e não pega elementos criados depois).
 // ------------------------------------------------------
-document.querySelectorAll("[data-license-fim]").forEach((el) => {
+function aplicarBadgeLicenca(el) {
   const fim = new Date(`${el.dataset.licenseFim}T23:59:59`);
   const hoje = new Date();
   const diasRestantes = Math.ceil((fim - hoje) / 86400000);
@@ -35,7 +38,9 @@ document.querySelectorAll("[data-license-fim]").forEach((el) => {
     el.textContent = "Ativa";
     el.classList.add("badge--done");
   }
-});
+}
+window.CFBadgeLicenca = aplicarBadgeLicenca;
+document.querySelectorAll("[data-license-fim]").forEach(aplicarBadgeLicenca);
 
 // Menu mobile (sidebar retrátil)
 const menuToggle = document.getElementById("menuToggle");
@@ -150,6 +155,53 @@ document.querySelectorAll(".toggle-group").forEach((group) => {
   });
 });
 recalcularResumoChamada();
+
+// ------------------------------------------------------
+// Nível de evolução dentro da categoria (atletas.html)
+// Nível é ajustado manualmente pelo técnico (+/-); ao chegar em 9,
+// mostra o aviso de "pronto para subir de categoria".
+// ------------------------------------------------------
+document.querySelectorAll("[data-nivel-atleta]").forEach((linha) => {
+  const card = linha.closest(".entity-card");
+  const categoriaEl = linha.querySelector(".nivel-categoria");
+  const valorEl = linha.querySelector(".nivel-valor");
+  const dots = linha.querySelectorAll(".nivel-dot");
+  const prontoEl = card ? card.querySelector(".nivel-pronto") : null;
+  const prontoCategoriaEl = prontoEl ? prontoEl.querySelector("[data-proxima-categoria-label]") : null;
+
+  function render() {
+    const nivel = Number(linha.dataset.nivel);
+    categoriaEl.textContent = linha.dataset.categoria;
+    valorEl.textContent = nivel;
+    dots.forEach((dot, i) => dot.classList.toggle("is-filled", i < nivel));
+    if (prontoEl) {
+      prontoEl.classList.toggle("is-hidden", nivel < 9);
+      if (prontoCategoriaEl) prontoCategoriaEl.textContent = linha.dataset.proximaCategoria;
+    }
+  }
+
+  linha.querySelectorAll("[data-nivel-dir]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const novo = Math.min(9, Math.max(1, Number(linha.dataset.nivel) + Number(btn.dataset.nivelDir)));
+      linha.dataset.nivel = novo;
+      render();
+    });
+  });
+
+  const btnPromover = prontoEl ? prontoEl.querySelector("[data-promover]") : null;
+  if (btnPromover) {
+    btnPromover.addEventListener("click", () => {
+      const categoriaAntiga = linha.dataset.categoria;
+      const categoriaNova = linha.dataset.proximaCategoria;
+      showToast(`Promoção de ${categoriaAntiga} (nível 9) para ${categoriaNova} será salva quando o banco de dados (Firebase) estiver conectado.`);
+      linha.dataset.categoria = categoriaNova;
+      linha.dataset.nivel = 1;
+      render();
+    });
+  }
+
+  render();
+});
 
 // ------------------------------------------------------
 // Comunicação — adiciona o recado na lista visualmente (não é salvo)

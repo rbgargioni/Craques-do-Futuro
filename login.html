@@ -23,7 +23,8 @@
     <h1>Entrar</h1>
     <p class="muted">Acesse com o e-mail cadastrado pela sua escola.</p>
 
-    <form data-fake-form="O login será validado assim que o banco de dados (Firebase) estiver conectado.">
+    <form id="formLogin">
+      <p id="erroLogin" class="is-hidden" style="color:var(--bad);font-size:12px;margin:-6px 0 0;">&nbsp;</p>
       <div class="field">
         <label for="email">E-mail</label>
         <input type="email" id="email" name="email" placeholder="seu@email.com" required autocomplete="username">
@@ -36,7 +37,7 @@
     </form>
 
     <div class="auth-links">
-      <a href="#" data-fake-action="A recuperação de senha será enviada por e-mail assim que o Firebase estiver conectado.">Esqueci minha senha</a>
+      <a href="#" id="linkEsqueciSenha">Esqueci minha senha</a>
       <a href="sem-acesso.html">Problemas para entrar?</a>
     </div>
 
@@ -46,6 +47,8 @@
   </div>
 </div>
 
+<script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/login.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

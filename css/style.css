@@ -26,6 +26,10 @@
 
 * { box-sizing: border-box; }
 
+/* Some as páginas com auth-guard.js ficam invisíveis até o "porteiro" confirmar
+   quem está logado — evita um flash de conteúdo errado antes do redirecionamento. */
+html:not(.is-authorized) body { visibility: hidden; }
+
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -533,6 +537,56 @@ ul { list-style: none; margin: 0; padding: 0; }
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
+
+/* ===================================================
+   NÍVEL DE EVOLUÇÃO (atletas.html)
+=================================================== */
+.nivel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.nivel-info { display: flex; flex-direction: column; gap: 4px; }
+.nivel-categoria { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.nivel-dots { display: flex; gap: 3px; }
+.nivel-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.nivel-dot.is-filled { background: var(--accent); }
+
+.nivel-stepper { display: flex; align-items: center; gap: 8px; }
+.nivel-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.nivel-btn:hover { background: var(--bg-app); }
+.nivel-valor { font-size: 13px; font-weight: 700; min-width: 14px; text-align: center; }
+
+.nivel-pronto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--good-bg);
+  color: var(--good);
+  font-size: 12px;
+  font-weight: 600;
+}
+.btn-sm { padding: 6px 12px; font-size: 11px; }
 
 /* ===================================================
    TABLE

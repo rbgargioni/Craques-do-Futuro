@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-allowed-roles="administrador tecnico">
 
 <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
   <span></span><span></span><span></span>
@@ -63,6 +63,7 @@
             <span>Treinador</span>
           </div>
         </div>
+        <a href="#" class="link-sair" data-sair>Sair</a>
       </div>
     </header>
 
@@ -225,6 +226,7 @@
   </main>
 </div>
 
+<script type="module" src="js/auth-guard.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

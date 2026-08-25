@@ -1,25 +1,35 @@
 // ======================================================
 // Craques do Futuro — Regras do Firestore
 //
-// Este arquivo ainda NÃO está conectado a nenhum projeto Firebase.
-// Quando o projeto for criado: Firebase Console > Firestore Database > Rules > colar este conteúdo > Publish.
+// Quando o projeto for criado/atualizado: Firebase Console > Firestore Database > Rules > colar este conteúdo > Publish.
 // Não depende de Firebase CLI/npm.
 //
 // MODELO DE DADOS
 // ------------------------------------------------------
 // usuarios/{uid}                        uid = Firebase Auth uid
-//   role: "dono" | "tecnico" | "responsavel"
+//   role: "dono" | "administrador" | "tecnico" | "responsavel"
 //   escolaId: string | null             null só para dono
 //   atletaIds: array<string>            só para responsavel
+//
+//   Hierarquia de criação: dono cria escolas + administradores (pode ter mais de 1 por escola);
+//   administrador cria técnicos (e também pode cadastrar atletas/turmas, mesmo acesso a dados que
+//   o técnico); técnico cadastra responsáveis ao registrar um atleta. Administrador e técnico têm
+//   o mesmo acesso aos DADOS da escola (atletas/turmas/avaliações/...) — a diferença entre os dois
+//   é só que administrador também pode criar técnicos.
 //
 // escolas/{escolaId}
 //   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa"
 //
-//   escolas/{escolaId}/turmas/{turmaId}
-//     nome, categoria, temporada, ativa
-//
+//   escolas/{escolaId}/turmas/{turmaId}          — nome, categoria, temporada, ativa
 //   escolas/{escolaId}/atletas/{atletaId}
 //     nome, posicao, nascimento, telefone, observacoes, turmaId, status, responsavelUids
+//     categoriaAtual, nivelAtual (1-9, ajustado manualmente), nivelDesde (Timestamp — usado para o
+//       aviso de "pronto para subir" depois de um tempo mínimo no nível 9)
+//
+//     escolas/{escolaId}/atletas/{atletaId}/progressao/{progressaoId}
+//       tipo: "promocao" | "reversao"
+//       categoriaAnterior, nivelAnterior, categoriaNova, data
+//       -> um checkpoint por promoção/reversão, para nunca perder o histórico entre categorias
 //
 //   escolas/{escolaId}/avaliacoes/{avaliacaoId}
 //     atletaId, data, tecnico, tatico, fisico, mental, evolucao, geral, observacoes
@@ -44,14 +54,16 @@ service cloud.firestore {
     function myEscolaId()    { return meDoc().escolaId; }
     function myAtletaIds()   { return meDoc().atletaIds; }
     function isDono()        { return myRole() == 'dono'; }
+    function isAdmin()       { return myRole() == 'administrador'; }
+    function isTecnico()     { return myRole() == 'tecnico'; }
 
     function escolaAtiva(id) {
       return get(/databases/$(database)/documents/escolas/$(id)).data.licencaFim >= request.time;
     }
 
-    // técnico só tem acesso (leitura E escrita) enquanto a licença da escola está válida
-    function isTecnicoAtivo(escolaId) {
-      return signedIn() && myRole() == 'tecnico' && myEscolaId() == escolaId && escolaAtiva(escolaId);
+    // administrador e técnico têm o mesmo acesso aos dados da escola, contanto que a licença esteja válida
+    function isStaffAtivo(escolaId) {
+      return signedIn() && (isAdmin() || isTecnico()) && myEscolaId() == escolaId && escolaAtiva(escolaId);
     }
 
     function isResponsavelDe(escolaId, atletaId) {
@@ -62,15 +74,18 @@ service cloud.firestore {
     match /usuarios/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isDono());
 
-      // dono cria/edita qualquer perfil; técnico só CRIA perfis de responsável da própria escola
+      // dono cria/edita qualquer perfil; administrador só CRIA técnicos da própria escola;
+      // administrador/técnico só CRIAM perfis de responsável da própria escola
       allow create: if isDono()
-        || (myRole() == 'tecnico' && escolaAtiva(myEscolaId())
-            && request.resource.data.role == 'responsavel'
-            && request.resource.data.escolaId == myEscolaId());
+        || (isAdmin() && escolaAtiva(myEscolaId())
+            && request.resource.data.role == 'tecnico'
+            && request.resource.data.escolaId == myEscolaId())
+        || (isStaffAtivo(request.resource.data.escolaId)
+            && request.resource.data.role == 'responsavel');
 
-      // técnico pode só adicionar atletaIds a um perfil de responsável que ele mesmo criou na sua escola
+      // administrador/técnico podem só adicionar atletaIds a um perfil de responsável da própria escola
       allow update: if isDono()
-        || (myRole() == 'tecnico' && escolaAtiva(myEscolaId())
+        || (isStaffAtivo(myEscolaId())
             && resource.data.role == 'responsavel'
             && resource.data.escolaId == myEscolaId()
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['atletaIds']));
@@ -79,40 +94,46 @@ service cloud.firestore {
     }
 
     match /escolas/{escolaId} {
-      allow read:  if isDono() || isTecnicoAtivo(escolaId)
+      allow read:  if isDono() || isStaffAtivo(escolaId)
                    || (myRole() == 'responsavel' && myEscolaId() == escolaId);
       allow write: if isDono();
 
       match /turmas/{turmaId} {
-        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+        allow read:  if isDono() || isStaffAtivo(escolaId)
                      || (myRole() == 'responsavel' && myEscolaId() == escolaId);
-        allow write: if isDono() || isTecnicoAtivo(escolaId);
+        allow write: if isDono() || isStaffAtivo(escolaId);
       }
 
       match /atletas/{atletaId} {
-        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+        allow read:  if isDono() || isStaffAtivo(escolaId)
                      || isResponsavelDe(escolaId, atletaId);
-        allow write: if isDono() || isTecnicoAtivo(escolaId);
+        allow write: if isDono() || isStaffAtivo(escolaId);
+
+        match /progressao/{progressaoId} {
+          allow read:  if isDono() || isStaffAtivo(escolaId)
+                       || isResponsavelDe(escolaId, atletaId);
+          allow write: if isDono() || isStaffAtivo(escolaId);
+        }
       }
 
       match /avaliacoes/{avaliacaoId} {
-        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+        allow read:  if isDono() || isStaffAtivo(escolaId)
                      || isResponsavelDe(escolaId, resource.data.atletaId);
-        allow write: if isDono() || isTecnicoAtivo(escolaId);
+        allow write: if isDono() || isStaffAtivo(escolaId);
       }
 
       match /frequencia/{frequenciaId} {
-        allow read:  if isDono() || isTecnicoAtivo(escolaId)
+        allow read:  if isDono() || isStaffAtivo(escolaId)
                      || isResponsavelDe(escolaId, resource.data.atletaId);
-        allow write: if isDono() || isTecnicoAtivo(escolaId);
+        allow write: if isDono() || isStaffAtivo(escolaId);
       }
 
       match /planos/{planoId} {
-        allow read, write: if isDono() || isTecnicoAtivo(escolaId);   // responsável não vê planos na v1
+        allow read, write: if isDono() || isStaffAtivo(escolaId);   // responsável não vê planos na v1
       }
 
       match /mensagens/{mensagemId} {
-        allow read, write: if isDono() || isTecnicoAtivo(escolaId);   // responsável não vê recados na v1
+        allow read, write: if isDono() || isStaffAtivo(escolaId);   // responsável não vê recados na v1
       }
     }
   }

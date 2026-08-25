@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-allowed-roles="administrador tecnico">
 
 <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
   <span></span><span></span><span></span>
@@ -63,6 +63,7 @@
             <span>Treinador</span>
           </div>
         </div>
+        <a href="#" class="link-sair" data-sair>Sair</a>
       </div>
     </header>
 
@@ -158,6 +159,26 @@
       </div>
     </section>
 
+    <!-- PRONTOS PARA EVOLUIR -->
+    <section class="panel" style="margin-bottom:20px;">
+      <div class="panel-head">
+        <h3>📈 Prontos para evoluir de categoria</h3>
+        <a href="atletas.html" class="link">Ver atletas</a>
+      </div>
+      <ul class="athlete-list">
+        <li>
+          <span class="athlete-avatar">MS</span>
+          <div class="athlete-info"><strong>Miguel Santos</strong><span>Nível 9/9 em Sub-11</span></div>
+          <button class="btn btn-primary btn-sm" data-fake-action="Promoção de Miguel Santos para Sub-13 será salva quando o banco de dados (Firebase) estiver conectado.">Promover para Sub-13</button>
+        </li>
+        <li>
+          <span class="athlete-avatar">DS</span>
+          <div class="athlete-info"><strong>Davi Souza</strong><span>Nível 9/9 em Sub-11</span></div>
+          <button class="btn btn-primary btn-sm" data-fake-action="Promoção de Davi Souza para Sub-13 será salva quando o banco de dados (Firebase) estiver conectado.">Promover para Sub-13</button>
+        </li>
+      </ul>
+    </section>
+
     <!-- GRÁFICOS -->
     <section class="chart-grid">
 
@@ -239,6 +260,7 @@
   </main>
 </div>
 
+<script type="module" src="js/auth-guard.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

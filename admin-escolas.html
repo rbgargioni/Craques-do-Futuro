@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-allowed-roles="dono">
 
 <header class="simple-topbar">
   <div class="brand">
@@ -20,36 +20,38 @@
   </div>
   <div class="simple-topbar-right">
     <div class="profile">
-      <div class="avatar">RB</div>
+      <div class="avatar">?</div>
       <div class="profile-text">
-        <strong>Rafael Bueno</strong>
+        <strong>—</strong>
         <span>Dono da conta</span>
       </div>
     </div>
-    <a href="login.html" class="link-sair">Sair</a>
+    <a href="#" class="link-sair" data-sair>Sair</a>
   </div>
 </header>
 
 <main class="simple-main">
 
   <section class="page-header">
-    <h2>Escolas <span class="tag">4 clientes</span></h2>
+    <h2>Escolas <span class="tag" id="totalEscolas">carregando...</span></h2>
     <div class="page-header-actions">
       <label class="search-bar">
         <span>🔍</span>
-        <input type="text" placeholder="Buscar escola..." data-search=".card-grid">
+        <input type="text" placeholder="Buscar escola..." data-search="#listaEscolas">
       </label>
-      <button class="btn btn-outline" data-toggle-panel="painelTecnico">＋ Adicionar técnico</button>
+      <button class="btn btn-outline" data-toggle-panel="painelAdministrador">＋ Adicionar administrador</button>
       <button class="btn btn-primary" data-toggle-panel="painelEscola">＋ Cadastrar escola</button>
     </div>
   </section>
+
+  <p id="erroAdmin" class="is-hidden status-note" style="background:var(--bad-bg);color:var(--bad);border-color:#f3c8c4;"></p>
 
   <!-- PAINEL: NOVA ESCOLA -->
   <section class="panel is-hidden" id="painelEscola">
     <div class="panel-head">
       <h3>Nova escola</h3>
     </div>
-    <form class="form-grid" data-fake-form="A escola será criada assim que o banco de dados (Firebase) estiver conectado.">
+    <form id="formCadastrarEscola" class="form-grid">
       <div class="field field--full">
         <label for="nomeEscola">Nome da escola</label>
         <input type="text" id="nomeEscola" name="nome" placeholder="Ex: Escolinha Estrela do Futuro" required>
@@ -63,12 +65,16 @@
         <input type="date" id="licencaFim" name="licencaFim" required>
       </div>
       <div class="field">
-        <label for="nomeTecnicoInicial">Nome do primeiro técnico</label>
-        <input type="text" id="nomeTecnicoInicial" name="nomeTecnico" placeholder="Ex: Rafael Terra">
+        <label for="nomeAdminInicial">Nome do administrador</label>
+        <input type="text" id="nomeAdminInicial" name="nomeAdmin" placeholder="Ex: Rafael Terra" required>
       </div>
       <div class="field">
-        <label for="emailTecnicoInicial">E-mail do primeiro técnico</label>
-        <input type="email" id="emailTecnicoInicial" name="emailTecnico" placeholder="tecnico@email.com">
+        <label for="emailAdminInicial">E-mail do administrador</label>
+        <input type="email" id="emailAdminInicial" name="emailAdmin" placeholder="admin@email.com" required>
+      </div>
+      <div class="field field--full">
+        <label for="senhaAdminInicial">Senha provisória do administrador</label>
+        <input type="text" id="senhaAdminInicial" name="senhaAdmin" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
       </div>
       <div class="form-actions field--full">
         <button type="button" class="btn btn-outline" data-toggle-panel="painelEscola">Cancelar</button>
@@ -77,96 +83,46 @@
     </form>
   </section>
 
-  <!-- PAINEL: ADICIONAR TÉCNICO A UMA ESCOLA EXISTENTE -->
-  <section class="panel is-hidden" id="painelTecnico">
+  <!-- PAINEL: ADICIONAR ADMINISTRADOR A UMA ESCOLA EXISTENTE -->
+  <section class="panel is-hidden" id="painelAdministrador">
     <div class="panel-head">
-      <h3>Adicionar técnico a uma escola</h3>
+      <h3>Adicionar administrador a uma escola</h3>
     </div>
-    <form class="form-grid" data-fake-form="O técnico será convidado por e-mail assim que o banco de dados (Firebase) estiver conectado.">
+    <form id="formAdicionarAdministrador" class="form-grid">
       <div class="field field--full">
-        <label for="escolaDoTecnico">Escola</label>
-        <select id="escolaDoTecnico" name="escola" required>
-          <option value="">Selecione...</option>
-          <option>Escolinha Estrela do Futuro</option>
-          <option>Instituto Bola na Rede</option>
-          <option>Craques da Vila</option>
-          <option>Escola Municipal Gol de Placa</option>
+        <label for="escolaDoAdmin">Escola</label>
+        <select id="escolaDoAdmin" name="escola" required>
+          <option value="">Carregando escolas...</option>
         </select>
       </div>
       <div class="field">
-        <label for="nomeNovoTecnico">Nome</label>
-        <input type="text" id="nomeNovoTecnico" name="nome" placeholder="Nome do técnico" required>
+        <label for="nomeNovoAdmin">Nome</label>
+        <input type="text" id="nomeNovoAdmin" name="nome" placeholder="Nome do administrador" required>
       </div>
       <div class="field">
-        <label for="emailNovoTecnico">E-mail</label>
-        <input type="email" id="emailNovoTecnico" name="email" placeholder="tecnico@email.com" required>
+        <label for="emailNovoAdmin">E-mail</label>
+        <input type="email" id="emailNovoAdmin" name="email" placeholder="admin@email.com" required>
+      </div>
+      <div class="field field--full">
+        <label for="senhaNovoAdmin">Senha provisória</label>
+        <input type="text" id="senhaNovoAdmin" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
       </div>
       <div class="form-actions field--full">
-        <button type="button" class="btn btn-outline" data-toggle-panel="painelTecnico">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Convidar técnico</button>
+        <button type="button" class="btn btn-outline" data-toggle-panel="painelAdministrador">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Adicionar administrador</button>
       </div>
     </form>
   </section>
 
-  <!-- GRID DE ESCOLAS -->
-  <section class="card-grid">
-
-    <div class="entity-card" data-search-item data-name="Escolinha Estrela do Futuro">
-      <div class="entity-card-top">
-        <div>
-          <strong>Escolinha Estrela do Futuro</strong>
-          <span>3 técnicos · 41 atletas</span>
-        </div>
-      </div>
-      <div class="entity-card-foot">
-        <span class="badge" data-license-fim="2027-04-12"></span>
-        <span class="tag">até 12/04/2027</span>
-      </div>
-    </div>
-
-    <div class="entity-card" data-search-item data-name="Instituto Bola na Rede">
-      <div class="entity-card-top">
-        <div>
-          <strong>Instituto Bola na Rede</strong>
-          <span>1 técnico · 18 atletas</span>
-        </div>
-      </div>
-      <div class="entity-card-foot">
-        <span class="badge" data-license-fim="2026-09-15"></span>
-        <span class="tag">até 15/09/2026</span>
-      </div>
-    </div>
-
-    <div class="entity-card" data-search-item data-name="Craques da Vila">
-      <div class="entity-card-top">
-        <div>
-          <strong>Craques da Vila</strong>
-          <span>2 técnicos · 29 atletas</span>
-        </div>
-      </div>
-      <div class="entity-card-foot">
-        <span class="badge" data-license-fim="2026-10-30"></span>
-        <span class="tag">até 30/10/2026</span>
-      </div>
-    </div>
-
-    <div class="entity-card" data-search-item data-name="Escola Municipal Gol de Placa">
-      <div class="entity-card-top">
-        <div>
-          <strong>Escola Municipal Gol de Placa</strong>
-          <span>1 técnico · 12 atletas</span>
-        </div>
-      </div>
-      <div class="entity-card-foot">
-        <span class="badge" data-license-fim="2026-06-01"></span>
-        <span class="tag">venceu em 01/06/2026</span>
-      </div>
-    </div>
-
+  <!-- GRID DE ESCOLAS (preenchido pelo admin-escolas.js) -->
+  <section class="card-grid" id="listaEscolas">
+    <p class="empty-state">Carregando escolas...</p>
   </section>
 
 </main>
 
+<script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/admin-escolas.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>
