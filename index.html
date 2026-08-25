@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Craques do Futuro — Painel do Treinador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#" class="nav-item is-active" data-icon="home">Dashboard</a>
+      <a href="#" class="nav-item" data-icon="users">Atletas</a>
+      <a href="#" class="nav-item" data-icon="check">Avaliações</a>
+      <a href="#" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="#" class="nav-item" data-icon="target">Planos</a>
+      <a href="#" class="nav-item" data-icon="bars">Relatórios</a>
+      <a href="#" class="nav-item" data-icon="compare">Comparativos</a>
+      <a href="#" class="nav-item" data-icon="chat">Comunicação</a>
+      <a href="#" class="nav-item" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Olá, Professor 👋</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TURMA ATIVA -->
+    <section class="turma-bar">
+      <div>
+        <span class="eyebrow">Turma ativa</span>
+        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+      </div>
+      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+    </section>
+
+    <!-- STATS -->
+    <section class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--neutral">👥</span>
+        <div>
+          <strong>22</strong>
+          <span>Total de atletas</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--good">✓</span>
+        <div>
+          <strong>18</strong>
+          <span>Presentes hoje</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--bad">✕</span>
+        <div>
+          <strong>3</strong>
+          <span>Ausentes hoje</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--warn">⏱</span>
+        <div>
+          <strong>1</strong>
+          <span>Atrasado hoje</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESTAQUES / ATENÇÃO -->
+    <section class="two-col">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>⭐ Destaques da turma</h3>
+          <a href="#" class="link">Ver todos</a>
+        </div>
+        <ul class="athlete-list">
+          <li>
+            <span class="athlete-avatar">MS</span>
+            <div class="athlete-info"><strong>Miguel Santos</strong><span>Meia Atacante</span></div>
+            <span class="pill pill--good">8,7</span>
+          </li>
+          <li>
+            <span class="athlete-avatar">JP</span>
+            <div class="athlete-info"><strong>João Pedro</strong><span>Zagueiro</span></div>
+            <span class="pill pill--good">8,2</span>
+          </li>
+          <li>
+            <span class="athlete-avatar">LM</span>
+            <div class="athlete-info"><strong>Lucas Martins</strong><span>Volante</span></div>
+            <span class="pill pill--good">8,0</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>⚠ Atenção do treinador</h3>
+          <a href="#" class="link">Ver lista</a>
+        </div>
+        <ul class="athlete-list">
+          <li>
+            <span class="athlete-avatar">GL</span>
+            <div class="athlete-info"><strong>Gustavo Lima</strong><span class="warn-text">Frequência baixa</span></div>
+            <span class="pill pill--warn">5,6</span>
+          </li>
+          <li>
+            <span class="athlete-avatar">RC</span>
+            <div class="athlete-info"><strong>Rafael Costa</strong><span class="warn-text">Precisa evoluir</span></div>
+            <span class="pill pill--warn">5,8</span>
+          </li>
+          <li>
+            <span class="athlete-avatar">BA</span>
+            <div class="athlete-info"><strong>Bruno Alves</strong><span class="warn-text">Foco e disciplina</span></div>
+            <span class="pill pill--warn">6,0</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GRÁFICOS -->
+    <section class="chart-grid">
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Evolução geral da turma</h3>
+          <span class="tag">Últimos 6 meses</span>
+        </div>
+        <svg class="chart-line" viewBox="0 0 320 140" preserveAspectRatio="none">
+          <polyline points="10,90 60,75 110,60 160,50 210,38 270,30" />
+          <circle cx="270" cy="30" r="4"></circle>
+        </svg>
+        <div class="chart-labels">
+          <span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span>
+        </div>
+      </div>
+
+      <div class="panel panel--pilares">
+        <div class="panel-head">
+          <h3>Os 5 Pilares</h3>
+          <span class="tag">Média da turma</span>
+        </div>
+        <div class="radar-wrap">
+          <svg class="radar" viewBox="0 0 240 240">
+            <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
+            <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
+            <polygon class="radar-shape" points="120,42 178,96 158,178 88,170 68,110"></polygon>
+            <text x="120" y="14" class="radar-label">Técnico</text>
+            <text x="222" y="94" class="radar-label">Tático</text>
+            <text x="184" y="222" class="radar-label">Mental</text>
+            <text x="56" y="222" class="radar-label">Físico</text>
+            <text x="10" y="94" class="radar-label">Evolução</text>
+          </svg>
+          <div class="radar-score">
+            <strong>7,4</strong>
+            <span>média geral</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Frequência mensal</h3>
+          <span class="tag">Maio</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="48" class="donut-track"></circle>
+            <circle cx="60" cy="60" r="48" class="donut-value"></circle>
+          </svg>
+          <div class="donut-score">
+            <strong>81,8%</strong>
+            <span>presença</span>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i class="dot dot--good"></i>Presentes</span>
+          <span><i class="dot dot--bad"></i>Ausentes</span>
+          <span><i class="dot dot--warn"></i>Atrasados</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- AÇÕES RÁPIDAS -->
+    <section class="panel actions-panel">
+      <div class="panel-head">
+        <h3>⚡ Ações rápidas</h3>
+      </div>
+      <div class="actions-grid">
+        <button class="action-btn"><span class="action-icon">＋</span>Cadastrar atleta</button>
+        <button class="action-btn"><span class="action-icon">✎</span>Nova avaliação</button>
+        <button class="action-btn"><span class="action-icon">☑</span>Chamada</button>
+        <button class="action-btn"><span class="action-icon">▤</span>Ver relatórios</button>
+        <button class="action-btn"><span class="action-icon">✉</span>Enviar recado</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
