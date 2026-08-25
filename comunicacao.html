@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comunicação — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html" class="nav-item" data-icon="home">Dashboard</a>
+      <a href="atletas.html" class="nav-item" data-icon="users">Atletas</a>
+      <a href="avaliacoes.html" class="nav-item" data-icon="check">Avaliações</a>
+      <a href="frequencia.html" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="planos.html" class="nav-item" data-icon="target">Planos</a>
+      <a href="relatorios.html" class="nav-item" data-icon="bars">Relatórios</a>
+      <a href="comparativos.html" class="nav-item" data-icon="compare">Comparativos</a>
+      <a href="comunicacao.html" class="nav-item is-active" data-icon="chat">Comunicação</a>
+      <a href="configuracoes.html" class="nav-item" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Comunicação</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TURMA ATIVA -->
+    <section class="turma-bar">
+      <div>
+        <span class="eyebrow">Turma ativa</span>
+        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+      </div>
+      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+    </section>
+
+    <div class="two-col">
+
+      <!-- NOVO RECADO -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3>✉ Novo recado</h3>
+        </div>
+        <form id="formRecado" data-fake-form="O recado será enviado de verdade assim que o banco de dados (Firebase) estiver conectado. Por enquanto ele só aparece na lista ao lado." data-reset-on-submit="false">
+          <div class="field" style="margin-bottom:14px;">
+            <label for="destinatario">Enviar para</label>
+            <select id="destinatario" name="destinatario">
+              <option>Toda a turma</option>
+              <option>Miguel Santos</option>
+              <option>João Pedro</option>
+              <option>Lucas Martins</option>
+              <option>Gustavo Lima</option>
+              <option>Rafael Costa</option>
+              <option>Bruno Alves</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="mensagem">Mensagem</label>
+            <textarea id="mensagem" name="mensagem" placeholder="Escreva o recado aqui..." required></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enviar recado</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- HISTÓRICO -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Histórico de recados</h3>
+        </div>
+        <ul class="message-list" id="listaMensagens">
+          <li class="message-item">
+            <div class="message-item-head"><strong>Toda a turma</strong><span>ontem</span></div>
+            <p>Treino de amanhã foi antecipado para as 8h por causa da previsão de chuva à tarde.</p>
+          </li>
+          <li class="message-item">
+            <div class="message-item-head"><strong>Gustavo Lima</strong><span>há 3 dias</span></div>
+            <p>Gustavo, precisamos conversar sobre a frequência nos últimos treinos. Pode passar aqui antes do próximo?</p>
+          </li>
+          <li class="message-item">
+            <div class="message-item-head"><strong>Toda a turma</strong><span>há 5 dias</span></div>
+            <p>Parabéns pela dedicação nessa semana! Sábado tem jogo-treino às 9h, tragam a garrafinha de água.</p>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="Script.js"></script>
+</body>
+</html>

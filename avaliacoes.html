@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliações — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html" class="nav-item" data-icon="home">Dashboard</a>
+      <a href="atletas.html" class="nav-item" data-icon="users">Atletas</a>
+      <a href="avaliacoes.html" class="nav-item is-active" data-icon="check">Avaliações</a>
+      <a href="frequencia.html" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="planos.html" class="nav-item" data-icon="target">Planos</a>
+      <a href="relatorios.html" class="nav-item" data-icon="bars">Relatórios</a>
+      <a href="comparativos.html" class="nav-item" data-icon="compare">Comparativos</a>
+      <a href="comunicacao.html" class="nav-item" data-icon="chat">Comunicação</a>
+      <a href="configuracoes.html" class="nav-item" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Avaliações</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TURMA ATIVA -->
+    <section class="turma-bar">
+      <div>
+        <span class="eyebrow">Turma ativa</span>
+        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+      </div>
+      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+    </section>
+
+    <!-- HEADER DA PÁGINA -->
+    <section class="page-header" id="nova">
+      <h2>Histórico de avaliações</h2>
+      <div class="page-header-actions">
+        <button class="btn btn-primary" data-toggle-panel="painelAvaliacao">✎ Nova avaliação</button>
+      </div>
+    </section>
+
+    <!-- PAINEL DE NOVA AVALIAÇÃO (oculto por padrão) -->
+    <section class="panel is-hidden" id="painelAvaliacao">
+      <div class="panel-head">
+        <h3>Nova avaliação — Os 5 Pilares</h3>
+      </div>
+      <form class="form-grid" data-fake-form="A avaliação será salva assim que o banco de dados (Firebase) estiver conectado.">
+        <div class="field">
+          <label for="atletaAvaliado">Atleta</label>
+          <select id="atletaAvaliado" name="atleta" required>
+            <option value="">Selecione...</option>
+            <option>Miguel Santos</option>
+            <option>João Pedro</option>
+            <option>Lucas Martins</option>
+            <option>Enzo Ferreira</option>
+            <option>Davi Souza</option>
+            <option>Pedro Henrique</option>
+            <option>Thiago Almeida</option>
+            <option>Gustavo Lima</option>
+            <option>Rafael Costa</option>
+            <option>Bruno Alves</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="dataAvaliacao">Data</label>
+          <input type="date" id="dataAvaliacao" name="data">
+        </div>
+
+        <div class="field field--full pillar-field">
+          <div class="pillar-field-head"><label for="pilarTecnico">Técnico</label><strong id="outTecnico">7.0</strong></div>
+          <input type="range" id="pilarTecnico" name="tecnico" min="0" max="10" step="0.1" value="7" data-live-output="outTecnico">
+        </div>
+        <div class="field field--full pillar-field">
+          <div class="pillar-field-head"><label for="pilarTatico">Tático</label><strong id="outTatico">7.0</strong></div>
+          <input type="range" id="pilarTatico" name="tatico" min="0" max="10" step="0.1" value="7" data-live-output="outTatico">
+        </div>
+        <div class="field field--full pillar-field">
+          <div class="pillar-field-head"><label for="pilarFisico">Físico</label><strong id="outFisico">7.0</strong></div>
+          <input type="range" id="pilarFisico" name="fisico" min="0" max="10" step="0.1" value="7" data-live-output="outFisico">
+        </div>
+        <div class="field field--full pillar-field">
+          <div class="pillar-field-head"><label for="pilarMental">Mental</label><strong id="outMental">7.0</strong></div>
+          <input type="range" id="pilarMental" name="mental" min="0" max="10" step="0.1" value="7" data-live-output="outMental">
+        </div>
+        <div class="field field--full pillar-field">
+          <div class="pillar-field-head"><label for="pilarEvolucao">Evolução</label><strong id="outEvolucao">7.0</strong></div>
+          <input type="range" id="pilarEvolucao" name="evolucao" min="0" max="10" step="0.1" value="7" data-live-output="outEvolucao">
+        </div>
+
+        <div class="field field--full">
+          <label for="obsAvaliacao">Observações</label>
+          <textarea id="obsAvaliacao" name="observacoes" placeholder="Pontos fortes, o que evoluir..."></textarea>
+        </div>
+        <div class="form-actions field--full">
+          <button type="button" class="btn btn-outline" data-toggle-panel="painelAvaliacao">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar avaliação</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TABELA DE AVALIAÇÕES -->
+    <section class="panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Atleta</th>
+              <th>Data</th>
+              <th>Técnico</th>
+              <th>Tático</th>
+              <th>Físico</th>
+              <th>Mental</th>
+              <th>Evolução</th>
+              <th>Geral</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Miguel Santos</td>
+              <td>12/05/2026</td>
+              <td>9,0</td><td>8,8</td><td>8,3</td><td>8,9</td><td>8,5</td>
+              <td><span class="pill pill--good">8,7</span></td>
+            </tr>
+            <tr>
+              <td>João Pedro</td>
+              <td>12/05/2026</td>
+              <td>8,0</td><td>8,5</td><td>8,1</td><td>8,0</td><td>8,4</td>
+              <td><span class="pill pill--good">8,2</span></td>
+            </tr>
+            <tr>
+              <td>Lucas Martins</td>
+              <td>11/05/2026</td>
+              <td>7,8</td><td>8,0</td><td>8,2</td><td>7,9</td><td>8,1</td>
+              <td><span class="pill pill--good">8,0</span></td>
+            </tr>
+            <tr>
+              <td>Rafael Costa</td>
+              <td>10/05/2026</td>
+              <td>5,5</td><td>6,0</td><td>6,2</td><td>5,4</td><td>5,9</td>
+              <td><span class="pill pill--warn">5,8</span></td>
+            </tr>
+            <tr>
+              <td>Gustavo Lima</td>
+              <td>10/05/2026</td>
+              <td>5,3</td><td>5,8</td><td>6,0</td><td>5,2</td><td>5,7</td>
+              <td><span class="pill pill--warn">5,6</span></td>
+            </tr>
+            <tr>
+              <td>Bruno Alves</td>
+              <td>09/05/2026</td>
+              <td>6,1</td><td>5,9</td><td>6,4</td><td>5,8</td><td>5,8</td>
+              <td><span class="pill pill--warn">6,0</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="Script.js"></script>
+</body>
+</html>

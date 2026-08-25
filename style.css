@@ -451,6 +451,240 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 /* ===================================================
+   PAGE HEADER / SEARCH / PRIMARY BUTTON
+=================================================== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.page-header h2 { font-size: 20px; }
+.page-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 16px;
+  min-width: 220px;
+}
+.search-bar span { color: var(--text-muted); font-size: 13px; }
+.search-bar input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+}
+
+.btn-primary { background: var(--accent); color: #072b17; }
+.btn-primary:hover { background: var(--accent-dark); color: #fff; }
+.btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-outline:hover { background: var(--bg-app); }
+
+.status-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--warn-bg);
+  color: #8a6d16;
+  font-size: 13px;
+  border: 1px solid #f1dfa8;
+  margin-bottom: 20px;
+}
+.status-note strong { color: #6b5410; }
+
+/* ===================================================
+   CARD GRID (atletas / planos)
+=================================================== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+.entity-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.entity-card-top { display: flex; align-items: center; gap: 12px; }
+.entity-card-top strong { font-size: 14px; display: block; }
+.entity-card-top span { font-size: 12px; color: var(--text-muted); }
+.entity-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===================================================
+   TABLE
+=================================================== */
+.table-wrap { overflow-x: auto; }
+table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--bg-app); }
+
+/* ===================================================
+   FORM
+=================================================== */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.field--full { grid-column: 1 / -1; }
+.field label { font-weight: 600; color: var(--text); }
+.field input, .field select, .field textarea {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: #fbfcfb;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.field textarea { resize: vertical; min-height: 80px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+
+.pillar-field { display: flex; flex-direction: column; gap: 6px; }
+.pillar-field-head { display: flex; justify-content: space-between; font-size: 13px; }
+.pillar-field-head strong { font-weight: 700; color: var(--accent-dark); }
+.pillar-field input[type="range"] { accent-color: var(--accent); width: 100%; }
+
+/* ===================================================
+   TOGGLE GROUP (chamada / frequência)
+=================================================== */
+.toggle-group { display: flex; gap: 6px; }
+.toggle-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.toggle-btn.is-active[data-state="presente"] { background: var(--good-bg); color: var(--good); border-color: var(--good); }
+.toggle-btn.is-active[data-state="atrasado"] { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
+.toggle-btn.is-active[data-state="ausente"] { background: var(--bad-bg); color: var(--bad); border-color: var(--bad); }
+
+/* ===================================================
+   BADGE
+=================================================== */
+.badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.badge--neutral { background: #eef2f0; color: #47645a; }
+.badge--progress { background: var(--warn-bg); color: var(--warn); }
+.badge--done { background: var(--good-bg); color: var(--good); }
+.badge--bad { background: var(--bad-bg); color: var(--bad); }
+
+/* ===================================================
+   SWITCH (configurações)
+=================================================== */
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.switch-row:last-child { border-bottom: none; }
+.switch-row-text strong { display: block; font-size: 13px; }
+.switch-row-text span { font-size: 12px; color: var(--text-muted); }
+.switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; display: inline-block; }
+.switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.switch .track { position: absolute; inset: 0; background: #d7e2dd; border-radius: 999px; transition: 0.2s; cursor: pointer; }
+.switch .track::before {
+  content: "";
+  position: absolute;
+  width: 16px; height: 16px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::before { transform: translateX(18px); }
+
+/* ===================================================
+   PAINÉIS COLAPSÁVEIS / MENSAGENS
+=================================================== */
+.is-hidden { display: none !important; }
+
+.message-list { display: flex; flex-direction: column; gap: 12px; }
+.message-item {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-app);
+}
+.message-item-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.message-item-head strong { color: var(--text); font-size: 13px; }
+.message-item p { margin: 0; font-size: 13px; color: var(--text); }
+
+/* ===================================================
+   EMPTY STATE
+=================================================== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ===================================================
+   TOAST
+=================================================== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  background: #10241d;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+}
+.toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* ===================================================
    MOBILE
 =================================================== */
 .menu-toggle {
@@ -487,4 +721,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   .chart-grid { grid-template-columns: 1fr; }
   .actions-grid { grid-template-columns: repeat(2, 1fr); }
   .topbar { flex-direction: column; }
+  .form-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .search-bar { width: 100%; }
 }

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurações — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html" class="nav-item" data-icon="home">Dashboard</a>
+      <a href="atletas.html" class="nav-item" data-icon="users">Atletas</a>
+      <a href="avaliacoes.html" class="nav-item" data-icon="check">Avaliações</a>
+      <a href="frequencia.html" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="planos.html" class="nav-item" data-icon="target">Planos</a>
+      <a href="relatorios.html" class="nav-item" data-icon="bars">Relatórios</a>
+      <a href="comparativos.html" class="nav-item" data-icon="compare">Comparativos</a>
+      <a href="comunicacao.html" class="nav-item" data-icon="chat">Comunicação</a>
+      <a href="configuracoes.html" class="nav-item is-active" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Configurações</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- STATUS DE CONEXÃO -->
+    <div class="status-note">
+      <span>⚠</span>
+      <span><strong>Banco de dados (Firebase) ainda não conectado.</strong> Por enquanto, tudo aqui é apenas visual — nada é salvo de verdade.</span>
+    </div>
+
+    <div class="two-col">
+
+      <!-- PERFIL DO TREINADOR -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Perfil do treinador</h3>
+        </div>
+        <form class="form-grid" data-fake-form="Seus dados serão salvos assim que o banco de dados (Firebase) estiver conectado.">
+          <div class="field field--full">
+            <label for="nomeTreinador">Nome</label>
+            <input type="text" id="nomeTreinador" name="nome" value="Rafael Terra">
+          </div>
+          <div class="field">
+            <label for="emailTreinador">E-mail</label>
+            <input type="email" id="emailTreinador" name="email" placeholder="seu@email.com">
+          </div>
+          <div class="field">
+            <label for="telefoneTreinador">Telefone</label>
+            <input type="tel" id="telefoneTreinador" name="telefone" placeholder="(00) 00000-0000">
+          </div>
+          <div class="form-actions field--full">
+            <button type="submit" class="btn btn-primary">Salvar perfil</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- DADOS DA TURMA -->
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Turma ativa</h3>
+        </div>
+        <form class="form-grid" data-fake-form="Os dados da turma serão salvos assim que o banco de dados (Firebase) estiver conectado.">
+          <div class="field">
+            <label for="nomeTurma">Nome da turma</label>
+            <input type="text" id="nomeTurma" name="turma" value="Sub-13">
+          </div>
+          <div class="field">
+            <label for="temporada">Temporada</label>
+            <input type="text" id="temporada" name="temporada" value="2026">
+          </div>
+          <div class="field field--full">
+            <label for="categoria">Categoria / nascidos em</label>
+            <input type="text" id="categoria" name="categoria" value="2013/2014">
+          </div>
+          <div class="form-actions field--full">
+            <button type="submit" class="btn btn-primary">Salvar turma</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
+
+    <!-- PREFERÊNCIAS -->
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h3>Preferências</h3>
+      </div>
+
+      <div class="switch-row">
+        <div class="switch-row-text">
+          <strong>Notificações por e-mail</strong>
+          <span>Receber avisos de frequência baixa e novas avaliações.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="track"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <div class="switch-row-text">
+          <strong>Resumo semanal</strong>
+          <span>Um resumo da turma toda segunda-feira de manhã.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="track"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <div class="switch-row-text">
+          <strong>Modo compacto</strong>
+          <span>Reduz o espaçamento das listas e tabelas.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox">
+          <span class="track"></span>
+        </label>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="Script.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparativos — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html" class="nav-item" data-icon="home">Dashboard</a>
+      <a href="atletas.html" class="nav-item" data-icon="users">Atletas</a>
+      <a href="avaliacoes.html" class="nav-item" data-icon="check">Avaliações</a>
+      <a href="frequencia.html" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="planos.html" class="nav-item" data-icon="target">Planos</a>
+      <a href="relatorios.html" class="nav-item" data-icon="bars">Relatórios</a>
+      <a href="comparativos.html" class="nav-item is-active" data-icon="compare">Comparativos</a>
+      <a href="comunicacao.html" class="nav-item" data-icon="chat">Comunicação</a>
+      <a href="configuracoes.html" class="nav-item" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Comparativos</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TURMA ATIVA -->
+    <section class="turma-bar">
+      <div>
+        <span class="eyebrow">Turma ativa</span>
+        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+      </div>
+      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+    </section>
+
+    <!-- SELEÇÃO DOS ATLETAS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Selecionar atletas para comparar</h3>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="atletaA">Atleta A</label>
+          <select id="atletaA">
+            <option selected>Miguel Santos</option>
+            <option>João Pedro</option>
+            <option>Lucas Martins</option>
+            <option>Enzo Ferreira</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="atletaB">Atleta B</label>
+          <select id="atletaB">
+            <option>Miguel Santos</option>
+            <option>João Pedro</option>
+            <option selected>Rafael Costa</option>
+            <option>Gustavo Lima</option>
+          </select>
+        </div>
+      </div>
+      <p class="muted" style="margin:10px 0 0;font-size:12px;">A comparação abaixo é um exemplo fixo — vai atualizar de verdade quando o banco de dados estiver conectado.</p>
+    </section>
+
+    <!-- RADARES LADO A LADO -->
+    <section class="two-col" style="margin-top:20px;">
+
+      <div class="panel panel--pilares">
+        <div class="panel-head">
+          <h3>Miguel Santos</h3>
+          <span class="tag">Meia Atacante</span>
+        </div>
+        <div class="radar-wrap">
+          <svg class="radar" viewBox="0 0 240 240">
+            <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
+            <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
+            <polygon class="radar-shape" points="120,30 190,88 168,182 78,178 52,96"></polygon>
+            <text x="120" y="14" class="radar-label">Técnico</text>
+            <text x="222" y="94" class="radar-label">Tático</text>
+            <text x="184" y="222" class="radar-label">Mental</text>
+            <text x="56" y="222" class="radar-label">Físico</text>
+            <text x="10" y="94" class="radar-label">Evolução</text>
+          </svg>
+          <div class="radar-score">
+            <strong>8,7</strong>
+            <span>média geral</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel--pilares">
+        <div class="panel-head">
+          <h3>Rafael Costa</h3>
+          <span class="tag">Atacante</span>
+        </div>
+        <div class="radar-wrap">
+          <svg class="radar" viewBox="0 0 240 240">
+            <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
+            <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
+            <polygon class="radar-shape" points="120,90 168,112 152,164 100,160 82,120"></polygon>
+            <text x="120" y="14" class="radar-label">Técnico</text>
+            <text x="222" y="94" class="radar-label">Tático</text>
+            <text x="184" y="222" class="radar-label">Mental</text>
+            <text x="56" y="222" class="radar-label">Físico</text>
+            <text x="10" y="94" class="radar-label">Evolução</text>
+          </svg>
+          <div class="radar-score">
+            <strong>5,8</strong>
+            <span>média geral</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TABELA COMPARATIVA -->
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h3>Comparativo por pilar</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Pilar</th><th>Miguel Santos</th><th>Rafael Costa</th><th>Diferença</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Técnico</td><td>9,0</td><td>5,5</td><td class="pill pill--good">+3,5</td></tr>
+            <tr><td>Tático</td><td>8,8</td><td>6,0</td><td class="pill pill--good">+2,8</td></tr>
+            <tr><td>Físico</td><td>8,3</td><td>6,2</td><td class="pill pill--good">+2,1</td></tr>
+            <tr><td>Mental</td><td>8,9</td><td>5,4</td><td class="pill pill--good">+3,5</td></tr>
+            <tr><td>Evolução</td><td>8,5</td><td>5,9</td><td class="pill pill--good">+2,6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="Script.js"></script>
+</body>
+</html>

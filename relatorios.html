@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatórios — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html" class="nav-item" data-icon="home">Dashboard</a>
+      <a href="atletas.html" class="nav-item" data-icon="users">Atletas</a>
+      <a href="avaliacoes.html" class="nav-item" data-icon="check">Avaliações</a>
+      <a href="frequencia.html" class="nav-item" data-icon="calendar">Frequência</a>
+      <a href="planos.html" class="nav-item" data-icon="target">Planos</a>
+      <a href="relatorios.html" class="nav-item is-active" data-icon="bars">Relatórios</a>
+      <a href="comparativos.html" class="nav-item" data-icon="compare">Comparativos</a>
+      <a href="comunicacao.html" class="nav-item" data-icon="chat">Comunicação</a>
+      <a href="configuracoes.html" class="nav-item" data-icon="gear">Configurações</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Formamos atletas hoje,<br>criamos craques amanhã.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Relatórios</h1>
+        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <span id="today"></span>
+        </div>
+        <div class="profile">
+          <div class="avatar">RT</div>
+          <div class="profile-text">
+            <strong>Rafael Terra</strong>
+            <span>Treinador</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TURMA ATIVA -->
+    <section class="turma-bar">
+      <div>
+        <span class="eyebrow">Turma ativa</span>
+        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+      </div>
+      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+    </section>
+
+    <!-- FILTROS -->
+    <section class="page-header">
+      <h2>Relatórios disponíveis</h2>
+      <div class="page-header-actions">
+        <select class="btn btn-outline" style="font-weight:600;">
+          <option>Últimos 30 dias</option>
+          <option>Últimos 6 meses</option>
+          <option>Temporada 2026</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- CARDS DE RELATÓRIO -->
+    <section class="chart-grid">
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Evolução geral da turma</h3>
+          <span class="tag">Últimos 6 meses</span>
+        </div>
+        <svg class="chart-line" viewBox="0 0 320 140" preserveAspectRatio="none">
+          <polyline points="10,90 60,75 110,60 160,50 210,38 270,30" />
+          <circle cx="270" cy="30" r="4"></circle>
+        </svg>
+        <div class="chart-labels">
+          <span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span>
+        </div>
+        <div class="form-actions" style="margin-top:14px;">
+          <button class="btn btn-outline" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar PDF</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Frequência mensal</h3>
+          <span class="tag">Maio</span>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="48" class="donut-track"></circle>
+            <circle cx="60" cy="60" r="48" class="donut-value"></circle>
+          </svg>
+          <div class="donut-score">
+            <strong>81,8%</strong>
+            <span>presença</span>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i class="dot dot--good"></i>Presentes</span>
+          <span><i class="dot dot--bad"></i>Ausentes</span>
+          <span><i class="dot dot--warn"></i>Atrasados</span>
+        </div>
+        <div class="form-actions" style="margin-top:14px;">
+          <button class="btn btn-outline" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar PDF</button>
+        </div>
+      </div>
+
+      <div class="panel panel--pilares">
+        <div class="panel-head">
+          <h3>Os 5 Pilares</h3>
+          <span class="tag">Média da turma</span>
+        </div>
+        <div class="radar-wrap">
+          <svg class="radar" viewBox="0 0 240 240">
+            <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
+            <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
+            <polygon class="radar-shape" points="120,42 178,96 158,178 88,170 68,110"></polygon>
+            <text x="120" y="14" class="radar-label">Técnico</text>
+            <text x="222" y="94" class="radar-label">Tático</text>
+            <text x="184" y="222" class="radar-label">Mental</text>
+            <text x="56" y="222" class="radar-label">Físico</text>
+            <text x="10" y="94" class="radar-label">Evolução</text>
+          </svg>
+          <div class="radar-score">
+            <strong>7,4</strong>
+            <span>média geral</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RELATÓRIO INDIVIDUAL -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3>▤ Desempenho individual</h3>
+        <span class="link" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar tudo em PDF</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Atleta</th><th>Presença</th><th>Nota geral</th><th>Tendência</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Miguel Santos</td><td>95%</td><td><span class="pill pill--good">8,7</span></td><td>↑ subindo</td></tr>
+            <tr><td>João Pedro</td><td>91%</td><td><span class="pill pill--good">8,2</span></td><td>↑ subindo</td></tr>
+            <tr><td>Lucas Martins</td><td>88%</td><td><span class="pill pill--good">8,0</span></td><td>→ estável</td></tr>
+            <tr><td>Gustavo Lima</td><td>62%</td><td><span class="pill pill--warn">5,6</span></td><td>↓ atenção</td></tr>
+            <tr><td>Rafael Costa</td><td>70%</td><td><span class="pill pill--warn">5,8</span></td><td>→ estável</td></tr>
+            <tr><td>Bruno Alves</td><td>75%</td><td><span class="pill pill--warn">6,0</span></td><td>↑ subindo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="Script.js"></script>
+</body>
+</html>
