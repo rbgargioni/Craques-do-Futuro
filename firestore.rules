@@ -39,6 +39,8 @@
 //
 //   escolas/{escolaId}/planos/{planoId}
 //   escolas/{escolaId}/mensagens/{mensagemId}
+//     turmaId, destinatarioId ("turma" | atletaId), destinatarioNome, mensagem, criadoEm
+//     -> responsável só lê mensagens onde destinatarioId é um dos atletaIds dele
 //
 // Papel e vínculos vêm de usuarios/{uid} (lido via get() nas regras), não de custom claims —
 // custom claims exigiriam Cloud Functions/Admin SDK, e este projeto é 100% client-side.
@@ -133,7 +135,13 @@ service cloud.firestore {
       }
 
       match /mensagens/{mensagemId} {
-        allow read, write: if isDono() || isStaffAtivo(escolaId);   // responsável não vê recados na v1
+        // responsável só vê recados endereçados diretamente ao atleta dele —
+        // recados "para toda a turma" (destinatarioId == "turma") continuam só
+        // pra equipe, porque confirmar que o atleta pertence àquela turma
+        // exigiria mais uma leitura por regra; pode ampliar depois se precisar.
+        allow read:  if isDono() || isStaffAtivo(escolaId)
+                     || isResponsavelDe(escolaId, resource.data.destinatarioId);
+        allow write: if isDono() || isStaffAtivo(escolaId);
       }
     }
   }

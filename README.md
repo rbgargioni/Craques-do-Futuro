@@ -68,7 +68,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `relatorios.html` | `relatorios.js` | ✅ real |
 | `comparativos.html` | `comparativos.js` | ✅ real |
 | `configuracoes.html` | `turmas.js` | ⚠️ turmas real; formulário de perfil do usuário ainda é mockup (`data-fake-form`) |
-| `responsavel.html` | — | ❌ ainda mockup, não tem JS dedicado nem está ligado ao Firestore |
+| `responsavel.html` | `responsavel.js` | ✅ real — evolução, radar, frequência, linha do tempo e recados do técnico |
 | `sem-acesso.html` | — | página estática (só precisa do auth-guard pro botão "Sair") |
 
 `js/metricas.js` centraliza toda a régua de avaliação (nota geral, corte
@@ -140,9 +140,20 @@ ainda é só lógica — não está exibido em nenhuma tela ainda.
   segura de commitar** — não é segredo, é assim que o Firebase Web funciona.
   A segurança real está nas Security Rules.
 
+O responsável só vê **recados endereçados diretamente ao atleta dele**
+(`mensagens.destinatarioId == atletaId`) — recados de "toda a turma" ainda
+ficam só pra equipe (decisão consciente, ver comentário em
+`firestore.rules`). Não testei esta página com dados reais de ponta a
+ponta ainda (não tenho conta de responsável de teste com atleta/avaliações
+vinculadas) — validei sintaxe, geometria dos gráficos e que todo ID
+referenciado pelo JS existe no HTML, mas vale um teste manual completo
+assim que tiver dados de teste.
+
 ## Próximos passos conhecidos
 
-- Ligar `responsavel.html` ao Firestore de verdade (hoje é só mockup).
+- Testar `responsavel.html`/`js/responsavel.js` de ponta a ponta com uma
+  conta de responsável real vinculada a um atleta com avaliações/frequência/
+  recados cadastrados.
 - Terminar o formulário de perfil do usuário em `configuracoes.html`
   (ainda `data-fake-form`).
 - Validar com o sócio os pesos de fundamentos técnicos de Goleiro,

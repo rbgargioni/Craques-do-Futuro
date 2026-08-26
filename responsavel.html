@@ -20,9 +20,9 @@
   </div>
   <div class="simple-topbar-right">
     <div class="profile">
-      <div class="avatar">CS</div>
+      <div class="avatar">?</div>
       <div class="profile-text">
-        <strong>Carla Santos</strong>
+        <strong>—</strong>
         <span>Responsável</span>
       </div>
     </div>
@@ -35,39 +35,42 @@
   <section class="page-header">
     <div>
       <h2>Evolução do atleta</h2>
-      <p class="muted" style="margin-top:6px;">Escolinha Estrela do Futuro · Turma Sub-13</p>
+      <p class="muted" id="escolaTurmaInfo" style="margin-top:6px;">Carregando...</p>
     </div>
     <div class="page-header-actions">
       <div class="field" style="min-width:220px;">
         <label for="seletorAtleta">Visualizando</label>
-        <select id="seletorAtleta" data-fake-action="A troca de atleta vai carregar os dados reais assim que o banco de dados (Firebase) estiver conectado.">
-          <option>Miguel Santos — Meia Atacante</option>
-          <option>Ana Beatriz Santos — Zagueira</option>
+        <select id="seletorAtleta">
+          <option value="">Carregando...</option>
         </select>
       </div>
     </div>
   </section>
+
+  <p id="avisoSemAtleta" class="is-hidden status-note">
+    Nenhum atleta está vinculado a este acesso ainda. Fale com o técnico da turma pra confirmar o vínculo.
+  </p>
 
   <!-- RESUMO -->
   <section class="stat-grid">
     <div class="stat-card">
       <span class="stat-icon stat-icon--good">⭐</span>
       <div>
-        <strong>8,7</strong>
+        <strong id="statNotaGeral">—</strong>
         <span>Nota geral</span>
       </div>
     </div>
     <div class="stat-card">
       <span class="stat-icon stat-icon--neutral">✓</span>
       <div>
-        <strong>95%</strong>
-        <span>Frequência no mês</span>
+        <strong id="statFrequencia">—</strong>
+        <span>Frequência</span>
       </div>
     </div>
     <div class="stat-card">
       <span class="stat-icon stat-icon--neutral">📅</span>
       <div>
-        <strong>12/05</strong>
+        <strong id="statUltimaAvaliacao">—</strong>
         <span>Última avaliação</span>
       </div>
     </div>
@@ -85,7 +88,7 @@
         <svg class="radar" viewBox="0 0 240 240">
           <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
           <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
-          <polygon class="radar-shape" points="120,30 190,88 168,182 78,178 52,96"></polygon>
+          <polygon class="radar-shape" id="radarShape" points="120,120 120,120 120,120 120,120 120,120"></polygon>
           <text x="120" y="14" class="radar-label">Técnico</text>
           <text x="222" y="94" class="radar-label">Tático</text>
           <text x="184" y="222" class="radar-label">Mental</text>
@@ -93,7 +96,7 @@
           <text x="10" y="94" class="radar-label">Evolução</text>
         </svg>
         <div class="radar-score">
-          <strong>8,7</strong>
+          <strong id="radarMedia">—</strong>
           <span>média geral</span>
         </div>
       </div>
@@ -101,16 +104,16 @@
 
     <div class="panel">
       <div class="panel-head">
-        <h3>Frequência mensal</h3>
-        <span class="tag">Maio</span>
+        <h3>Frequência</h3>
+        <span class="tag">Geral</span>
       </div>
       <div class="donut-wrap">
         <svg class="donut" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="48" class="donut-track"></circle>
-          <circle cx="60" cy="60" r="48" class="donut-value" style="stroke-dashoffset:15;"></circle>
+          <circle cx="60" cy="60" r="48" class="donut-value" id="donutValor" style="stroke-dasharray:301.6; stroke-dashoffset:301.6;"></circle>
         </svg>
         <div class="donut-score">
-          <strong>95%</strong>
+          <strong id="donutPercentual">—</strong>
           <span>presença</span>
         </div>
       </div>
@@ -124,17 +127,25 @@
     <div class="panel">
       <div class="panel-head">
         <h3>Evolução</h3>
-        <span class="tag">Últimos 6 meses</span>
+        <span class="tag">Nota geral</span>
       </div>
       <svg class="chart-line" viewBox="0 0 320 140" preserveAspectRatio="none">
-        <polyline points="10,90 60,75 110,60 160,50 210,38 270,30" />
-        <circle cx="270" cy="30" r="4"></circle>
+        <polyline id="linhaEvolucao" points=""></polyline>
+        <circle id="pontoFinalEvolucao" r="4" class="is-hidden"></circle>
       </svg>
-      <div class="chart-labels">
-        <span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span>
-      </div>
+      <div class="chart-labels" id="labelsEvolucao"></div>
     </div>
 
+  </section>
+
+  <!-- RECADOS DO TÉCNICO -->
+  <section class="panel">
+    <div class="panel-head">
+      <h3>✉ Recados do técnico</h3>
+    </div>
+    <ul class="message-list" id="listaRecados">
+      <li class="empty-state">Carregando...</li>
+    </ul>
   </section>
 
   <!-- HISTÓRICO DE AVALIAÇÕES (somente leitura) -->
@@ -155,22 +166,8 @@
             <th>Geral</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>12/05/2026</td>
-            <td>9,0</td><td>8,8</td><td>8,3</td><td>8,9</td><td>8,5</td>
-            <td><span class="pill pill--good">8,7</span></td>
-          </tr>
-          <tr>
-            <td>28/04/2026</td>
-            <td>8,6</td><td>8,4</td><td>8,0</td><td>8,5</td><td>8,2</td>
-            <td><span class="pill pill--good">8,3</span></td>
-          </tr>
-          <tr>
-            <td>14/04/2026</td>
-            <td>8,2</td><td>8,0</td><td>7,8</td><td>8,1</td><td>7,9</td>
-            <td><span class="pill pill--good">8,0</span></td>
-          </tr>
+        <tbody id="corpoAvaliacoes">
+          <tr><td colspan="7" class="empty-state">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -179,6 +176,7 @@
 </main>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/responsavel.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

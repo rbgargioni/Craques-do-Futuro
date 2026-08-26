@@ -98,6 +98,20 @@ export function pontosRadarPilares(medias, opcoes) {
   return PILARES_RADAR.map((campo, i) => pontoRadar(medias[campo] || 0, i, opcoes)).join(" ");
 }
 
+// Pontos do gráfico de linha "Evolução" (nota geral ao longo do tempo).
+// Recebe avaliações já ordenadas por data crescente. Retorna
+// [{x, y, data}, ...] pra quem chamar poder montar tanto o `points` do
+// <polyline> quanto os rótulos de data embaixo do gráfico.
+export function pontosEvolucao(avaliacoesOrdenadas, { xMin = 10, xMax = 270, yTop = 20, yBottom = 110 } = {}) {
+  const n = avaliacoesOrdenadas.length;
+  if (n === 0) return [];
+  return avaliacoesOrdenadas.map((avaliacao, i) => {
+    const x = n === 1 ? xMin : xMin + (i / (n - 1)) * (xMax - xMin);
+    const y = yBottom - (Math.min(10, Math.max(0, avaliacao.geral)) / 10) * (yBottom - yTop);
+    return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), data: avaliacao.data };
+  });
+}
+
 // ------------------------------------------------------
 // Fundamentos técnicos por posição — usados pra calcular o pilar "Técnico"
 // a partir de notas de 1 a 10 em cada fundamento, em vez de uma nota única.
