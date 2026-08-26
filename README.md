@@ -183,6 +183,10 @@ ainda é só lógica — não está exibido em nenhuma tela ainda.
 - `resumosPublicos` é a **única** coleção com leitura pública (`allow get:
   if true`, sem `allow list`) — ver seção "Área do atleta" acima antes de
   copiar esse padrão pra outra coleção. Tudo mais exige login.
+- **Nunca mostrar os pesos (%) dos fundamentos técnicos na interface** —
+  eles ficam só em `js/metricas.js` (código, não é enviado como texto pra
+  tela). É a metodologia de avaliação do sócio; a ideia é não facilitar
+  cópia por quem só olhar a tela do app.
 
 ## Não testado de ponta a ponta ainda (falta conta/dado real, não é bug conhecido)
 

@@ -200,7 +200,7 @@ function renderizarBlocoTecnico(atletaId) {
     head.className = "pillar-field-head";
     const label = document.createElement("span");
     label.style.fontSize = "12px";
-    label.textContent = `${info.label} (${info.peso}%)`;
+    label.textContent = info.label; // peso fica só no código (não divulgar a fórmula na interface)
     const saida = document.createElement("strong");
     saida.textContent = "7.0";
     head.append(label, saida);
