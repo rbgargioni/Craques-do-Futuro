@@ -106,6 +106,11 @@ Como funciona por baixo (importante entender antes de mexer):
 - Regenerar o código (botão "⟳" no card) cria um resumo novo copiando os
   dados do antigo e apaga o antigo — pra vazamento de código não obrigar a
   perder o histórico acumulado.
+- **Limitação conhecida:** a sincronização só acontece em avaliações/chamadas
+  salvas *depois* que esse recurso existe — avaliações e frequência que já
+  existiam antes não entram retroativamente no resumo. O link "Recalcular a
+  partir do histórico" no card do atleta conserta isso na hora (relê todas
+  as avaliações/frequência dele e reconstrói o resumo do zero).
 
 `js/metricas.js` centraliza toda a régua de avaliação (nota geral, corte
 bom/atenção, tendência, progressão de categoria, pesos dos fundamentos

@@ -571,6 +571,17 @@ select.btn-ghost option {
   padding: 0 2px;
 }
 .codigo-publico-regenerar:hover { color: var(--accent-dark); }
+.codigo-publico-recalcular {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 9px;
+  text-decoration: underline;
+  padding: 0;
+  cursor: pointer;
+}
+.codigo-publico-recalcular:hover { color: var(--accent-dark); }
+.codigo-publico-recalcular:disabled { color: var(--border); cursor: default; text-decoration: none; }
 .entity-card-foot {
   display: flex;
   justify-content: space-between;

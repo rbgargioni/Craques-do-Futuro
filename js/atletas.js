@@ -5,7 +5,7 @@
 // ======================================================
 
 import {
-  collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 import { PROXIMA_CATEGORIA, NIVEL_MAXIMO, NIVEL_INICIAL, estaProntoParaEvoluir } from "./metricas.js";
@@ -74,6 +74,43 @@ async function regenerarCodigoPublico(atletaId, codigoAntigo, nome) {
   await updateDoc(atletaRef(atletaId), { codigoPublico: novoCodigo });
   if (codigoAntigo) await deleteDoc(resumoPublicoRef(codigoAntigo)).catch(() => {});
   return novoCodigo;
+}
+
+// Reconstrói o resumo público inteiro a partir do histórico real de
+// avaliações/frequência do atleta. Existe porque avaliacoes.js/frequencia.js
+// só atualizam o resumo a partir de agora em diante — avaliações e chamadas
+// registradas ANTES desse recurso existir (ou de o atleta ganhar código)
+// nunca chegaram no resumo público. Este botão conserta isso de uma vez.
+async function recalcularResumoPublico(atletaId, codigo) {
+  const qAvaliacoes = query(collection(db, "escolas", escolaId(), "avaliacoes"), where("atletaId", "==", atletaId));
+  const snapAvaliacoes = await getDocs(qAvaliacoes);
+  let radar = { tecnico: 0, tatico: 0, fisico: 0, mental: 0, evolucao: 0 };
+  let notaGeral = null;
+  if (!snapAvaliacoes.empty) {
+    const avaliacoes = [];
+    snapAvaliacoes.forEach((docSnap) => avaliacoes.push(docSnap.data()));
+    avaliacoes.sort((a, b) => a.data.toMillis() - b.data.toMillis());
+    const ultima = avaliacoes[avaliacoes.length - 1];
+    radar = {
+      tecnico: ultima.tecnico, tatico: ultima.tatico, fisico: ultima.fisico,
+      mental: ultima.mental, evolucao: ultima.evolucao,
+    };
+    notaGeral = ultima.geral;
+  }
+
+  const qFrequencia = query(collection(db, "escolas", escolaId(), "frequencia"), where("atletaId", "==", atletaId));
+  const snapFrequencia = await getDocs(qFrequencia);
+  let totalRegistrosFrequencia = 0;
+  let totalPresencas = 0;
+  snapFrequencia.forEach((docSnap) => {
+    totalRegistrosFrequencia += 1;
+    if (docSnap.data().estado === "presente") totalPresencas += 1;
+  });
+
+  await updateDoc(resumoPublicoRef(codigo), {
+    radar, notaGeral, totalPresencas, totalRegistrosFrequencia,
+    atualizadoEm: serverTimestamp(),
+  });
 }
 
 function iniciaisDoNome(nome) {
@@ -318,7 +355,29 @@ function criarCardAtleta(atletaId, dados) {
     }
   });
   codigoLinha.append(codigoValor, btnRegenerar);
-  codigoWrap.append(codigoLabel, codigoLinha);
+
+  const linkRecalcular = document.createElement("button");
+  linkRecalcular.type = "button";
+  linkRecalcular.className = "codigo-publico-recalcular";
+  linkRecalcular.textContent = "Recalcular a partir do histórico";
+  linkRecalcular.title = "Refaz o resumo público com base nas avaliações e chamadas já cadastradas";
+  linkRecalcular.addEventListener("click", async () => {
+    if (!dados.codigoPublico) return;
+    linkRecalcular.disabled = true;
+    linkRecalcular.textContent = "Recalculando...";
+    try {
+      await recalcularResumoPublico(atletaId, dados.codigoPublico);
+      showToast("Resumo público atualizado com o histórico atual.");
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível recalcular. Tente novamente.");
+    } finally {
+      linkRecalcular.disabled = false;
+      linkRecalcular.textContent = "Recalcular a partir do histórico";
+    }
+  });
+
+  codigoWrap.append(codigoLabel, codigoLinha, linkRecalcular);
 
   top.append(avatar, info, codigoWrap);
 
