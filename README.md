@@ -77,10 +77,17 @@ técnicos por posição). **Qualquer mudança de critério de avaliação deve
 mexer só nesse arquivo.**
 
 ⚠️ **Pendência de dados, não de código**: os pesos dos fundamentos técnicos
-em `js/metricas.js` só foram validados de verdade pro "Meio de campo"
-(conversa do Rafael com o sócio). Goleiro/Zagueiro/Lateral/Atacante são
-rascunho — ver o comentário no topo do arquivo antes de confiar nesses
-números pra valer.
+em `js/metricas.js` só foram validados de verdade pro **Volante** (pesos
+somam 100) e pro **Meio de campo** genérico usado hoje só pelo "Meia"
+(pesos somam 93 — conferir se não falta um fundamento). Goleiro, Zagueiro,
+Lateral e Atacante ainda são rascunho — ver o comentário no topo do
+arquivo antes de confiar nesses números pra valer.
+
+`js/metricas.js` também tem `calcularInteligenciaDefensiva()`, um
+indicador 0-10 exclusivo do Volante que combina posicionamento +
+interceptação + desarme antecipado + leitura de jogo (pesos originais
+desses 4, recalculados entre eles). Assim como o resto de fundamentos,
+ainda é só lógica — não está exibido em nenhuma tela ainda.
 
 ## Convenções do projeto (siga estas ao adicionar código)
 
@@ -139,7 +146,13 @@ números pra valer.
 - Terminar o formulário de perfil do usuário em `configuracoes.html`
   (ainda `data-fake-form`).
 - Validar com o sócio os pesos de fundamentos técnicos de Goleiro,
-  Zagueiro, Lateral e Atacante em `js/metricas.js`.
+  Zagueiro, Lateral e Atacante em `js/metricas.js` (Volante e Meio de
+  campo genérico já foram passados pelo sócio).
+- Ligar `calcularNotaTecnica`/`analisarFundamentos`/
+  `calcularInteligenciaDefensiva` (já prontos em `js/metricas.js`) na tela
+  de Avaliações: formulário de notas por fundamento, nota final, ranking e
+  destaques. Falta confirmar com o Rafael o que exatamente a interface
+  deve mostrar sobre "destaques" (pergunta ficou em aberto numa conversa).
 - Construir o "reverter pro checkpoint anterior" da progressão de
   categoria (documentado no modelo de dados de `firestore.rules`, ainda
   não tem interface).

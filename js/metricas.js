@@ -103,25 +103,42 @@ export function pontosRadarPilares(medias, opcoes) {
 // a partir de notas de 1 a 10 em cada fundamento, em vez de uma nota única.
 //
 // ⚠️ STATUS DESTE BLOCO (26/08/2026):
-// - "Meio de campo" veio de uma conversa do Rafael com o sócio (ChatGPT) —
-//   são os pesos reais combinados. Os pesos somam 93 (não 100); a função
+// - "Volante" veio de uma conversa do Rafael com o sócio — pesos reais
+//   confirmados, somam exatamente 100.
+// - "Meio de campo" (usado hoje só por "Meia") veio de uma conversa anterior
+//   do Rafael com o sócio (ChatGPT) — os pesos somam 93 (não 100); a função
 //   calcularNotaTecnica() normaliza pela soma dos pesos, então isso não
-//   quebra a conta, mas vale conferir com o sócio se não faltou um fundamento.
+//   quebra a conta, mas vale conferir com o sócio se não faltou um
+//   fundamento. Agora que "Volante" tem peso próprio confirmado, esse
+//   conjunto "Meio de campo" ficou sendo só o rascunho de "Meia".
 // - Goleiro, Zagueiro, Lateral e Atacante AINDA NÃO foram combinados com o
 //   sócio — são um ponto de partida razoável que eu (Claude) montei, só
 //   pra existir uma estrutura pra revisar. Tratar como rascunho até vir
-//   confirmação real, igual foi feito com meio de campo.
+//   confirmação real, igual foi feito com Volante e Meio de campo.
 // - Ainda NÃO está ligado nas telas de Avaliações/Atletas — é só a lógica,
 //   isolada aqui, pra vocês avaliarem os números antes de eu mexer na
 //   interface (formulário, tela de resultado, ranking de fundamentos).
 //
 // As chaves de posição usam exatamente os mesmos textos do <select> de
 // posição em atletas.html (Goleiro/Zagueiro/Lateral/Volante/Meia/Atacante).
-// "Volante" e "Meia" apontam pro mesmo conjunto de "Meio de campo" por
-// enquanto — dá pra separar os dois depois, se o sócio quiser diferenciar
-// volante (mais defensivo) de meia (mais ofensivo).
 // ------------------------------------------------------
 
+// Confirmado com o sócio (26/08/2026) — pesos somam 100.
+const FUNDAMENTOS_VOLANTE = {
+  posicionamento: { label: "Posicionamento", peso: 16 },
+  interceptacao: { label: "Interceptação", peso: 15 },
+  desarme: { label: "Desarme", peso: 13 },
+  desarmeAntecipado: { label: "Desarme antecipado", peso: 12 },
+  marcacao: { label: "Marcação", peso: 10 },
+  passe: { label: "Passe", peso: 10 },
+  leituraDeJogo: { label: "Leitura de jogo", peso: 8 },
+  condicionamentoFisico: { label: "Condicionamento físico", peso: 7 },
+  controleOrientado: { label: "Controle orientado", peso: 4 },
+  peNaoDominante: { label: "Pé não dominante", peso: 3 },
+  conducao: { label: "Condução", peso: 2 },
+};
+
+// Rascunho — conversa anterior com o sócio, pesos somam 93 (ver status acima).
 const FUNDAMENTOS_MEIO_DE_CAMPO = {
   interceptacao: { label: "Interceptação", peso: 18 },
   posicionamento: { label: "Posicionamento", peso: 18 },
@@ -185,7 +202,7 @@ export const FUNDAMENTOS_POR_POSICAO = {
   Goleiro: FUNDAMENTOS_GOLEIRO,
   Zagueiro: FUNDAMENTOS_ZAGUEIRO,
   Lateral: FUNDAMENTOS_LATERAL,
-  Volante: FUNDAMENTOS_MEIO_DE_CAMPO,
+  Volante: FUNDAMENTOS_VOLANTE,
   Meia: FUNDAMENTOS_MEIO_DE_CAMPO,
   Atacante: FUNDAMENTOS_ATACANTE,
 };
@@ -216,4 +233,31 @@ export function analisarFundamentos(posicao, notasFundamentos) {
     melhor: ranking[0] || null,
     piorAMelhorar: ranking[ranking.length - 1] || null,
   };
+}
+
+// ------------------------------------------------------
+// Indicador de "inteligência defensiva" (Volante) — combina os 4
+// fundamentos que mostram quem realmente entende o jogo: posicionamento,
+// interceptação, desarme antecipado e leitura de jogo. O sócio pediu pra
+// "combinar" esses 4 sem especificar peso relativo entre eles, então usei
+// os pesos originais de cada um (16/15/12/8), recalculados só entre esses
+// 4 — ou seja, mantém a mesma proporção de importância que eles já têm na
+// nota geral do Volante. Ajustar aqui se o sócio preferir outro critério
+// (ex: média simples, pesos diferentes).
+// ------------------------------------------------------
+const PESOS_INTELIGENCIA_DEFENSIVA = {
+  posicionamento: 16,
+  interceptacao: 15,
+  desarmeAntecipado: 12,
+  leituraDeJogo: 8,
+};
+
+export function calcularInteligenciaDefensiva(notasFundamentos) {
+  const chaves = Object.keys(PESOS_INTELIGENCIA_DEFENSIVA);
+  const somaPesos = chaves.reduce((soma, chave) => soma + PESOS_INTELIGENCIA_DEFENSIVA[chave], 0);
+  const soma = chaves.reduce(
+    (total, chave) => total + (notasFundamentos[chave] || 0) * PESOS_INTELIGENCIA_DEFENSIVA[chave],
+    0
+  );
+  return Math.round((soma / somaPesos) * 10) / 10;
 }
