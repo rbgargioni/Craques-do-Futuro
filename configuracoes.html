@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Configurações</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Perfil do treinador, turmas e preferências da escola.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -67,68 +67,103 @@
       </div>
     </header>
 
-    <!-- STATUS DE CONEXÃO -->
-    <div class="status-note">
-      <span>⚠</span>
-      <span><strong>Banco de dados (Firebase) ainda não conectado.</strong> Por enquanto, tudo aqui é apenas visual — nada é salvo de verdade.</span>
-    </div>
-
-    <div class="two-col">
-
-      <!-- PERFIL DO TREINADOR -->
-      <section class="panel">
-        <div class="panel-head">
-          <h3>Perfil do treinador</h3>
+    <!-- PERFIL DO TREINADOR -->
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Perfil do treinador</h3>
+        <span class="tag">ainda não conectado</span>
+      </div>
+      <form class="form-grid" data-fake-form="Seus dados serão salvos assim que o banco de dados (Firebase) estiver conectado.">
+        <div class="field field--full">
+          <label for="nomeTreinador">Nome</label>
+          <input type="text" id="nomeTreinador" name="nome" value="Rafael Terra">
         </div>
-        <form class="form-grid" data-fake-form="Seus dados serão salvos assim que o banco de dados (Firebase) estiver conectado.">
-          <div class="field field--full">
-            <label for="nomeTreinador">Nome</label>
-            <input type="text" id="nomeTreinador" name="nome" value="Rafael Terra">
-          </div>
-          <div class="field">
-            <label for="emailTreinador">E-mail</label>
-            <input type="email" id="emailTreinador" name="email" placeholder="seu@email.com">
-          </div>
-          <div class="field">
-            <label for="telefoneTreinador">Telefone</label>
-            <input type="tel" id="telefoneTreinador" name="telefone" placeholder="(00) 00000-0000">
-          </div>
-          <div class="form-actions field--full">
-            <button type="submit" class="btn btn-primary">Salvar perfil</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- DADOS DA TURMA -->
-      <section class="panel">
-        <div class="panel-head">
-          <h3>Turma ativa</h3>
+        <div class="field">
+          <label for="emailTreinador">E-mail</label>
+          <input type="email" id="emailTreinador" name="email" placeholder="seu@email.com">
         </div>
-        <form class="form-grid" data-fake-form="Os dados da turma serão salvos assim que o banco de dados (Firebase) estiver conectado.">
-          <div class="field">
-            <label for="nomeTurma">Nome da turma</label>
-            <input type="text" id="nomeTurma" name="turma" value="Sub-13">
-          </div>
-          <div class="field">
-            <label for="temporada">Temporada</label>
-            <input type="text" id="temporada" name="temporada" value="2026">
-          </div>
-          <div class="field field--full">
-            <label for="categoria">Categoria / nascidos em</label>
-            <input type="text" id="categoria" name="categoria" value="2013/2014">
-          </div>
-          <div class="form-actions field--full">
-            <button type="submit" class="btn btn-primary">Salvar turma</button>
-          </div>
-        </form>
-      </section>
+        <div class="field">
+          <label for="telefoneTreinador">Telefone</label>
+          <input type="tel" id="telefoneTreinador" name="telefone" placeholder="(00) 00000-0000">
+        </div>
+        <div class="form-actions field--full">
+          <button type="submit" class="btn btn-primary">Salvar perfil</button>
+        </div>
+      </form>
+    </section>
 
-    </div>
+    <!-- TURMAS -->
+    <section class="page-header" style="margin-top:20px;">
+      <h2>Turmas</h2>
+      <div class="page-header-actions">
+        <button class="btn btn-primary" id="btnCadastrarTurma" data-toggle-panel="painelTurma">＋ Nova turma</button>
+      </div>
+    </section>
+
+    <section class="panel is-hidden" id="painelTurma">
+      <div class="panel-head">
+        <h3>Nova turma</h3>
+      </div>
+      <form id="formCadastrarTurma" class="form-grid">
+        <div class="field">
+          <label for="nomeTurma">Nome da turma</label>
+          <input type="text" id="nomeTurma" name="nome" placeholder="Ex: Sub-13 A" required>
+        </div>
+        <div class="field">
+          <label for="categoriaTurma">Categoria</label>
+          <input type="text" id="categoriaTurma" name="categoria" placeholder="Ex: Sub-13" required>
+        </div>
+        <div class="field field--full">
+          <label for="temporadaTurma">Temporada</label>
+          <input type="text" id="temporadaTurma" name="temporada" placeholder="Ex: 2026" required>
+        </div>
+        <div class="form-actions field--full">
+          <button type="button" class="btn btn-outline" data-toggle-panel="painelTurma">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar turma</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel is-hidden" id="painelEditarTurma">
+      <div class="panel-head">
+        <h3 id="tituloEditarTurma">Editar turma</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelEditarTurma">Fechar</button>
+      </div>
+      <form id="formEditarTurma" class="form-grid">
+        <div class="field">
+          <label for="nomeEditarTurma">Nome da turma</label>
+          <input type="text" id="nomeEditarTurma" name="nome" required>
+        </div>
+        <div class="field">
+          <label for="categoriaEditarTurma">Categoria</label>
+          <input type="text" id="categoriaEditarTurma" name="categoria" required>
+        </div>
+        <div class="field">
+          <label for="temporadaEditarTurma">Temporada</label>
+          <input type="text" id="temporadaEditarTurma" name="temporada" required>
+        </div>
+        <div class="field">
+          <label for="ativaEditarTurma">Status</label>
+          <select id="ativaEditarTurma" name="ativa">
+            <option value="true">Ativa</option>
+            <option value="false">Inativa</option>
+          </select>
+        </div>
+        <div class="form-actions field--full">
+          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card-grid" id="listaTurmas" style="margin-bottom:20px;">
+      <p class="empty-state">Carregando turmas...</p>
+    </section>
 
     <!-- PREFERÊNCIAS -->
     <section class="panel" style="margin-top:20px;">
       <div class="panel-head">
         <h3>Preferências</h3>
+        <span class="tag">ainda não conectado</span>
       </div>
 
       <div class="switch-row">
@@ -165,10 +200,12 @@
       </div>
     </section>
 
+
   </main>
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/turmas.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

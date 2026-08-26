@@ -223,6 +223,15 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.18); }
 
+/* select.btn-ghost (ex: seletor de turma) — o popup nativo do <select> tem fundo
+   claro, então sem isso as opções herdavam o "color: #fff" do botão e ficavam
+   com texto branco em fundo branco (só a opção destacada aparecia). */
+select.btn-ghost { cursor: pointer; }
+select.btn-ghost option {
+  color: var(--text);
+  background: var(--card);
+}
+
 /* ===================================================
    STAT CARDS
 =================================================== */

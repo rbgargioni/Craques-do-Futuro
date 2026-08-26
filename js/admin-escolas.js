@@ -7,9 +7,13 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, addDoc, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp, Timestamp,
+  collection, addDoc, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app as appPrincipal, db } from "./firebase-init.js";
+
+// onSnapshot ativo da lista de administradores da escola aberta no painel de edição —
+// precisa ser cancelado ao trocar de escola, senão fica ouvindo a escola antiga também.
+let pararDeOuvirAdministradores = null;
 
 // Cria uma conta de login (Auth) sem deslogar o dono: usa uma segunda instância
 // isolada do Firebase App só pra essa chamada, e descarta ela logo depois.
@@ -47,11 +51,13 @@ function dataInputParaTimestamp(valorInput) {
   return Timestamp.fromDate(new Date(`${valorInput}T12:00:00`));
 }
 
-function criarCardEscola(dados) {
+function criarCardEscola(escolaId, dados) {
   const card = document.createElement("div");
   card.className = "entity-card";
   card.dataset.searchItem = "";
   card.dataset.name = dados.nome;
+  card.style.cursor = "pointer";
+  card.title = "Clique para editar";
 
   const top = document.createElement("div");
   top.className = "entity-card-top";
@@ -72,45 +78,188 @@ function criarCardEscola(dados) {
   foot.append(badge, tag);
 
   card.append(top, foot);
+  card.addEventListener("click", () => abrirEdicaoEscola(escolaId, dados));
   window.CFBadgeLicenca(badge);
   return card;
+}
+
+function ouvirSocios() {
+  const lista = document.getElementById("listaSocios");
+  const q = query(collection(db, "usuarios"), where("role", "==", "dono"));
+  onSnapshot(
+    q,
+    (snapshot) => {
+      lista.innerHTML = "";
+      if (snapshot.empty) {
+        lista.innerHTML = '<li class="empty-state">Nenhum sócio cadastrado ainda.</li>';
+        return;
+      }
+      snapshot.forEach((docSnap) => {
+        const dados = docSnap.data();
+        const li = document.createElement("li");
+        li.className = "message-item";
+        const head = document.createElement("div");
+        head.className = "message-item-head";
+        const nomeEl = document.createElement("strong");
+        nomeEl.textContent = dados.nome || dados.email;
+        const emailEl = document.createElement("span");
+        emailEl.textContent = dados.email;
+        head.append(nomeEl, emailEl);
+        li.appendChild(head);
+        lista.appendChild(li);
+      });
+    },
+    (erro) => {
+      console.error("Erro ao carregar sócios:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar os sócios.</li>';
+    }
+  );
+}
+
+function configurarFormAdicionarSocio() {
+  const form = document.getElementById("formAdicionarSocio");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    esconderErro();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Adicionando...";
+
+    try {
+      const nome = form.nome.value.trim();
+      const email = form.email.value.trim();
+      const senha = form.senha.value;
+
+      const novoUid = await criarContaSemDeslogar(email, senha);
+      await setDoc(doc(db, "usuarios", novoUid), {
+        role: "dono",
+        escolaId: null,
+        nome,
+        email,
+      });
+
+      showToast(`Sócio "${nome}" adicionado.`);
+      form.reset();
+      document.getElementById("painelSocio").classList.add("is-hidden");
+    } catch (erro) {
+      console.error(erro);
+      mostrarErro(traduzirErro(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Adicionar sócio";
+    }
+  });
+}
+
+function ouvirAdministradoresDaEscola(escolaId) {
+  const lista = document.getElementById("listaAdministradoresEscola");
+  lista.innerHTML = '<li class="empty-state">Carregando...</li>';
+
+  if (pararDeOuvirAdministradores) pararDeOuvirAdministradores();
+
+  const q = query(collection(db, "usuarios"), where("escolaId", "==", escolaId), where("role", "==", "administrador"));
+  pararDeOuvirAdministradores = onSnapshot(
+    q,
+    (snapshot) => {
+      lista.innerHTML = "";
+      if (snapshot.empty) {
+        lista.innerHTML = '<li class="empty-state">Nenhum administrador cadastrado ainda.</li>';
+        return;
+      }
+      snapshot.forEach((docSnap) => {
+        const dados = docSnap.data();
+        const li = document.createElement("li");
+        li.className = "message-item";
+        const head = document.createElement("div");
+        head.className = "message-item-head";
+        const nomeEl = document.createElement("strong");
+        nomeEl.textContent = dados.nome || dados.email;
+        const emailEl = document.createElement("span");
+        emailEl.textContent = dados.email;
+        head.append(nomeEl, emailEl);
+        li.appendChild(head);
+        lista.appendChild(li);
+      });
+    },
+    (erro) => {
+      console.error("Erro ao carregar administradores:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar os administradores.</li>';
+    }
+  );
+}
+
+function abrirEdicaoEscola(escolaId, dados) {
+  esconderErro();
+
+  const form = document.getElementById("formEditarEscola");
+  form.dataset.escolaId = escolaId;
+  form.nome.value = dados.nome;
+  form.licencaInicio.value = dados.licencaInicio.toDate().toISOString().slice(0, 10);
+  form.licencaFim.value = dados.licencaFim.toDate().toISOString().slice(0, 10);
+  form.status.value = dados.status || "ativa";
+
+  document.getElementById("tituloEditarEscola").textContent = `Editar ${dados.nome}`;
+  document.getElementById("escolaDoAdminHidden").value = escolaId;
+  document.getElementById("nomeEscolaParaAdmin").textContent = dados.nome;
+
+  document.getElementById("painelEscola").classList.add("is-hidden");
+  document.getElementById("painelAdministrador").classList.add("is-hidden");
+
+  const painel = document.getElementById("painelEditarEscola");
+  painel.classList.remove("is-hidden");
+  painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  ouvirAdministradoresDaEscola(escolaId);
+}
+
+function configurarFormEditarEscola() {
+  const form = document.getElementById("formEditarEscola");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    esconderErro();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      const escolaId = form.dataset.escolaId;
+      await updateDoc(doc(db, "escolas", escolaId), {
+        nome: form.nome.value.trim(),
+        licencaInicio: dataInputParaTimestamp(form.licencaInicio.value),
+        licencaFim: dataInputParaTimestamp(form.licencaFim.value),
+        status: form.status.value,
+      });
+      document.getElementById("tituloEditarEscola").textContent = `Editar ${form.nome.value.trim()}`;
+      showToast("Escola atualizada.");
+    } catch (erro) {
+      console.error(erro);
+      mostrarErro(traduzirErro(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar alterações";
+    }
+  });
 }
 
 function carregarEscolas() {
   const container = document.getElementById("listaEscolas");
   const totalEl = document.getElementById("totalEscolas");
-  const selectEscola = document.getElementById("escolaDoAdmin");
 
   onSnapshot(
     collection(db, "escolas"),
     (snapshot) => {
       container.innerHTML = "";
-      selectEscola.innerHTML = "";
 
       if (snapshot.empty) {
         container.innerHTML = '<p class="empty-state">Nenhuma escola cadastrada ainda. Clique em "Cadastrar escola" pra criar a primeira.</p>';
-        const opt = document.createElement("option");
-        opt.textContent = "Nenhuma escola cadastrada ainda";
-        selectEscola.appendChild(opt);
         totalEl.textContent = "0 clientes";
         return;
       }
 
       totalEl.textContent = `${snapshot.size} cliente${snapshot.size === 1 ? "" : "s"}`;
 
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = "Selecione...";
-      selectEscola.appendChild(placeholder);
-
       snapshot.forEach((docSnap) => {
-        const dados = docSnap.data();
-        container.appendChild(criarCardEscola(dados));
-
-        const opt = document.createElement("option");
-        opt.value = docSnap.id;
-        opt.textContent = dados.nome;
-        selectEscola.appendChild(opt);
+        container.appendChild(criarCardEscola(docSnap.id, docSnap.data()));
       });
     },
     (erro) => {
@@ -195,6 +344,7 @@ function configurarFormAdicionarAdministrador() {
 
       showToast(`Administrador "${nome}" adicionado.`);
       form.reset();
+      form.escola.value = escolaId; // reset() limpa o hidden — a escola aberta no painel continua a mesma
       document.getElementById("painelAdministrador").classList.add("is-hidden");
     } catch (erro) {
       console.error(erro);
@@ -207,7 +357,15 @@ function configurarFormAdicionarAdministrador() {
 }
 
 document.addEventListener("cf:pronto", () => {
+  ouvirSocios();
+  configurarFormAdicionarSocio();
   carregarEscolas();
   configurarFormCadastrarEscola();
+  configurarFormEditarEscola();
   configurarFormAdicionarAdministrador();
+
+  // "Cadastrar escola" e "Editar escola" não fazem sentido abertos ao mesmo tempo
+  document.getElementById("btnCadastrarEscola").addEventListener("click", () => {
+    document.getElementById("painelEditarEscola").classList.add("is-hidden");
+  });
 });

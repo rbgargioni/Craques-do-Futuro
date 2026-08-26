@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Atletas</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Elenco da escola, por turma.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,20 +71,27 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a> antes de cadastrar atletas.</span>
+    </p>
 
     <!-- HEADER DA PÁGINA -->
     <section class="page-header" id="cadastrar">
-      <h2>Elenco da turma <span class="tag">22 atletas</span></h2>
+      <h2>Elenco da turma <span class="tag" id="totalAtletas">carregando...</span></h2>
       <div class="page-header-actions">
         <label class="search-bar">
           <span>🔍</span>
-          <input type="text" placeholder="Buscar atleta..." data-search=".card-grid">
+          <input type="text" placeholder="Buscar atleta..." data-search="#listaAtletas">
         </label>
-        <button class="btn btn-primary" data-toggle-panel="painelCadastro">＋ Cadastrar atleta</button>
+        <button class="btn btn-primary" id="btnCadastrarAtleta" data-toggle-panel="painelCadastro">＋ Cadastrar atleta</button>
       </div>
     </section>
 
@@ -93,7 +100,7 @@
       <div class="panel-head">
         <h3>Novo atleta</h3>
       </div>
-      <form class="form-grid" data-fake-form="O atleta será salvo assim que o banco de dados (Firebase) estiver conectado.">
+      <form id="formCadastrarAtleta" class="form-grid">
         <div class="field">
           <label for="nomeAtleta">Nome completo</label>
           <input type="text" id="nomeAtleta" name="nome" placeholder="Ex: Miguel Santos" required>
@@ -111,7 +118,7 @@
         </div>
         <div class="field">
           <label for="nascimentoAtleta">Data de nascimento</label>
-          <input type="date" id="nascimentoAtleta" name="nascimento">
+          <input type="date" id="nascimentoAtleta" name="nascimento" required>
         </div>
         <div class="field">
           <label for="telefoneResponsavel">Telefone do responsável</label>
@@ -128,345 +135,16 @@
       </form>
     </section>
 
-    <!-- GRID DE ATLETAS -->
-    <section class="card-grid">
-
-      <div class="entity-card" data-search-item data-name="Miguel Santos">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">MS</span>
-          <div>
-            <strong>Miguel Santos</strong>
-            <span>Meia Atacante · 2013</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">8,7</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="9" data-proxima-categoria="Sub-13">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-11</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">9</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="João Pedro">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">JP</span>
-          <div>
-            <strong>João Pedro</strong>
-            <span>Zagueiro · 2014</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">8,2</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="7" data-proxima-categoria="Sub-13">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-11</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">7</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Lucas Martins">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">LM</span>
-          <div>
-            <strong>Lucas Martins</strong>
-            <span>Volante · 2013</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">8,0</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="6" data-proxima-categoria="Sub-13">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-11</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">6</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Enzo Ferreira">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">EF</span>
-          <div>
-            <strong>Enzo Ferreira</strong>
-            <span>Zagueiro · 2013</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">7,1</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="4" data-proxima-categoria="Sub-15">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-13</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">4</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Davi Souza">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">DS</span>
-          <div>
-            <strong>Davi Souza</strong>
-            <span>Meio-campo · 2014</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">7,5</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="9" data-proxima-categoria="Sub-13">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-11</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">9</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Pedro Henrique">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">PH</span>
-          <div>
-            <strong>Pedro Henrique</strong>
-            <span>Atacante · 2013</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">6,8</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="3" data-proxima-categoria="Sub-15">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-13</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">3</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Thiago Almeida">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">TA</span>
-          <div>
-            <strong>Thiago Almeida</strong>
-            <span>Lateral · 2014</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Ativo</span>
-          <span class="pill pill--good">7,0</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-11" data-nivel="5" data-proxima-categoria="Sub-13">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-11</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">5</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-13</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Gustavo Lima">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">GL</span>
-          <div>
-            <strong>Gustavo Lima</strong>
-            <span>Lateral · 2014</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--bad">Atenção</span>
-          <span class="pill pill--warn">5,6</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-9" data-nivel="6" data-proxima-categoria="Sub-11">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-9</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">6</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-11</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Rafael Costa">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">RC</span>
-          <div>
-            <strong>Rafael Costa</strong>
-            <span>Atacante · 2013</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--bad">Atenção</span>
-          <span class="pill pill--warn">5,8</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-13" data-nivel="2" data-proxima-categoria="Sub-15">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-13</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">2</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-15</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
-      <div class="entity-card" data-search-item data-name="Bruno Alves">
-        <div class="entity-card-top">
-          <span class="athlete-avatar">BA</span>
-          <div>
-            <strong>Bruno Alves</strong>
-            <span>Goleiro · 2014</span>
-          </div>
-        </div>
-        <div class="entity-card-foot">
-          <span class="badge badge--bad">Atenção</span>
-          <span class="pill pill--warn">6,0</span>
-        </div>
-        <div class="nivel-row" data-nivel-atleta data-categoria="Sub-9" data-nivel="4" data-proxima-categoria="Sub-11">
-          <div class="nivel-info">
-            <span class="nivel-categoria">Sub-9</span>
-            <div class="nivel-dots">
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-              <span class="nivel-dot"></span><span class="nivel-dot"></span><span class="nivel-dot"></span>
-            </div>
-          </div>
-          <div class="nivel-stepper">
-            <button type="button" class="nivel-btn" data-nivel-dir="-1" aria-label="Diminuir nível">−</button>
-            <strong class="nivel-valor">4</strong>
-            <button type="button" class="nivel-btn" data-nivel-dir="1" aria-label="Aumentar nível">+</button>
-          </div>
-        </div>
-        <div class="nivel-pronto is-hidden">
-          <span>⬆ Pronto para <strong data-proxima-categoria-label>Sub-11</strong></span>
-          <button type="button" class="btn btn-primary btn-sm" data-promover>Promover</button>
-        </div>
-      </div>
-
+    <!-- GRID DE ATLETAS (preenchido pelo js/atletas.js) -->
+    <section class="card-grid" id="listaAtletas">
+      <p class="empty-state">Carregando atletas...</p>
     </section>
 
   </main>
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/atletas.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Olá, Professor 👋</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Turma, atletas e evolução já são dados reais. O resto (presença de hoje, destaques e gráficos) ainda é um esboço.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,17 +71,24 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- STATS -->
     <section class="stat-grid">
       <div class="stat-card">
         <span class="stat-icon stat-icon--neutral">👥</span>
         <div>
-          <strong>22</strong>
+          <strong id="statTotalAtletas">—</strong>
           <span>Total de atletas</span>
         </div>
       </div>
@@ -107,12 +114,13 @@
         </div>
       </div>
     </section>
+    <p class="muted" style="margin:-12px 0 20px;">Presentes/Ausentes/Atrasado ainda são fictícios — dependem da Frequência, que ainda não está conectada.</p>
 
     <!-- DESTAQUES / ATENÇÃO -->
     <section class="two-col">
       <div class="panel">
         <div class="panel-head">
-          <h3>⭐ Destaques da turma</h3>
+          <h3>⭐ Destaques da turma <span class="tag">ainda não conectado</span></h3>
           <a href="atletas.html" class="link">Ver todos</a>
         </div>
         <ul class="athlete-list">
@@ -136,7 +144,7 @@
 
       <div class="panel">
         <div class="panel-head">
-          <h3>⚠ Atenção do treinador</h3>
+          <h3>⚠ Atenção do treinador <span class="tag">ainda não conectado</span></h3>
           <a href="atletas.html" class="link">Ver lista</a>
         </div>
         <ul class="athlete-list">
@@ -165,17 +173,8 @@
         <h3>📈 Prontos para evoluir de categoria</h3>
         <a href="atletas.html" class="link">Ver atletas</a>
       </div>
-      <ul class="athlete-list">
-        <li>
-          <span class="athlete-avatar">MS</span>
-          <div class="athlete-info"><strong>Miguel Santos</strong><span>Nível 9/9 em Sub-11</span></div>
-          <button class="btn btn-primary btn-sm" data-fake-action="Promoção de Miguel Santos para Sub-13 será salva quando o banco de dados (Firebase) estiver conectado.">Promover para Sub-13</button>
-        </li>
-        <li>
-          <span class="athlete-avatar">DS</span>
-          <div class="athlete-info"><strong>Davi Souza</strong><span>Nível 9/9 em Sub-11</span></div>
-          <button class="btn btn-primary btn-sm" data-fake-action="Promoção de Davi Souza para Sub-13 será salva quando o banco de dados (Firebase) estiver conectado.">Promover para Sub-13</button>
-        </li>
+      <ul class="athlete-list" id="listaProntosEvoluir">
+        <li class="empty-state">Carregando...</li>
       </ul>
     </section>
 
@@ -261,6 +260,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/dashboard.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

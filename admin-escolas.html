@@ -32,6 +32,42 @@
 
 <main class="simple-main">
 
+  <!-- SÓCIOS DA CONTA (donos) -->
+  <section class="page-header">
+    <h2>Sócios da conta</h2>
+    <div class="page-header-actions">
+      <button class="btn btn-outline" data-toggle-panel="painelSocio">＋ Adicionar sócio</button>
+    </div>
+  </section>
+
+  <section class="panel is-hidden" id="painelSocio">
+    <div class="panel-head">
+      <h3>Novo sócio</h3>
+    </div>
+    <form id="formAdicionarSocio" class="form-grid">
+      <div class="field">
+        <label for="nomeSocio">Nome</label>
+        <input type="text" id="nomeSocio" name="nome" placeholder="Nome do sócio" required>
+      </div>
+      <div class="field">
+        <label for="emailSocio">E-mail</label>
+        <input type="email" id="emailSocio" name="email" placeholder="socio@email.com" required>
+      </div>
+      <div class="field field--full">
+        <label for="senhaSocio">Senha provisória</label>
+        <input type="text" id="senhaSocio" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
+      </div>
+      <div class="form-actions field--full">
+        <button type="button" class="btn btn-outline" data-toggle-panel="painelSocio">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Adicionar sócio</button>
+      </div>
+    </form>
+  </section>
+
+  <ul class="message-list" id="listaSocios" style="margin-bottom:28px;">
+    <li class="empty-state">Carregando...</li>
+  </ul>
+
   <section class="page-header">
     <h2>Escolas <span class="tag" id="totalEscolas">carregando...</span></h2>
     <div class="page-header-actions">
@@ -39,8 +75,7 @@
         <span>🔍</span>
         <input type="text" placeholder="Buscar escola..." data-search="#listaEscolas">
       </label>
-      <button class="btn btn-outline" data-toggle-panel="painelAdministrador">＋ Adicionar administrador</button>
-      <button class="btn btn-primary" data-toggle-panel="painelEscola">＋ Cadastrar escola</button>
+      <button class="btn btn-primary" id="btnCadastrarEscola" data-toggle-panel="painelEscola">＋ Cadastrar escola</button>
     </div>
   </section>
 
@@ -83,35 +118,70 @@
     </form>
   </section>
 
-  <!-- PAINEL: ADICIONAR ADMINISTRADOR A UMA ESCOLA EXISTENTE -->
-  <section class="panel is-hidden" id="painelAdministrador">
+  <!-- PAINEL: EDITAR ESCOLA (aberto ao clicar num card) -->
+  <section class="panel is-hidden" id="painelEditarEscola">
     <div class="panel-head">
-      <h3>Adicionar administrador a uma escola</h3>
+      <h3 id="tituloEditarEscola">Editar escola</h3>
+      <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelEditarEscola">Fechar</button>
     </div>
-    <form id="formAdicionarAdministrador" class="form-grid">
+    <form id="formEditarEscola" class="form-grid">
       <div class="field field--full">
-        <label for="escolaDoAdmin">Escola</label>
-        <select id="escolaDoAdmin" name="escola" required>
-          <option value="">Carregando escolas...</option>
+        <label for="nomeEditarEscola">Nome da escola</label>
+        <input type="text" id="nomeEditarEscola" name="nome" required>
+      </div>
+      <div class="field">
+        <label for="licencaInicioEditar">Início da licença</label>
+        <input type="date" id="licencaInicioEditar" name="licencaInicio" required>
+      </div>
+      <div class="field">
+        <label for="licencaFimEditar">Fim da licença</label>
+        <input type="date" id="licencaFimEditar" name="licencaFim" required>
+      </div>
+      <div class="field">
+        <label for="statusEditarEscola">Status</label>
+        <select id="statusEditarEscola" name="status">
+          <option value="ativa">Ativa</option>
+          <option value="suspensa">Suspensa</option>
         </select>
       </div>
-      <div class="field">
-        <label for="nomeNovoAdmin">Nome</label>
-        <input type="text" id="nomeNovoAdmin" name="nome" placeholder="Nome do administrador" required>
-      </div>
-      <div class="field">
-        <label for="emailNovoAdmin">E-mail</label>
-        <input type="email" id="emailNovoAdmin" name="email" placeholder="admin@email.com" required>
-      </div>
-      <div class="field field--full">
-        <label for="senhaNovoAdmin">Senha provisória</label>
-        <input type="text" id="senhaNovoAdmin" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
-      </div>
       <div class="form-actions field--full">
-        <button type="button" class="btn btn-outline" data-toggle-panel="painelAdministrador">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Adicionar administrador</button>
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
       </div>
     </form>
+
+    <div class="panel-head" style="margin-top:22px;">
+      <h3>Administradores desta escola</h3>
+      <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelAdministrador">＋ Adicionar administrador</button>
+    </div>
+    <ul class="message-list" id="listaAdministradoresEscola">
+      <li class="empty-state">Carregando...</li>
+    </ul>
+
+    <!-- PAINEL: ADICIONAR ADMINISTRADOR (já vinculado à escola aberta acima) -->
+    <section class="panel is-hidden" id="painelAdministrador" style="margin-top:16px; box-shadow:none; border-style:dashed;">
+      <div class="panel-head">
+        <h3>Novo administrador para <span id="nomeEscolaParaAdmin"></span></h3>
+      </div>
+      <form id="formAdicionarAdministrador" class="form-grid">
+        <input type="hidden" name="escola" id="escolaDoAdminHidden">
+        <div class="field">
+          <label for="nomeNovoAdmin">Nome</label>
+          <input type="text" id="nomeNovoAdmin" name="nome" placeholder="Nome do administrador" required>
+        </div>
+        <div class="field">
+          <label for="emailNovoAdmin">E-mail</label>
+          <input type="email" id="emailNovoAdmin" name="email" placeholder="admin@email.com" required>
+        </div>
+        <div class="field field--full">
+          <label for="senhaNovoAdmin">Senha provisória</label>
+          <input type="text" id="senhaNovoAdmin" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
+        </div>
+        <div class="form-actions field--full">
+          <button type="button" class="btn btn-outline" data-toggle-panel="painelAdministrador">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Adicionar administrador</button>
+        </div>
+      </form>
+    </section>
   </section>
 
   <!-- GRID DE ESCOLAS (preenchido pelo admin-escolas.js) -->
