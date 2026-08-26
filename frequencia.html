@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Frequência</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Chamada de hoje, por turma.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,10 +71,17 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- RESUMO DA CHAMADA (atualiza em tempo real) -->
     <section class="stat-grid">
@@ -105,121 +112,27 @@
     <section class="panel">
       <div class="panel-head">
         <h3>☑ Chamada de hoje</h3>
-        <span class="tag">Treino de hoje</span>
+        <span class="tag" id="dataChamadaHoje"></span>
       </div>
+
+      <p id="avisoChamadaFeita" class="is-hidden status-note" style="background:var(--good-bg);color:var(--good);border-color:#bfe8d1;">
+        <span>✓</span>
+        <span>Chamada de hoje já registrada — só dá pra fazer de novo amanhã.</span>
+      </p>
 
       <div class="table-wrap">
         <table class="data-table">
           <thead>
             <tr><th>Atleta</th><th>Posição</th><th>Presença</th></tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Miguel Santos</td><td>Meia Atacante</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>João Pedro</td><td>Zagueiro</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Lucas Martins</td><td>Volante</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Enzo Ferreira</td><td>Zagueiro</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Davi Souza</td><td>Meio-campo</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn is-active" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Pedro Henrique</td><td>Atacante</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Thiago Almeida</td><td>Lateral</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn is-active" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Gustavo Lima</td><td>Lateral</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn is-active" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Rafael Costa</td><td>Atacante</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn is-active" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Bruno Alves</td><td>Goleiro</td>
-              <td>
-                <div class="toggle-group">
-                  <button type="button" class="toggle-btn" data-state="presente">Presente</button>
-                  <button type="button" class="toggle-btn" data-state="atrasado">Atrasado</button>
-                  <button type="button" class="toggle-btn is-active" data-state="ausente">Ausente</button>
-                </div>
-              </td>
-            </tr>
+          <tbody id="corpoChamada">
+            <tr><td colspan="3" class="empty-state">Carregando atletas...</td></tr>
           </tbody>
         </table>
       </div>
 
-      <div class="form-actions" style="margin-top:18px;">
-        <button class="btn btn-primary" data-fake-action="A chamada será salva assim que o banco de dados (Firebase) estiver conectado.">Salvar chamada</button>
+      <div class="form-actions" style="margin-top:18px;" id="acoesChamada">
+        <button class="btn btn-primary" id="btnSalvarChamada">Salvar chamada</button>
       </div>
     </section>
 
@@ -227,6 +140,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/frequencia.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

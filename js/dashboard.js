@@ -1,12 +1,12 @@
 // ======================================================
 // Craques do Futuro — index.html (Dashboard, parcialmente conectado)
-// Turma ativa, total de atletas e "prontos para evoluir" já são reais.
-// O resto da página (presença de hoje, destaques, gráficos) ainda é mockup —
-// depende de Frequência/Avaliações, que ainda não existem.
+// Turma ativa, total de atletas, "prontos para evoluir", Destaques/Atenção
+// (avaliações) e presença de hoje (frequência) já são reais.
+// Só os 3 gráficos no fim da página ainda são mockup.
 // ======================================================
 
 import {
-  collection, doc, updateDoc, addDoc, onSnapshot, where, query, serverTimestamp,
+  collection, doc, updateDoc, addDoc, getDocs, onSnapshot, where, query, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 
@@ -20,11 +20,15 @@ const PROXIMA_CATEGORIA = {
 
 let turmasCache = {};
 let turmaAtivaId = null;
+let atletasCache = {}; // atletaId -> dados, só da turma ativa (usado no "Destaques"/"Atenção" também)
 let pararDeOuvirAtletas = null;
+let pararDeOuvirAvaliacoes = null;
 
 function escolaId() { return window.CF.escolaId; }
 function turmasRef() { return collection(db, "escolas", escolaId(), "turmas"); }
 function atletasRef() { return collection(db, "escolas", escolaId(), "atletas"); }
+function avaliacoesRef() { return collection(db, "escolas", escolaId(), "avaliacoes"); }
+function frequenciaRef() { return collection(db, "escolas", escolaId(), "frequencia"); }
 // Mesma chave usada em atletas.js — trocar a turma numa página reflete na outra.
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
 
@@ -60,6 +64,8 @@ function popularSeletorTurma() {
     turmaAtivaId = null;
     atualizarTurmaBar();
     ouvirAtletas();
+    ouvirAvaliacoes();
+    carregarPresencaHoje();
     return;
   }
 
@@ -82,6 +88,8 @@ function popularSeletorTurma() {
 
   atualizarTurmaBar();
   ouvirAtletas();
+  ouvirAvaliacoes();
+  carregarPresencaHoje();
 }
 
 function ouvirTurmas() {
@@ -102,7 +110,45 @@ function montarSeletorTurma() {
     localStorage.setItem(chaveTurmaAtiva(), turmaAtivaId);
     atualizarTurmaBar();
     ouvirAtletas();
+    ouvirAvaliacoes();
+    carregarPresencaHoje();
   });
+}
+
+// ------------------------------------------------------
+// Presença de hoje (a partir da Frequência)
+// ------------------------------------------------------
+async function carregarPresencaHoje() {
+  const statPresentes = document.getElementById("statPresentes");
+  const statAusentes = document.getElementById("statAusentes");
+  const statAtrasados = document.getElementById("statAtrasados");
+
+  if (!turmaAtivaId) {
+    statPresentes.textContent = "0";
+    statAusentes.textContent = "0";
+    statAtrasados.textContent = "0";
+    return;
+  }
+
+  try {
+    const hojeStr = new Date().toDateString();
+    const snap = await getDocs(query(frequenciaRef(), where("turmaId", "==", turmaAtivaId)));
+    const contagem = { presente: 0, atrasado: 0, ausente: 0 };
+    snap.forEach((docSnap) => {
+      const dados = docSnap.data();
+      if (dados.data && dados.data.toDate().toDateString() === hojeStr) {
+        contagem[dados.estado] = (contagem[dados.estado] || 0) + 1;
+      }
+    });
+    statPresentes.textContent = contagem.presente;
+    statAusentes.textContent = contagem.ausente;
+    statAtrasados.textContent = contagem.atrasado;
+  } catch (erro) {
+    console.error("Erro ao carregar presença de hoje:", erro);
+    statPresentes.textContent = "—";
+    statAusentes.textContent = "—";
+    statAtrasados.textContent = "—";
+  }
 }
 
 // ------------------------------------------------------
@@ -174,9 +220,11 @@ function ouvirAtletas() {
 
   const statTotal = document.getElementById("statTotalAtletas");
   const listaProntos = document.getElementById("listaProntosEvoluir");
+  atletasCache = {};
   if (!turmaAtivaId) {
     statTotal.textContent = "0";
     listaProntos.innerHTML = '<li class="empty-state">Selecione uma turma.</li>';
+    renderizarDestaquesAtencao();
     return;
   }
 
@@ -185,15 +233,112 @@ function ouvirAtletas() {
     q,
     (snapshot) => {
       const lista = [];
-      snapshot.forEach((docSnap) => lista.push({ id: docSnap.id, dados: docSnap.data() }));
+      snapshot.forEach((docSnap) => {
+        atletasCache[docSnap.id] = docSnap.data();
+        lista.push({ id: docSnap.id, dados: docSnap.data() });
+      });
       statTotal.textContent = lista.length;
       renderizarProntos(lista);
+      renderizarDestaquesAtencao();
     },
     (erro) => {
       console.error("Erro ao carregar atletas:", erro);
       statTotal.textContent = "—";
       listaProntos.innerHTML = '<li class="empty-state">Não foi possível carregar os atletas.</li>';
     }
+  );
+}
+
+// ------------------------------------------------------
+// Destaques da turma / Atenção do treinador (a partir das avaliações)
+// Usa a nota "geral" da avaliação MAIS RECENTE de cada atleta.
+// ------------------------------------------------------
+let ultimaAvaliacaoPorAtleta = {};
+
+function criarItemAthleteList(atletaId, nota, textoSecundario, classePill) {
+  const dadosAtleta = atletasCache[atletaId];
+  const li = document.createElement("li");
+  const avatar = document.createElement("span");
+  avatar.className = "athlete-avatar";
+  avatar.textContent = iniciaisDoNome(dadosAtleta ? dadosAtleta.nome : "");
+
+  const info = document.createElement("div");
+  info.className = "athlete-info";
+  const nomeEl = document.createElement("strong");
+  nomeEl.textContent = dadosAtleta ? dadosAtleta.nome : "Atleta removido";
+  const subEl = document.createElement("span");
+  subEl.textContent = textoSecundario;
+  if (classePill === "pill--warn") subEl.className = "warn-text";
+  info.append(nomeEl, subEl);
+
+  const pill = document.createElement("span");
+  pill.className = `pill ${classePill}`;
+  pill.textContent = nota.toFixed(1).replace(".", ",");
+
+  li.append(avatar, info, pill);
+  return li;
+}
+
+function renderizarDestaquesAtencao() {
+  const listaDestaques = document.getElementById("listaDestaques");
+  const listaAtencao = document.getElementById("listaAtencao");
+
+  const avaliados = Object.entries(ultimaAvaliacaoPorAtleta)
+    .filter(([atletaId]) => atletasCache[atletaId]) // só atletas que ainda estão nesta turma
+    .map(([atletaId, dados]) => ({ atletaId, geral: dados.geral }));
+
+  if (avaliados.length === 0) {
+    listaDestaques.innerHTML = '<li class="empty-state">Nenhuma avaliação registrada ainda.</li>';
+    listaAtencao.innerHTML = '<li class="empty-state">Nenhuma avaliação registrada ainda.</li>';
+    return;
+  }
+
+  const porNotaDesc = [...avaliados].sort((a, b) => b.geral - a.geral);
+  const destaques = porNotaDesc.slice(0, 3);
+  listaDestaques.innerHTML = "";
+  destaques.forEach(({ atletaId, geral }) => {
+    const posicao = atletasCache[atletaId] ? atletasCache[atletaId].posicao : "";
+    listaDestaques.appendChild(criarItemAthleteList(atletaId, geral, posicao, "pill--good"));
+  });
+
+  const emAtencao = porNotaDesc.filter((a) => a.geral < 7).slice(-3).reverse();
+  if (emAtencao.length === 0) {
+    listaAtencao.innerHTML = '<li class="empty-state">Ninguém abaixo da média no momento. 🎉</li>';
+  } else {
+    listaAtencao.innerHTML = "";
+    emAtencao.forEach(({ atletaId, geral }) => {
+      listaAtencao.appendChild(criarItemAthleteList(atletaId, geral, "Precisa evoluir", "pill--warn"));
+    });
+  }
+}
+
+function ouvirAvaliacoes() {
+  if (pararDeOuvirAvaliacoes) {
+    pararDeOuvirAvaliacoes();
+    pararDeOuvirAvaliacoes = null;
+  }
+
+  ultimaAvaliacaoPorAtleta = {};
+  if (!turmaAtivaId) {
+    renderizarDestaquesAtencao();
+    return;
+  }
+
+  const q = query(avaliacoesRef(), where("turmaId", "==", turmaAtivaId));
+  pararDeOuvirAvaliacoes = onSnapshot(
+    q,
+    (snapshot) => {
+      ultimaAvaliacaoPorAtleta = {};
+      snapshot.forEach((docSnap) => {
+        const dados = docSnap.data();
+        const atual = ultimaAvaliacaoPorAtleta[dados.atletaId];
+        if (!atual || (dados.data?.toMillis() || 0) > (atual.data?.toMillis() || 0)) {
+          ultimaAvaliacaoPorAtleta[dados.atletaId] = dados;
+        }
+      });
+      renderizarDestaquesAtencao();
+    },
+    (erro) => console.error("Erro ao carregar avaliações:", erro)
   );
 }
 

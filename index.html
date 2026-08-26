@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Olá, Professor 👋</h1>
-        <p class="muted">Turma, atletas e evolução já são dados reais. O resto (presença de hoje, destaques e gráficos) ainda é um esboço.</p>
+        <p class="muted">Turma, atletas, evolução, avaliações e presença de hoje já são dados reais. Só os gráficos abaixo ainda são um esboço.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -95,74 +95,45 @@
       <div class="stat-card">
         <span class="stat-icon stat-icon--good">✓</span>
         <div>
-          <strong>18</strong>
+          <strong id="statPresentes">—</strong>
           <span>Presentes hoje</span>
         </div>
       </div>
       <div class="stat-card">
         <span class="stat-icon stat-icon--bad">✕</span>
         <div>
-          <strong>3</strong>
+          <strong id="statAusentes">—</strong>
           <span>Ausentes hoje</span>
         </div>
       </div>
       <div class="stat-card">
         <span class="stat-icon stat-icon--warn">⏱</span>
         <div>
-          <strong>1</strong>
+          <strong id="statAtrasados">—</strong>
           <span>Atrasado hoje</span>
         </div>
       </div>
     </section>
-    <p class="muted" style="margin:-12px 0 20px;">Presentes/Ausentes/Atrasado ainda são fictícios — dependem da Frequência, que ainda não está conectada.</p>
 
     <!-- DESTAQUES / ATENÇÃO -->
     <section class="two-col">
       <div class="panel">
         <div class="panel-head">
-          <h3>⭐ Destaques da turma <span class="tag">ainda não conectado</span></h3>
-          <a href="atletas.html" class="link">Ver todos</a>
+          <h3>⭐ Destaques da turma</h3>
+          <a href="avaliacoes.html" class="link">Ver todas</a>
         </div>
-        <ul class="athlete-list">
-          <li>
-            <span class="athlete-avatar">MS</span>
-            <div class="athlete-info"><strong>Miguel Santos</strong><span>Meia Atacante</span></div>
-            <span class="pill pill--good">8,7</span>
-          </li>
-          <li>
-            <span class="athlete-avatar">JP</span>
-            <div class="athlete-info"><strong>João Pedro</strong><span>Zagueiro</span></div>
-            <span class="pill pill--good">8,2</span>
-          </li>
-          <li>
-            <span class="athlete-avatar">LM</span>
-            <div class="athlete-info"><strong>Lucas Martins</strong><span>Volante</span></div>
-            <span class="pill pill--good">8,0</span>
-          </li>
+        <ul class="athlete-list" id="listaDestaques">
+          <li class="empty-state">Carregando...</li>
         </ul>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h3>⚠ Atenção do treinador <span class="tag">ainda não conectado</span></h3>
-          <a href="atletas.html" class="link">Ver lista</a>
+          <h3>⚠ Atenção do treinador</h3>
+          <a href="avaliacoes.html" class="link">Ver todas</a>
         </div>
-        <ul class="athlete-list">
-          <li>
-            <span class="athlete-avatar">GL</span>
-            <div class="athlete-info"><strong>Gustavo Lima</strong><span class="warn-text">Frequência baixa</span></div>
-            <span class="pill pill--warn">5,6</span>
-          </li>
-          <li>
-            <span class="athlete-avatar">RC</span>
-            <div class="athlete-info"><strong>Rafael Costa</strong><span class="warn-text">Precisa evoluir</span></div>
-            <span class="pill pill--warn">5,8</span>
-          </li>
-          <li>
-            <span class="athlete-avatar">BA</span>
-            <div class="athlete-info"><strong>Bruno Alves</strong><span class="warn-text">Foco e disciplina</span></div>
-            <span class="pill pill--warn">6,0</span>
-          </li>
+        <ul class="athlete-list" id="listaAtencao">
+          <li class="empty-state">Carregando...</li>
         </ul>
       </div>
     </section>

@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Avaliações</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Histórico dos 5 Pilares por atleta, por turma.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,16 +71,23 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- HEADER DA PÁGINA -->
     <section class="page-header" id="nova">
       <h2>Histórico de avaliações</h2>
       <div class="page-header-actions">
-        <button class="btn btn-primary" data-toggle-panel="painelAvaliacao">✎ Nova avaliação</button>
+        <button class="btn btn-primary" id="btnNovaAvaliacao" data-toggle-panel="painelAvaliacao">✎ Nova avaliação</button>
       </div>
     </section>
 
@@ -89,21 +96,11 @@
       <div class="panel-head">
         <h3>Nova avaliação — Os 5 Pilares</h3>
       </div>
-      <form class="form-grid" data-fake-form="A avaliação será salva assim que o banco de dados (Firebase) estiver conectado.">
+      <form id="formNovaAvaliacao" class="form-grid">
         <div class="field">
           <label for="atletaAvaliado">Atleta</label>
           <select id="atletaAvaliado" name="atleta" required>
             <option value="">Selecione...</option>
-            <option>Miguel Santos</option>
-            <option>João Pedro</option>
-            <option>Lucas Martins</option>
-            <option>Enzo Ferreira</option>
-            <option>Davi Souza</option>
-            <option>Pedro Henrique</option>
-            <option>Thiago Almeida</option>
-            <option>Gustavo Lima</option>
-            <option>Rafael Costa</option>
-            <option>Bruno Alves</option>
           </select>
         </div>
         <div class="field">
@@ -159,43 +156,8 @@
               <th>Geral</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Miguel Santos</td>
-              <td>12/05/2026</td>
-              <td>9,0</td><td>8,8</td><td>8,3</td><td>8,9</td><td>8,5</td>
-              <td><span class="pill pill--good">8,7</span></td>
-            </tr>
-            <tr>
-              <td>João Pedro</td>
-              <td>12/05/2026</td>
-              <td>8,0</td><td>8,5</td><td>8,1</td><td>8,0</td><td>8,4</td>
-              <td><span class="pill pill--good">8,2</span></td>
-            </tr>
-            <tr>
-              <td>Lucas Martins</td>
-              <td>11/05/2026</td>
-              <td>7,8</td><td>8,0</td><td>8,2</td><td>7,9</td><td>8,1</td>
-              <td><span class="pill pill--good">8,0</span></td>
-            </tr>
-            <tr>
-              <td>Rafael Costa</td>
-              <td>10/05/2026</td>
-              <td>5,5</td><td>6,0</td><td>6,2</td><td>5,4</td><td>5,9</td>
-              <td><span class="pill pill--warn">5,8</span></td>
-            </tr>
-            <tr>
-              <td>Gustavo Lima</td>
-              <td>10/05/2026</td>
-              <td>5,3</td><td>5,8</td><td>6,0</td><td>5,2</td><td>5,7</td>
-              <td><span class="pill pill--warn">5,6</span></td>
-            </tr>
-            <tr>
-              <td>Bruno Alves</td>
-              <td>09/05/2026</td>
-              <td>6,1</td><td>5,9</td><td>6,4</td><td>5,8</td><td>5,8</td>
-              <td><span class="pill pill--warn">6,0</span></td>
-            </tr>
+          <tbody id="corpoTabelaAvaliacoes">
+            <tr><td colspan="8" class="empty-state">Carregando avaliações...</td></tr>
           </tbody>
         </table>
       </div>
@@ -205,6 +167,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/avaliacoes.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>
