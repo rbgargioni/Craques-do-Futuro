@@ -35,9 +35,7 @@ function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
 function atualizarTurmaBar() {
   const nomeEl = document.getElementById("turmaAtivaNome");
   const turma = turmasCache[turmaAtivaId];
-  nomeEl.innerHTML = turma
-    ? `${turma.nome} <small>· ${turma.categoria} · ${turma.temporada}</small>`
-    : "Nenhuma turma";
+  window.CFTurmaBar(nomeEl, turma);
 }
 
 function popularSeletorTurma() {

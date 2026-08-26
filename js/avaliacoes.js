@@ -32,9 +32,7 @@ function formatarData(timestamp) {
 function atualizarTurmaBar() {
   const nomeEl = document.getElementById("turmaAtivaNome");
   const turma = turmasCache[turmaAtivaId];
-  nomeEl.innerHTML = turma
-    ? `${turma.nome} <small>· ${turma.categoria} · ${turma.temporada}</small>`
-    : "Nenhuma turma";
+  window.CFTurmaBar(nomeEl, turma);
 }
 
 function popularSeletorTurma() {
@@ -153,7 +151,12 @@ function renderizarBlocoTecnico(atletaId) {
 
   const fundamentos = FUNDAMENTOS_POR_POSICAO[dadosAtleta.posicao];
   if (!fundamentos) {
-    bloco.innerHTML = `<p class="muted" style="margin:0;font-size:12px;">Não há fundamentos técnicos configurados pra posição "${dadosAtleta.posicao}".</p>`;
+    const aviso = document.createElement("p");
+    aviso.className = "muted";
+    aviso.style.margin = "0";
+    aviso.style.fontSize = "12px";
+    aviso.textContent = `Não há fundamentos técnicos configurados pra posição "${dadosAtleta.posicao}".`;
+    bloco.appendChild(aviso);
     return;
   }
 

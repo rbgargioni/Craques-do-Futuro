@@ -42,6 +42,25 @@ function aplicarBadgeLicenca(el) {
 window.CFBadgeLicenca = aplicarBadgeLicenca;
 document.querySelectorAll("[data-license-fim]").forEach(aplicarBadgeLicenca);
 
+// ------------------------------------------------------
+// Barra "Turma ativa" (atletas/avaliações/frequência/planos/...) — nome,
+// categoria e temporada da turma vêm de campos de texto livre no Firestore,
+// então isso monta o texto via DOM (textContent) em vez de innerHTML, pra
+// não abrir brecha de XSS caso alguém cadastre uma turma com HTML no nome.
+// ------------------------------------------------------
+function definirTurmaBar(el, turma) {
+  el.textContent = "";
+  if (!turma) {
+    el.textContent = "Nenhuma turma";
+    return;
+  }
+  el.appendChild(document.createTextNode(`${turma.nome} `));
+  const small = document.createElement("small");
+  small.textContent = `· ${turma.categoria} · ${turma.temporada}`;
+  el.appendChild(small);
+}
+window.CFTurmaBar = definirTurmaBar;
+
 // Menu mobile (sidebar retrátil)
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
