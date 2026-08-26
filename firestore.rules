@@ -25,6 +25,7 @@
 //     nome, posicao, nascimento, telefone, observacoes, turmaId, status, responsavelUids
 //     categoriaAtual, nivelAtual (1-9, ajustado manualmente), nivelDesde (Timestamp — usado para o
 //       aviso de "pronto para subir" depois de um tempo mínimo no nível 9)
+//     codigoPublico (string, 6 caracteres) — código da "Área do atleta" (ver resumosPublicos abaixo)
 //
 //     escolas/{escolaId}/atletas/{atletaId}/progressao/{progressaoId}
 //       tipo: "promocao" | "reversao"
@@ -41,6 +42,17 @@
 //   escolas/{escolaId}/mensagens/{mensagemId}
 //     turmaId, destinatarioId ("turma" | atletaId), destinatarioNome, mensagem, criadoEm
 //     -> responsável só lê mensagens onde destinatarioId é um dos atletaIds dele
+//
+// resumosPublicos/{codigoPublico}                       coleção plana, fora de escolas/{}
+//   escolaId, atletaId, nome, radar {tecnico,tatico,fisico,mental,evolucao}, notaGeral,
+//   totalPresencas, totalRegistrosFrequencia (a % de presença é calculada no cliente,
+//   dividindo esses dois — evita precisar manter um 3º campo sincronizado), atualizadoEm
+//   -> resumo público e reduzido de UM atleta, pra "Área do atleta" (area-do-atleta.html):
+//      página SEM login, onde o responsável digita o codigoPublico e vê só nome + gráficos.
+//      Só tem nome/números aqui, NUNCA telefone, observações, recados ou histórico completo
+//      (isso continua exigindo login de verdade em responsavel.html). A leitura é liberada
+//      (allow get) só por ID exato — NUNCA por list/query — então não dá pra "varrer" o banco
+//      procurando códigos: quem não souber o código de 6 caracteres não acha o documento.
 //
 // Papel e vínculos vêm de usuarios/{uid} (lido via get() nas regras), não de custom claims —
 // custom claims exigiriam Cloud Functions/Admin SDK, e este projeto é 100% client-side.
@@ -143,6 +155,16 @@ service cloud.firestore {
                      || isResponsavelDe(escolaId, resource.data.destinatarioId);
         allow write: if isDono() || isStaffAtivo(escolaId);
       }
+    }
+
+    // "Área do atleta" (area-do-atleta.html) — ver nota sobre resumosPublicos no topo do arquivo.
+    // allow get (não list) com "if true" é intencional: só quem já tem o código de 6 caracteres
+    // consegue buscar o documento exato; ninguém consegue listar/varrer a coleção sem o código.
+    match /resumosPublicos/{codigoPublico} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isDono() || isStaffAtivo(request.resource.data.escolaId);
+      allow update, delete: if isDono() || isStaffAtivo(resource.data.escolaId);
     }
   }
 }

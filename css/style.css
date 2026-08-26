@@ -539,6 +539,38 @@ select.btn-ghost option {
 .entity-card-top { display: flex; align-items: center; gap: 12px; }
 .entity-card-top strong { font-size: 14px; display: block; }
 .entity-card-top span { font-size: 12px; color: var(--text-muted); }
+
+.codigo-publico { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.codigo-publico-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.codigo-publico-linha {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px 8px;
+}
+.codigo-publico-linha strong {
+  font-family: var(--font-display);
+  font-size: 13px !important;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.codigo-publico-regenerar {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.codigo-publico-regenerar:hover { color: var(--accent-dark); }
 .entity-card-foot {
   display: flex;
   justify-content: space-between;

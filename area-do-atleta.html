@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="is-authorized">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Área do atleta — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- FORMULÁRIO DO CÓDIGO -->
+<div class="auth-shell" id="telaCodigo">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <h1>Área do atleta</h1>
+    <p class="muted">Digite o código de 6 caracteres que o técnico entregou pra você.</p>
+
+    <form id="formCodigo">
+      <p id="erroCodigo" class="is-hidden" style="color:var(--bad);font-size:12px;margin:-6px 0 0;">&nbsp;</p>
+      <div class="field">
+        <label for="codigo">Código</label>
+        <input
+          type="text" id="codigo" name="codigo" placeholder="Ex: VA02T5" maxlength="6" required autocomplete="off"
+          style="text-transform:uppercase;letter-spacing:0.14em;text-align:center;font-family:var(--font-display);font-size:18px;font-weight:700;">
+      </div>
+      <button type="submit" class="btn btn-primary">Ver evolução</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="login.html">Sou técnico, administrador ou dono</a>
+    </div>
+
+    <p class="auth-role-hint">
+      Aqui você só vê o nome do atleta e gráficos de evolução — sem login, sem senha.
+      Pra ver recados do técnico e o histórico completo, use o login com e-mail e senha
+      que o técnico cadastrou pra você.
+    </p>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<main class="simple-main is-hidden" id="areaResultado" style="max-width: 760px;">
+
+  <header style="display:flex; align-items:center; justify-content:space-between; padding:24px 0 8px;">
+    <div class="brand" style="padding:0;">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline btn-sm" id="btnOutroCodigo">Consultar outro código</button>
+  </header>
+
+  <section class="turma-bar" style="margin-top:12px;">
+    <div>
+      <span class="eyebrow">Área do atleta</span>
+      <h2 id="nomeAtletaResultado">—</h2>
+    </div>
+  </section>
+
+  <section class="stat-grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="stat-card">
+      <span class="stat-icon stat-icon--good">⭐</span>
+      <div>
+        <strong id="resNotaGeral">—</strong>
+        <span>Nota geral</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon stat-icon--neutral">✓</span>
+      <div>
+        <strong id="resFrequencia">—</strong>
+        <span>Frequência</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="chart-grid" style="grid-template-columns: repeat(2, 1fr);">
+
+    <div class="panel panel--pilares">
+      <div class="panel-head">
+        <h3>Os 5 Pilares</h3>
+        <span class="tag">Atual</span>
+      </div>
+      <div class="radar-wrap">
+        <svg class="radar" viewBox="0 0 240 240">
+          <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
+          <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
+          <polygon class="radar-shape" id="resRadarShape" points="120,120 120,120 120,120 120,120 120,120"></polygon>
+          <text x="120" y="14" class="radar-label">Técnico</text>
+          <text x="222" y="94" class="radar-label">Tático</text>
+          <text x="184" y="222" class="radar-label">Mental</text>
+          <text x="56" y="222" class="radar-label">Físico</text>
+          <text x="10" y="94" class="radar-label">Evolução</text>
+        </svg>
+        <div class="radar-score">
+          <strong id="resRadarMedia">—</strong>
+          <span>média geral</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Frequência</h3>
+        <span class="tag">Geral</span>
+      </div>
+      <div class="donut-wrap">
+        <svg class="donut" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="48" class="donut-track"></circle>
+          <circle cx="60" cy="60" r="48" class="donut-value" id="resDonutValor" style="stroke-dasharray:301.6; stroke-dashoffset:301.6;"></circle>
+        </svg>
+        <div class="donut-score">
+          <strong id="resDonutPercentual">—</strong>
+          <span>presença</span>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="dot dot--good"></i>Presente</span>
+        <span><i class="dot dot--bad"></i>Ausente</span>
+        <span><i class="dot dot--warn"></i>Atrasado</span>
+      </div>
+    </div>
+
+  </section>
+
+  <p class="muted" style="text-align:center;font-size:12px;">
+    Pra ver recados do técnico e o histórico completo de avaliações, peça pro técnico
+    cadastrar seu e-mail e use o <a href="login.html">login completo</a>.
+  </p>
+
+</main>
+
+<script type="module" src="js/area-do-atleta.js"></script>
+<script src="js/Script.js"></script>
+</body>
+</html>

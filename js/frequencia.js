@@ -8,9 +8,11 @@
 // ======================================================
 
 import {
-  collection, doc, getDocs, writeBatch, onSnapshot, query, where, Timestamp,
+  collection, doc, getDocs, writeBatch, increment, serverTimestamp, onSnapshot, query, where, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
+
+function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 
 const ROTULO_BADGE = {
   presente: { texto: "Presente", classe: "badge--done" },
@@ -168,6 +170,7 @@ function criarLinhaChamada(atletaId, dados) {
   const group = document.createElement("div");
   group.className = "toggle-group";
   group.dataset.atletaId = atletaId;
+  group.dataset.codigoPublico = dados.codigoPublico || "";
 
   const estadoAtual = estadosHojeCache[atletaId] || "presente";
   [["presente", "Presente"], ["atrasado", "Atrasado"], ["ausente", "Ausente"]].forEach(([estado, rotulo]) => {
@@ -283,6 +286,18 @@ function configurarBotaoSalvar() {
           data: dataTimestamp,
           estado,
         });
+
+        // Mantém a "Área do atleta" (resumosPublicos) com o contador de presença em
+        // dia. Usa increment() em vez de recalcular do zero — não depende de reler
+        // o histórico inteiro a cada chamada salva.
+        const codigoPublico = grupo.dataset.codigoPublico;
+        if (codigoPublico) {
+          batch.update(resumoPublicoRef(codigoPublico), {
+            totalRegistrosFrequencia: increment(1),
+            totalPresencas: increment(estado === "presente" ? 1 : 0),
+            atualizadoEm: serverTimestamp(),
+          });
+        }
       });
 
       await batch.commit();

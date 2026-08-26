@@ -69,7 +69,43 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `comparativos.html` | `comparativos.js` | ✅ real |
 | `configuracoes.html` | `turmas.js` | ⚠️ turmas real; formulário de perfil do usuário ainda é mockup (`data-fake-form`) |
 | `responsavel.html` | `responsavel.js` | ✅ real — evolução, radar, frequência, linha do tempo e recados do técnico |
+| `area-do-atleta.html` | `area-do-atleta.js` | ✅ real — **sem login**, ver seção própria abaixo |
 | `sem-acesso.html` | — | página estática (só precisa do auth-guard pro botão "Sair") |
+
+O responsável (`responsavel.html`) só vê **recados endereçados diretamente
+ao atleta dele** (`mensagens.destinatarioId == atletaId`) — recados de
+"toda a turma" ainda ficam só pra equipe (decisão consciente, ver
+comentário em `firestore.rules`).
+
+### Área do atleta — acesso sem login por código
+
+Cada atleta ganha um **código de 6 caracteres** (`codigoPublico`, ex:
+`VA02T5`) mostrado no card dele em `atletas.html`, com um botão pra gerar
+um novo (invalida o antigo). O responsável entra em `area-do-atleta.html`
+(link na tela de login), digita o código e vê **só o nome do atleta e
+gráficos** (radar dos 5 Pilares + % de frequência) — sem precisar de conta,
+e-mail ou senha.
+
+Isso existe porque um responsável às vezes só quer uma olhada rápida, sem
+criar conta. É **intencionalmente mais limitado** que o login completo
+(`responsavel.html`): nada de telefone, observações, recados ou histórico
+detalhado passa por aqui — só um resumo público e reduzido.
+
+Como funciona por baixo (importante entender antes de mexer):
+- `escolas/{id}/atletas/{id}.codigoPublico` é só uma referência; os dados
+  de verdade exibidos vêm de uma coleção plana separada,
+  `resumosPublicos/{codigoPublico}` (nome + radar + nota geral +
+  contadores de presença/total — nada mais).
+- Essa coleção é a **única** no projeto com leitura pública nas regras
+  (`allow get: if true`), e só por ID exato — `allow list: if false`
+  impede listar/varrer todos os códigos. Sem isso, brute-force seria trivial.
+- `js/atletas.js` cria o resumo ao cadastrar o atleta; `js/avaliacoes.js`
+  atualiza o radar/nota a cada avaliação salva; `js/frequencia.js`
+  incrementa os contadores de presença a cada chamada salva (usa
+  `increment()`, não recalcula tudo do zero).
+- Regenerar o código (botão "⟳" no card) cria um resumo novo copiando os
+  dados do antigo e apaga o antigo — pra vazamento de código não obrigar a
+  perder o histórico acumulado.
 
 `js/metricas.js` centraliza toda a régua de avaliação (nota geral, corte
 bom/atenção, tendência, progressão de categoria, pesos dos fundamentos
@@ -139,21 +175,29 @@ ainda é só lógica — não está exibido em nenhuma tela ainda.
 - A config pública do app (`js/firebase-init.js`, com `apiKey` etc.) **é
   segura de commitar** — não é segredo, é assim que o Firebase Web funciona.
   A segurança real está nas Security Rules.
+- `resumosPublicos` é a **única** coleção com leitura pública (`allow get:
+  if true`, sem `allow list`) — ver seção "Área do atleta" acima antes de
+  copiar esse padrão pra outra coleção. Tudo mais exige login.
 
-O responsável só vê **recados endereçados diretamente ao atleta dele**
-(`mensagens.destinatarioId == atletaId`) — recados de "toda a turma" ainda
-ficam só pra equipe (decisão consciente, ver comentário em
-`firestore.rules`). Não testei esta página com dados reais de ponta a
-ponta ainda (não tenho conta de responsável de teste com atleta/avaliações
-vinculadas) — validei sintaxe, geometria dos gráficos e que todo ID
-referenciado pelo JS existe no HTML, mas vale um teste manual completo
-assim que tiver dados de teste.
+## Não testado de ponta a ponta ainda (falta conta/dado real, não é bug conhecido)
+
+- `responsavel.html`/`js/responsavel.js` — validei sintaxe, geometria dos
+  gráficos e que todo ID do JS existe no HTML, mas não testei com uma
+  conta de responsável real vinculada a um atleta com avaliações/frequência/
+  recados cadastrados.
+- `area-do-atleta.html`/`js/area-do-atleta.js` — testei o fluxo de "código
+  não encontrado" contra o Firestore de verdade (funcionou), mas não testei
+  com um código real ainda porque as regras novas (`resumosPublicos`,
+  commit mais recente) **ainda não foram publicadas** no console do
+  Firebase — publique antes de testar, senão toda busca dá
+  `permission-denied`.
 
 ## Próximos passos conhecidos
 
-- Testar `responsavel.html`/`js/responsavel.js` de ponta a ponta com uma
-  conta de responsável real vinculada a um atleta com avaliações/frequência/
-  recados cadastrados.
+- Publicar a versão mais recente de `firestore.rules` no console (tem
+  regras novas de `resumosPublicos` que ainda não estão no ar).
+- Testar `responsavel.html` e `area-do-atleta.html` de ponta a ponta (ver
+  seção acima).
 - Terminar o formulário de perfil do usuário em `configuracoes.html`
   (ainda `data-fake-form`).
 - Validar com o sócio os pesos de fundamentos técnicos de Goleiro,

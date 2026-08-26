@@ -5,7 +5,7 @@
 // ======================================================
 
 import {
-  collection, addDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, updateDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 import { calcularNotaGeral, notaEhBoa, FUNDAMENTOS_POR_POSICAO, calcularNotaTecnica, analisarFundamentos } from "./metricas.js";
@@ -20,7 +20,27 @@ function escolaId() { return window.CF.escolaId; }
 function turmasRef() { return collection(db, "escolas", escolaId(), "turmas"); }
 function atletasRef() { return collection(db, "escolas", escolaId(), "atletas"); }
 function avaliacoesRef() { return collection(db, "escolas", escolaId(), "avaliacoes"); }
+function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
+
+// Mantém a "Área do atleta" (resumosPublicos) com o radar/nota mais recentes.
+// Nunca deixa um erro aqui derrubar o salvamento da avaliação em si.
+async function atualizarResumoPublico(atletaId, pilares) {
+  const atleta = atletasCache[atletaId];
+  if (!atleta || !atleta.codigoPublico) return;
+  try {
+    await updateDoc(resumoPublicoRef(atleta.codigoPublico), {
+      radar: {
+        tecnico: pilares.tecnico, tatico: pilares.tatico, fisico: pilares.fisico,
+        mental: pilares.mental, evolucao: pilares.evolucao,
+      },
+      notaGeral: pilares.geral,
+      atualizadoEm: serverTimestamp(),
+    });
+  } catch (erro) {
+    console.error("Erro ao atualizar o resumo público do atleta:", erro);
+  }
+}
 
 function formatarData(timestamp) {
   return timestamp ? timestamp.toDate().toLocaleDateString("pt-BR") : "—";
@@ -355,6 +375,7 @@ function configurarFormNovaAvaliacao() {
         observacoes: form.observacoes.value.trim(),
         criadoEm: serverTimestamp(),
       });
+      await atualizarResumoPublico(atletaId, { tecnico, tatico, fisico, mental, evolucao, geral });
 
       showToast(`Avaliação de ${atletasCache[atletaId].nome} salva.`);
       form.reset();

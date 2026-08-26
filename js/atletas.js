@@ -5,7 +5,7 @@
 // ======================================================
 
 import {
-  collection, addDoc, doc, updateDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 import { PROXIMA_CATEGORIA, NIVEL_MAXIMO, NIVEL_INICIAL, estaProntoParaEvoluir } from "./metricas.js";
@@ -17,7 +17,64 @@ let pararDeOuvirAtletas = null;
 function escolaId() { return window.CF.escolaId; }
 function turmasRef() { return collection(db, "escolas", escolaId(), "turmas"); }
 function atletasRef() { return collection(db, "escolas", escolaId(), "atletas"); }
+function atletaRef(atletaId) { return doc(db, "escolas", escolaId(), "atletas", atletaId); }
+function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
+
+// ------------------------------------------------------
+// Código da "Área do atleta" — 6 caracteres, sem 0/O/1/I/L (fácil de ler
+// e digitar, difícil de confundir). Guardado como ID do documento em
+// resumosPublicos, então já sai único por natureza (colisão exigiria
+// gerar o mesmo código duas vezes, extremamente improvável nesse espaço).
+// ------------------------------------------------------
+const ALFABETO_CODIGO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function gerarCodigoPublico() {
+  let codigo = "";
+  for (let i = 0; i < 6; i++) {
+    codigo += ALFABETO_CODIGO[Math.floor(Math.random() * ALFABETO_CODIGO.length)];
+  }
+  return codigo;
+}
+
+function criarResumoPublicoInicial(codigo, atletaId, nome) {
+  return setDoc(resumoPublicoRef(codigo), {
+    escolaId: escolaId(),
+    atletaId,
+    nome,
+    radar: { tecnico: 0, tatico: 0, fisico: 0, mental: 0, evolucao: 0 },
+    notaGeral: null,
+    totalPresencas: 0,
+    totalRegistrosFrequencia: 0,
+    atualizadoEm: serverTimestamp(),
+  });
+}
+
+// Gera um novo código pro atleta, preservando o resumo (radar/frequência)
+// que já existia no código antigo, e apaga o código antigo em seguida —
+// assim, se o código vazar, dá pra invalidar o antigo sem perder o histórico.
+async function regenerarCodigoPublico(atletaId, codigoAntigo, nome) {
+  const novoCodigo = gerarCodigoPublico();
+  let dadosBase = null;
+  if (codigoAntigo) {
+    const snapAntigo = await getDoc(resumoPublicoRef(codigoAntigo));
+    if (snapAntigo.exists()) dadosBase = snapAntigo.data();
+  }
+
+  await setDoc(resumoPublicoRef(novoCodigo), {
+    escolaId: escolaId(),
+    atletaId,
+    nome,
+    radar: { tecnico: 0, tatico: 0, fisico: 0, mental: 0, evolucao: 0 },
+    notaGeral: null,
+    totalPresencas: 0,
+    totalRegistrosFrequencia: 0,
+    ...dadosBase,
+    atualizadoEm: serverTimestamp(),
+  });
+  await updateDoc(atletaRef(atletaId), { codigoPublico: novoCodigo });
+  if (codigoAntigo) await deleteDoc(resumoPublicoRef(codigoAntigo)).catch(() => {});
+  return novoCodigo;
+}
 
 function iniciaisDoNome(nome) {
   return (nome || "")
@@ -223,13 +280,47 @@ function criarCardAtleta(atletaId, dados) {
   avatar.className = "athlete-avatar";
   avatar.textContent = iniciaisDoNome(dados.nome);
   const info = document.createElement("div");
+  info.style.flex = "1";
   const nomeEl = document.createElement("strong");
   nomeEl.textContent = dados.nome;
   const subEl = document.createElement("span");
   const ano = dados.nascimento ? dados.nascimento.toDate().getFullYear() : null;
   subEl.textContent = ano ? `${dados.posicao} · ${ano}` : dados.posicao;
   info.append(nomeEl, subEl);
-  top.append(avatar, info);
+
+  const codigoWrap = document.createElement("div");
+  codigoWrap.className = "codigo-publico";
+  const codigoLabel = document.createElement("span");
+  codigoLabel.className = "codigo-publico-label";
+  codigoLabel.textContent = "Área do atleta";
+  const codigoLinha = document.createElement("div");
+  codigoLinha.className = "codigo-publico-linha";
+  const codigoValor = document.createElement("strong");
+  codigoValor.textContent = dados.codigoPublico || "—";
+  const btnRegenerar = document.createElement("button");
+  btnRegenerar.type = "button";
+  btnRegenerar.className = "codigo-publico-regenerar";
+  btnRegenerar.textContent = "⟳";
+  btnRegenerar.title = "Gerar novo código (o antigo deixa de funcionar)";
+  btnRegenerar.setAttribute("aria-label", "Gerar novo código da Área do atleta");
+  btnRegenerar.addEventListener("click", async () => {
+    btnRegenerar.disabled = true;
+    try {
+      const novoCodigo = await regenerarCodigoPublico(atletaId, dados.codigoPublico, dados.nome);
+      dados.codigoPublico = novoCodigo;
+      codigoValor.textContent = novoCodigo;
+      showToast("Novo código gerado — o antigo não funciona mais.");
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível gerar um novo código. Tente novamente.");
+    } finally {
+      btnRegenerar.disabled = false;
+    }
+  });
+  codigoLinha.append(codigoValor, btnRegenerar);
+  codigoWrap.append(codigoLabel, codigoLinha);
+
+  top.append(avatar, info, codigoWrap);
 
   const foot = document.createElement("div");
   foot.className = "entity-card-foot";
@@ -306,8 +397,11 @@ function configurarFormCadastrarAtleta() {
 
     try {
       const turma = turmasCache[turmaAtivaId];
-      await addDoc(atletasRef(), {
-        nome: form.nome.value.trim(),
+      const nome = form.nome.value.trim();
+      const codigoPublico = gerarCodigoPublico();
+
+      const novoAtletaRef = await addDoc(atletasRef(), {
+        nome,
         posicao: form.posicao.value,
         nascimento: Timestamp.fromDate(new Date(`${form.nascimento.value}T12:00:00`)),
         telefone: form.telefone.value.trim(),
@@ -318,10 +412,12 @@ function configurarFormCadastrarAtleta() {
         nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),
         responsavelUids: [],
+        codigoPublico,
         criadoEm: serverTimestamp(),
       });
+      await criarResumoPublicoInicial(codigoPublico, novoAtletaRef.id, nome);
 
-      showToast(`Atleta "${form.nome.value.trim()}" cadastrado.`);
+      showToast(`Atleta "${nome}" cadastrado.`);
       form.reset();
       document.getElementById("painelCadastro").classList.add("is-hidden");
     } catch (erro) {
