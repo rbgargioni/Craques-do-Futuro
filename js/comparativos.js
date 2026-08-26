@@ -12,15 +12,7 @@ import {
   collection, onSnapshot, query, where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
-
-const ORDEM_PILARES_RADAR = ["tecnico", "tatico", "mental", "fisico", "evolucao"];
-const ORDEM_PILARES_TABELA = [
-  { campo: "tecnico", label: "Técnico" },
-  { campo: "tatico", label: "Tático" },
-  { campo: "fisico", label: "Físico" },
-  { campo: "mental", label: "Mental" },
-  { campo: "evolucao", label: "Evolução" },
-];
+import { PILARES_RADAR, PILARES_TABELA, pontoRadar } from "./metricas.js";
 
 let turmasCache = {};
 let turmaAtivaId = null;
@@ -197,14 +189,6 @@ function montarSelectsAtletas() {
 // ------------------------------------------------------
 // Radar + tabela comparativa
 // ------------------------------------------------------
-function pontoRadar(valor, indice) {
-  const angulo = ((-90 + indice * 72) * Math.PI) / 180;
-  const r = (Math.min(10, Math.max(0, valor)) / 10) * 100;
-  const x = 120 + r * Math.cos(angulo);
-  const y = 120 + r * Math.sin(angulo);
-  return `${x.toFixed(1)},${y.toFixed(1)}`;
-}
-
 function atualizarRadar(prefixo, atletaId, medias) {
   const dadosAtleta = atletasCache[atletaId];
   document.getElementById(`nomeAtleta${prefixo}`).textContent = dadosAtleta ? dadosAtleta.nome : "—";
@@ -214,11 +198,11 @@ function atualizarRadar(prefixo, atletaId, medias) {
   const mediaEl = document.getElementById(`mediaAtleta${prefixo}`);
 
   if (!medias) {
-    shape.setAttribute("points", ORDEM_PILARES_RADAR.map(() => "120,120").join(" "));
+    shape.setAttribute("points", PILARES_RADAR.map(() => "120,120").join(" "));
     mediaEl.textContent = dadosAtleta ? "sem notas" : "—";
     return;
   }
-  shape.setAttribute("points", ORDEM_PILARES_RADAR.map((campo, i) => pontoRadar(medias[campo], i)).join(" "));
+  shape.setAttribute("points", PILARES_RADAR.map((campo, i) => pontoRadar(medias[campo], i)).join(" "));
   mediaEl.textContent = medias.geral.toFixed(1).replace(".", ",");
 }
 
@@ -254,7 +238,7 @@ function renderizarComparacao() {
 
   aviso.textContent = `${mediasA.quantidade} avaliação(ões) de ${atletasCache[idA].nome} · ${mediasB.quantidade} avaliação(ões) de ${atletasCache[idB].nome}.`;
 
-  ORDEM_PILARES_TABELA.forEach(({ campo, label }) => {
+  PILARES_TABELA.forEach(({ campo, label }) => {
     const valorA = mediasA[campo];
     const valorB = mediasB[campo];
     const diff = Math.round((valorA - valorB) * 10) / 10;

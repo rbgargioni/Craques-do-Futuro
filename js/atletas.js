@@ -8,15 +8,7 @@ import {
   collection, addDoc, doc, updateDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
-
-// Progressão de categoria por idade — usada pelo botão "Promover" quando o atleta chega no nível 9.
-const PROXIMA_CATEGORIA = {
-  "Sub-9": "Sub-11",
-  "Sub-11": "Sub-13",
-  "Sub-13": "Sub-15",
-  "Sub-15": "Sub-17",
-  "Sub-17": "Sub-20",
-};
+import { PROXIMA_CATEGORIA, NIVEL_MAXIMO, NIVEL_INICIAL, estaProntoParaEvoluir } from "./metricas.js";
 
 let turmasCache = {}; // turmaId -> dados
 let turmaAtivaId = null;
@@ -126,7 +118,7 @@ function criarLinhaNivel(atletaId, dados) {
   const dotsWrap = document.createElement("div");
   dotsWrap.className = "nivel-dots";
   const dots = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < NIVEL_MAXIMO; i++) {
     const dot = document.createElement("span");
     dot.className = "nivel-dot";
     dots.push(dot);
@@ -168,12 +160,12 @@ function criarLinhaNivel(atletaId, dados) {
   function render(nivel) {
     valorEl.textContent = nivel;
     dots.forEach((dot, i) => dot.classList.toggle("is-filled", i < nivel));
-    pronto.classList.toggle("is-hidden", !(nivel >= 9 && proximaCategoria));
+    pronto.classList.toggle("is-hidden", !estaProntoParaEvoluir(nivel, categoriaAtual));
   }
 
   async function mudarNivel(delta) {
     const atual = Number(valorEl.textContent);
-    const novo = Math.min(9, Math.max(1, atual + delta));
+    const novo = Math.min(NIVEL_MAXIMO, Math.max(NIVEL_INICIAL, atual + delta));
     if (novo === atual) return;
     render(novo);
     try {
@@ -196,13 +188,13 @@ function criarLinhaNivel(atletaId, dados) {
     try {
       await updateDoc(doc(db, "escolas", escolaId(), "atletas", atletaId), {
         categoriaAtual: proximaCategoria,
-        nivelAtual: 1,
+        nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),
       });
       await addDoc(collection(db, "escolas", escolaId(), "atletas", atletaId, "progressao"), {
         tipo: "promocao",
         categoriaAnterior: categoriaAtual,
-        nivelAnterior: 9,
+        nivelAnterior: NIVEL_MAXIMO,
         categoriaNova: proximaCategoria,
         data: serverTimestamp(),
       });
@@ -214,7 +206,7 @@ function criarLinhaNivel(atletaId, dados) {
     }
   });
 
-  render(dados.nivelAtual || 1);
+  render(dados.nivelAtual || NIVEL_INICIAL);
   return { linha, pronto };
 }
 
@@ -325,7 +317,7 @@ function configurarFormCadastrarAtleta() {
         turmaId: turmaAtivaId,
         status: "ativo",
         categoriaAtual: (turma && turma.categoria) || "Sub-9",
-        nivelAtual: 1,
+        nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),
         responsavelUids: [],
         criadoEm: serverTimestamp(),

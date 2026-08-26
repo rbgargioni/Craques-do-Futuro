@@ -8,6 +8,7 @@ import {
   collection, addDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
+import { calcularNotaGeral, notaEhBoa, FUNDAMENTOS_POR_POSICAO, calcularNotaTecnica, analisarFundamentos } from "./metricas.js";
 
 let turmasCache = {};
 let turmaAtivaId = null;
@@ -111,7 +112,105 @@ function popularSelectAtletas() {
       opt.textContent = atletasCache[id].nome;
       select.appendChild(opt);
     });
-  if (atletasCache[valorAtual]) select.value = valorAtual;
+  select.value = atletasCache[valorAtual] ? valorAtual : "";
+  renderizarBlocoTecnico(select.value);
+}
+
+// ------------------------------------------------------
+// Bloco "Técnico" — fundamentos da posição do atleta selecionado
+// (ver js/metricas.js: FUNDAMENTOS_POR_POSICAO, calcularNotaTecnica)
+// ------------------------------------------------------
+function lerNotasFundamentos() {
+  const notas = {};
+  document.querySelectorAll("#blocoTecnico [data-fundamento-chave]").forEach((input) => {
+    notas[input.dataset.fundamentoChave] = Number(input.value);
+  });
+  return notas;
+}
+
+function atualizarNotaTecnicaCalculada(posicao) {
+  const notas = lerNotasFundamentos();
+  const nota = calcularNotaTecnica(posicao, notas);
+  const notaEl = document.getElementById("notaTecnicaCalculada");
+  if (notaEl && nota !== null) notaEl.textContent = nota.toFixed(1);
+
+  const analise = analisarFundamentos(posicao, notas);
+  const resultado = document.getElementById("resultadoFundamentos");
+  if (resultado && analise) {
+    resultado.textContent = `⭐ Melhor: ${analise.melhor.label} (${analise.melhor.nota.toFixed(1)})  ·  🔧 Ponto a melhorar: ${analise.piorAMelhorar.label} (${analise.piorAMelhorar.nota.toFixed(1)})`;
+  }
+}
+
+function renderizarBlocoTecnico(atletaId) {
+  const bloco = document.getElementById("blocoTecnico");
+  bloco.innerHTML = "";
+
+  const dadosAtleta = atletasCache[atletaId];
+  if (!dadosAtleta) {
+    bloco.innerHTML = '<p class="muted" style="margin:0;font-size:12px;">Selecione um atleta pra ver os fundamentos técnicos da posição dele.</p>';
+    return;
+  }
+
+  const fundamentos = FUNDAMENTOS_POR_POSICAO[dadosAtleta.posicao];
+  if (!fundamentos) {
+    bloco.innerHTML = `<p class="muted" style="margin:0;font-size:12px;">Não há fundamentos técnicos configurados pra posição "${dadosAtleta.posicao}".</p>`;
+    return;
+  }
+
+  const cabecalho = document.createElement("div");
+  cabecalho.className = "pillar-field-head";
+  const titulo = document.createElement("label");
+  titulo.textContent = `Técnico — ${dadosAtleta.posicao}`;
+  const notaEl = document.createElement("strong");
+  notaEl.id = "notaTecnicaCalculada";
+  notaEl.textContent = "7.0";
+  cabecalho.append(titulo, notaEl);
+  bloco.appendChild(cabecalho);
+
+  Object.keys(fundamentos).forEach((chave) => {
+    const info = fundamentos[chave];
+    const campo = document.createElement("div");
+    campo.className = "pillar-field";
+    campo.style.marginTop = "10px";
+
+    const head = document.createElement("div");
+    head.className = "pillar-field-head";
+    const label = document.createElement("span");
+    label.style.fontSize = "12px";
+    label.textContent = `${info.label} (${info.peso}%)`;
+    const saida = document.createElement("strong");
+    saida.textContent = "7.0";
+    head.append(label, saida);
+
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = "1";
+    input.max = "10";
+    input.step = "0.5";
+    input.value = "7";
+    input.dataset.fundamentoChave = chave;
+    input.addEventListener("input", () => {
+      saida.textContent = Number(input.value).toFixed(1);
+      atualizarNotaTecnicaCalculada(dadosAtleta.posicao);
+    });
+
+    campo.append(head, input);
+    bloco.appendChild(campo);
+  });
+
+  const resultado = document.createElement("p");
+  resultado.id = "resultadoFundamentos";
+  resultado.className = "muted";
+  resultado.style.cssText = "margin:10px 0 0;font-size:12px;";
+  bloco.appendChild(resultado);
+
+  atualizarNotaTecnicaCalculada(dadosAtleta.posicao);
+}
+
+function montarSelectAtletaAvaliado() {
+  document.getElementById("atletaAvaliado").addEventListener("change", (e) => {
+    renderizarBlocoTecnico(e.target.value);
+  });
 }
 
 function ouvirAtletasDaTurma() {
@@ -159,7 +258,7 @@ function criarLinhaAvaliacao(dados) {
 
   const tdGeral = document.createElement("td");
   const pill = document.createElement("span");
-  pill.className = `pill ${dados.geral >= 7 ? "pill--good" : "pill--warn"}`;
+  pill.className = `pill ${notaEhBoa(dados.geral) ? "pill--good" : "pill--warn"}`;
   pill.textContent = dados.geral.toFixed(1).replace(".", ",");
   tdGeral.appendChild(pill);
   tr.appendChild(tdGeral);
@@ -219,17 +318,24 @@ function configurarFormNovaAvaliacao() {
       return;
     }
 
+    const posicao = atletasCache[atletaId].posicao;
+    const notasFundamentos = lerNotasFundamentos();
+    const tecnico = calcularNotaTecnica(posicao, notasFundamentos);
+    if (tecnico === null) {
+      showToast(`Não há fundamentos técnicos configurados pra posição "${posicao}".`);
+      return;
+    }
+
     const botao = form.querySelector("button[type=submit]");
     botao.disabled = true;
     botao.textContent = "Salvando...";
 
     try {
-      const tecnico = Number(form.tecnico.value);
       const tatico = Number(form.tatico.value);
       const fisico = Number(form.fisico.value);
       const mental = Number(form.mental.value);
       const evolucao = Number(form.evolucao.value);
-      const geral = Math.round(((tecnico + tatico + fisico + mental + evolucao) / 5) * 10) / 10;
+      const geral = calcularNotaGeral({ tecnico, tatico, fisico, mental, evolucao });
 
       await addDoc(avaliacoesRef(), {
         atletaId,
@@ -237,6 +343,7 @@ function configurarFormNovaAvaliacao() {
         turmaId: turmaAtivaId,
         data: Timestamp.fromDate(new Date(`${form.data.value}T12:00:00`)),
         tecnico,
+        fundamentosTecnicos: notasFundamentos,
         tatico,
         fisico,
         mental,
@@ -253,6 +360,7 @@ function configurarFormNovaAvaliacao() {
         const out = document.getElementById(range.dataset.liveOutput);
         if (out) out.textContent = Number(range.value).toFixed(1);
       });
+      renderizarBlocoTecnico(""); // volta o bloco de fundamentos pro placeholder
       document.getElementById("painelAvaliacao").classList.add("is-hidden");
     } catch (erro) {
       console.error(erro);
@@ -267,5 +375,6 @@ function configurarFormNovaAvaliacao() {
 document.addEventListener("cf:pronto", () => {
   ouvirTurmas();
   montarSeletorTurma();
+  montarSelectAtletaAvaliado();
   configurarFormNovaAvaliacao();
 });

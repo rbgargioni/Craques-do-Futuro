@@ -12,9 +12,9 @@ import {
   collection, onSnapshot, query, where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
+import { PILARES_RADAR, notaEhBoa, calcularTendencia, pontoRadar } from "./metricas.js";
 
 const NOMES_MES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const ORDEM_PILARES = ["tecnico", "tatico", "mental", "fisico", "evolucao"];
 const TEXTO_PERIODO = { 30: "Últimos 30 dias", 180: "Últimos 6 meses", temporada: "Temporada inteira" };
 
 let turmasCache = {};
@@ -253,31 +253,23 @@ function renderizarFrequencia(frequencia) {
 // ------------------------------------------------------
 // Radar — média dos 5 Pilares no período
 // ------------------------------------------------------
-function pontoRadar(valor, indice) {
-  const angulo = ((-90 + indice * 72) * Math.PI) / 180;
-  const r = (Math.min(10, Math.max(0, valor)) / 10) * 100;
-  const x = 120 + r * Math.cos(angulo);
-  const y = 120 + r * Math.sin(angulo);
-  return `${x.toFixed(1)},${y.toFixed(1)}`;
-}
-
 function renderizarRadar(avaliacoes) {
   const shape = document.getElementById("radarShape");
   const mediaEl = document.getElementById("radarMedia");
 
   if (avaliacoes.length === 0) {
-    shape.setAttribute("points", ORDEM_PILARES.map(() => "120,120").join(" "));
+    shape.setAttribute("points", PILARES_RADAR.map(() => "120,120").join(" "));
     mediaEl.textContent = "—";
     return;
   }
 
   const somas = { tecnico: 0, tatico: 0, fisico: 0, mental: 0, evolucao: 0, geral: 0 };
   avaliacoes.forEach((a) => {
-    ORDEM_PILARES.forEach((campo) => { somas[campo] += a[campo]; });
+    PILARES_RADAR.forEach((campo) => { somas[campo] += a[campo]; });
     somas.geral += a.geral;
   });
   const n = avaliacoes.length;
-  const pontos = ORDEM_PILARES.map((campo, i) => pontoRadar(somas[campo] / n, i)).join(" ");
+  const pontos = PILARES_RADAR.map((campo, i) => pontoRadar(somas[campo] / n, i)).join(" ");
   shape.setAttribute("points", pontos);
   mediaEl.textContent = (somas.geral / n).toFixed(1).replace(".", ",");
 }
@@ -285,16 +277,6 @@ function renderizarRadar(avaliacoes) {
 // ------------------------------------------------------
 // Tabela de desempenho individual
 // ------------------------------------------------------
-function calcularTendencia(geraisOrdenados) {
-  if (geraisOrdenados.length < 2) return "→ estável";
-  const meio = Math.ceil(geraisOrdenados.length / 2);
-  const media = (lista) => lista.reduce((s, v) => s + v, 0) / lista.length;
-  const diff = media(geraisOrdenados.slice(meio)) - media(geraisOrdenados.slice(0, meio));
-  if (diff > 0.3) return "↑ subindo";
-  if (diff < -0.3) return "↓ atenção";
-  return "→ estável";
-}
-
 function renderizarDesempenho(avaliacoesPeriodo, frequenciaPeriodo) {
   const corpo = document.getElementById("corpoDesempenho");
   const idsAtletas = Object.keys(atletasCache);
@@ -329,7 +311,7 @@ function renderizarDesempenho(avaliacoesPeriodo, frequenciaPeriodo) {
       } else {
         const media = avals.reduce((s, a) => s + a.geral, 0) / avals.length;
         const pill = document.createElement("span");
-        pill.className = `pill ${media >= 7 ? "pill--good" : "pill--warn"}`;
+        pill.className = `pill ${notaEhBoa(media) ? "pill--good" : "pill--warn"}`;
         pill.textContent = media.toFixed(1).replace(".", ",");
         tdNota.appendChild(pill);
       }

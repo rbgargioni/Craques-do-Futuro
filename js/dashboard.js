@@ -9,14 +9,7 @@ import {
   collection, doc, updateDoc, addDoc, getDocs, onSnapshot, where, query, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
-
-const PROXIMA_CATEGORIA = {
-  "Sub-9": "Sub-11",
-  "Sub-11": "Sub-13",
-  "Sub-13": "Sub-15",
-  "Sub-15": "Sub-17",
-  "Sub-17": "Sub-20",
-};
+import { PROXIMA_CATEGORIA, NIVEL_MAXIMO, NIVEL_INICIAL, notaEhBoa } from "./metricas.js";
 
 let turmasCache = {};
 let turmaAtivaId = null;
@@ -167,7 +160,7 @@ function criarItemPronto(atletaId, dados) {
   const nomeEl = document.createElement("strong");
   nomeEl.textContent = dados.nome;
   const nivelEl = document.createElement("span");
-  nivelEl.textContent = `Nível 9/9 em ${dados.categoriaAtual}`;
+  nivelEl.textContent = `Nível ${NIVEL_MAXIMO}/${NIVEL_MAXIMO} em ${dados.categoriaAtual}`;
   info.append(nomeEl, nivelEl);
 
   const btn = document.createElement("button");
@@ -178,13 +171,13 @@ function criarItemPronto(atletaId, dados) {
     try {
       await updateDoc(doc(db, "escolas", escolaId(), "atletas", atletaId), {
         categoriaAtual: proximaCategoria,
-        nivelAtual: 1,
+        nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),
       });
       await addDoc(collection(db, "escolas", escolaId(), "atletas", atletaId, "progressao"), {
         tipo: "promocao",
         categoriaAnterior: dados.categoriaAtual,
-        nivelAnterior: 9,
+        nivelAnterior: NIVEL_MAXIMO,
         categoriaNova: proximaCategoria,
         data: serverTimestamp(),
       });
@@ -202,7 +195,7 @@ function criarItemPronto(atletaId, dados) {
 
 function renderizarProntos(lista) {
   const container = document.getElementById("listaProntosEvoluir");
-  const prontos = lista.filter((a) => (a.dados.nivelAtual || 0) >= 9 && PROXIMA_CATEGORIA[a.dados.categoriaAtual]);
+  const prontos = lista.filter((a) => (a.dados.nivelAtual || 0) >= NIVEL_MAXIMO && PROXIMA_CATEGORIA[a.dados.categoriaAtual]);
 
   container.innerHTML = "";
   if (prontos.length === 0) {
@@ -301,7 +294,7 @@ function renderizarDestaquesAtencao() {
     listaDestaques.appendChild(criarItemAthleteList(atletaId, geral, posicao, "pill--good"));
   });
 
-  const emAtencao = porNotaDesc.filter((a) => a.geral < 7).slice(-3).reverse();
+  const emAtencao = porNotaDesc.filter((a) => !notaEhBoa(a.geral)).slice(-3).reverse();
   if (emAtencao.length === 0) {
     listaAtencao.innerHTML = '<li class="empty-state">Ninguém abaixo da média no momento. 🎉</li>';
   } else {
