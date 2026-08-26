@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Relatórios</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Evolução, frequência e os 5 Pilares da turma, com dados reais.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,19 +71,26 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- FILTROS -->
     <section class="page-header">
       <h2>Relatórios disponíveis</h2>
       <div class="page-header-actions">
-        <select class="btn btn-outline" style="font-weight:600;">
-          <option>Últimos 30 dias</option>
-          <option>Últimos 6 meses</option>
-          <option>Temporada 2026</option>
+        <select class="btn btn-outline" style="font-weight:600;" id="filtroPeriodo">
+          <option value="30">Últimos 30 dias</option>
+          <option value="180" selected>Últimos 6 meses</option>
+          <option value="temporada">Temporada inteira</option>
         </select>
       </div>
     </section>
@@ -94,32 +101,30 @@
       <div class="panel">
         <div class="panel-head">
           <h3>Evolução geral da turma</h3>
-          <span class="tag">Últimos 6 meses</span>
+          <span class="tag" id="tagPeriodoEvolucao">Últimos 6 meses</span>
         </div>
         <svg class="chart-line" viewBox="0 0 320 140" preserveAspectRatio="none">
-          <polyline points="10,90 60,75 110,60 160,50 210,38 270,30" />
-          <circle cx="270" cy="30" r="4"></circle>
+          <polyline id="linhaEvolucao" points="" />
+          <circle id="pontoEvolucao" cx="0" cy="0" r="4" class="is-hidden"></circle>
         </svg>
-        <div class="chart-labels">
-          <span>Dez</span><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span>
-        </div>
+        <div class="chart-labels" id="labelsEvolucao"></div>
         <div class="form-actions" style="margin-top:14px;">
-          <button class="btn btn-outline" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar PDF</button>
+          <button class="btn btn-outline" data-fake-action="A exportação em PDF ainda não foi implementada.">Exportar PDF</button>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h3>Frequência mensal</h3>
-          <span class="tag">Maio</span>
+          <h3>Frequência do período</h3>
+          <span class="tag" id="tagPeriodoFrequencia">Últimos 6 meses</span>
         </div>
         <div class="donut-wrap">
           <svg class="donut" viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="48" class="donut-track"></circle>
-            <circle cx="60" cy="60" r="48" class="donut-value"></circle>
+            <circle cx="60" cy="60" r="48" class="donut-value" id="donutValor" style="stroke-dasharray:301.6; stroke-dashoffset:301.6;"></circle>
           </svg>
           <div class="donut-score">
-            <strong>81,8%</strong>
+            <strong id="donutPercentual">—</strong>
             <span>presença</span>
           </div>
         </div>
@@ -129,20 +134,20 @@
           <span><i class="dot dot--warn"></i>Atrasados</span>
         </div>
         <div class="form-actions" style="margin-top:14px;">
-          <button class="btn btn-outline" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar PDF</button>
+          <button class="btn btn-outline" data-fake-action="A exportação em PDF ainda não foi implementada.">Exportar PDF</button>
         </div>
       </div>
 
       <div class="panel panel--pilares">
         <div class="panel-head">
           <h3>Os 5 Pilares</h3>
-          <span class="tag">Média da turma</span>
+          <span class="tag">Média da turma no período</span>
         </div>
         <div class="radar-wrap">
           <svg class="radar" viewBox="0 0 240 240">
             <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
             <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
-            <polygon class="radar-shape" points="120,42 178,96 158,178 88,170 68,110"></polygon>
+            <polygon class="radar-shape" id="radarShape" points="120,120 120,120 120,120 120,120 120,120"></polygon>
             <text x="120" y="14" class="radar-label">Técnico</text>
             <text x="222" y="94" class="radar-label">Tático</text>
             <text x="184" y="222" class="radar-label">Mental</text>
@@ -150,7 +155,7 @@
             <text x="10" y="94" class="radar-label">Evolução</text>
           </svg>
           <div class="radar-score">
-            <strong>7,4</strong>
+            <strong id="radarMedia">—</strong>
             <span>média geral</span>
           </div>
         </div>
@@ -162,20 +167,15 @@
     <section class="panel">
       <div class="panel-head">
         <h3>▤ Desempenho individual</h3>
-        <span class="link" data-fake-action="A exportação em PDF será ativada junto com o banco de dados.">Exportar tudo em PDF</span>
+        <span class="link" data-fake-action="A exportação em PDF ainda não foi implementada.">Exportar tudo em PDF</span>
       </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead>
             <tr><th>Atleta</th><th>Presença</th><th>Nota geral</th><th>Tendência</th></tr>
           </thead>
-          <tbody>
-            <tr><td>Miguel Santos</td><td>95%</td><td><span class="pill pill--good">8,7</span></td><td>↑ subindo</td></tr>
-            <tr><td>João Pedro</td><td>91%</td><td><span class="pill pill--good">8,2</span></td><td>↑ subindo</td></tr>
-            <tr><td>Lucas Martins</td><td>88%</td><td><span class="pill pill--good">8,0</span></td><td>→ estável</td></tr>
-            <tr><td>Gustavo Lima</td><td>62%</td><td><span class="pill pill--warn">5,6</span></td><td>↓ atenção</td></tr>
-            <tr><td>Rafael Costa</td><td>70%</td><td><span class="pill pill--warn">5,8</span></td><td>→ estável</td></tr>
-            <tr><td>Bruno Alves</td><td>75%</td><td><span class="pill pill--warn">6,0</span></td><td>↑ subindo</td></tr>
+          <tbody id="corpoDesempenho">
+            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -185,6 +185,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/relatorios.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

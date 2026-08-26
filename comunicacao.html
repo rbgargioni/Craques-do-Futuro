@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Comunicação</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Recados para a turma ou para um atleta específico.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,10 +71,17 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <div class="two-col">
 
@@ -83,17 +90,11 @@
         <div class="panel-head">
           <h3>✉ Novo recado</h3>
         </div>
-        <form id="formRecado" data-fake-form="O recado será enviado de verdade assim que o banco de dados (Firebase) estiver conectado. Por enquanto ele só aparece na lista ao lado." data-reset-on-submit="false">
+        <form id="formRecado">
           <div class="field" style="margin-bottom:14px;">
             <label for="destinatario">Enviar para</label>
             <select id="destinatario" name="destinatario">
-              <option>Toda a turma</option>
-              <option>Miguel Santos</option>
-              <option>João Pedro</option>
-              <option>Lucas Martins</option>
-              <option>Gustavo Lima</option>
-              <option>Rafael Costa</option>
-              <option>Bruno Alves</option>
+              <option value="turma">Toda a turma</option>
             </select>
           </div>
           <div class="field">
@@ -112,18 +113,7 @@
           <h3>Histórico de recados</h3>
         </div>
         <ul class="message-list" id="listaMensagens">
-          <li class="message-item">
-            <div class="message-item-head"><strong>Toda a turma</strong><span>ontem</span></div>
-            <p>Treino de amanhã foi antecipado para as 8h por causa da previsão de chuva à tarde.</p>
-          </li>
-          <li class="message-item">
-            <div class="message-item-head"><strong>Gustavo Lima</strong><span>há 3 dias</span></div>
-            <p>Gustavo, precisamos conversar sobre a frequência nos últimos treinos. Pode passar aqui antes do próximo?</p>
-          </li>
-          <li class="message-item">
-            <div class="message-item-head"><strong>Toda a turma</strong><span>há 5 dias</span></div>
-            <p>Parabéns pela dedicação nessa semana! Sábado tem jogo-treino às 9h, tragam a garrafinha de água.</p>
-          </li>
+          <li class="empty-state">Carregando...</li>
         </ul>
       </section>
 
@@ -133,6 +123,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/comunicacao.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

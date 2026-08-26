@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Comparativos</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Compare a média dos 5 Pilares de dois atletas.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,10 +71,17 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- SELEÇÃO DOS ATLETAS -->
     <section class="panel">
@@ -85,23 +92,17 @@
         <div class="field">
           <label for="atletaA">Atleta A</label>
           <select id="atletaA">
-            <option selected>Miguel Santos</option>
-            <option>João Pedro</option>
-            <option>Lucas Martins</option>
-            <option>Enzo Ferreira</option>
+            <option value="">Selecione...</option>
           </select>
         </div>
         <div class="field">
           <label for="atletaB">Atleta B</label>
           <select id="atletaB">
-            <option>Miguel Santos</option>
-            <option>João Pedro</option>
-            <option selected>Rafael Costa</option>
-            <option>Gustavo Lima</option>
+            <option value="">Selecione...</option>
           </select>
         </div>
       </div>
-      <p class="muted" style="margin:10px 0 0;font-size:12px;">A comparação abaixo é um exemplo fixo — vai atualizar de verdade quando o banco de dados estiver conectado.</p>
+      <p class="muted" id="avisoComparativo" style="margin:10px 0 0;font-size:12px;"></p>
     </section>
 
     <!-- RADARES LADO A LADO -->
@@ -109,14 +110,14 @@
 
       <div class="panel panel--pilares">
         <div class="panel-head">
-          <h3>Miguel Santos</h3>
-          <span class="tag">Meia Atacante</span>
+          <h3 id="nomeAtletaA">—</h3>
+          <span class="tag" id="posicaoAtletaA"></span>
         </div>
         <div class="radar-wrap">
           <svg class="radar" viewBox="0 0 240 240">
             <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
             <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
-            <polygon class="radar-shape" points="120,30 190,88 168,182 78,178 52,96"></polygon>
+            <polygon class="radar-shape" id="radarShapeA" points="120,120 120,120 120,120 120,120 120,120"></polygon>
             <text x="120" y="14" class="radar-label">Técnico</text>
             <text x="222" y="94" class="radar-label">Tático</text>
             <text x="184" y="222" class="radar-label">Mental</text>
@@ -124,7 +125,7 @@
             <text x="10" y="94" class="radar-label">Evolução</text>
           </svg>
           <div class="radar-score">
-            <strong>8,7</strong>
+            <strong id="mediaAtletaA">—</strong>
             <span>média geral</span>
           </div>
         </div>
@@ -132,14 +133,14 @@
 
       <div class="panel panel--pilares">
         <div class="panel-head">
-          <h3>Rafael Costa</h3>
-          <span class="tag">Atacante</span>
+          <h3 id="nomeAtletaB">—</h3>
+          <span class="tag" id="posicaoAtletaB"></span>
         </div>
         <div class="radar-wrap">
           <svg class="radar" viewBox="0 0 240 240">
             <polygon class="radar-grid" points="120,20 210,90 178,196 62,196 30,90"></polygon>
             <polygon class="radar-grid radar-grid--mid" points="120,58 165,101 148,167 92,167 75,101"></polygon>
-            <polygon class="radar-shape" points="120,90 168,112 152,164 100,160 82,120"></polygon>
+            <polygon class="radar-shape" id="radarShapeB" points="120,120 120,120 120,120 120,120 120,120"></polygon>
             <text x="120" y="14" class="radar-label">Técnico</text>
             <text x="222" y="94" class="radar-label">Tático</text>
             <text x="184" y="222" class="radar-label">Mental</text>
@@ -147,7 +148,7 @@
             <text x="10" y="94" class="radar-label">Evolução</text>
           </svg>
           <div class="radar-score">
-            <strong>5,8</strong>
+            <strong id="mediaAtletaB">—</strong>
             <span>média geral</span>
           </div>
         </div>
@@ -163,14 +164,10 @@
       <div class="table-wrap">
         <table class="data-table">
           <thead>
-            <tr><th>Pilar</th><th>Miguel Santos</th><th>Rafael Costa</th><th>Diferença</th></tr>
+            <tr><th>Pilar</th><th id="cabecalhoA">Atleta A</th><th id="cabecalhoB">Atleta B</th><th>Diferença</th></tr>
           </thead>
-          <tbody>
-            <tr><td>Técnico</td><td>9,0</td><td>5,5</td><td class="pill pill--good">+3,5</td></tr>
-            <tr><td>Tático</td><td>8,8</td><td>6,0</td><td class="pill pill--good">+2,8</td></tr>
-            <tr><td>Físico</td><td>8,3</td><td>6,2</td><td class="pill pill--good">+2,1</td></tr>
-            <tr><td>Mental</td><td>8,9</td><td>5,4</td><td class="pill pill--good">+3,5</td></tr>
-            <tr><td>Evolução</td><td>8,5</td><td>5,9</td><td class="pill pill--good">+2,6</td></tr>
+          <tbody id="corpoComparativo">
+            <tr><td colspan="4" class="empty-state">Selecione os dois atletas.</td></tr>
           </tbody>
         </table>
       </div>
@@ -180,6 +177,7 @@
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/comparativos.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

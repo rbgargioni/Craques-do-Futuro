@@ -50,7 +50,7 @@
     <header class="topbar">
       <div>
         <h1>Planos de treino</h1>
-        <p class="muted">Este é apenas um esboço visual — os dados abaixo são fictícios.</p>
+        <p class="muted">Ciclos de treinamento por turma.</p>
       </div>
       <div class="topbar-right">
         <div class="topbar-date">
@@ -71,16 +71,23 @@
     <section class="turma-bar">
       <div>
         <span class="eyebrow">Turma ativa</span>
-        <h2>Sub-13 <small>· nascidos em 2013/2014</small></h2>
+        <h2 id="turmaAtivaNome">Carregando...</h2>
       </div>
-      <button class="btn btn-ghost" id="trocarTurma">Trocar turma ⌄</button>
+      <select class="btn btn-ghost" id="seletorTurma">
+        <option value="">Carregando turmas...</option>
+      </select>
     </section>
+
+    <p id="avisoSemTurma" class="is-hidden status-note">
+      <span>⚠</span>
+      <span>Nenhuma turma cadastrada ainda. Crie uma em <a href="configuracoes.html" style="text-decoration:underline;">Configurações</a>.</span>
+    </p>
 
     <!-- HEADER DA PÁGINA -->
     <section class="page-header">
       <h2>Ciclos de treinamento</h2>
       <div class="page-header-actions">
-        <button class="btn btn-primary" data-toggle-panel="painelPlano">＋ Novo plano</button>
+        <button class="btn btn-primary" id="btnNovoPlano" data-toggle-panel="painelPlano">＋ Novo plano</button>
       </div>
     </section>
 
@@ -89,7 +96,7 @@
       <div class="panel-head">
         <h3>Novo plano de treino</h3>
       </div>
-      <form class="form-grid" data-fake-form="O plano será salvo assim que o banco de dados (Firebase) estiver conectado.">
+      <form id="formNovoPlano" class="form-grid">
         <div class="field field--full">
           <label for="tituloPlano">Título</label>
           <input type="text" id="tituloPlano" name="titulo" placeholder="Ex: Bloco de finalização" required>
@@ -106,18 +113,18 @@
         <div class="field">
           <label for="statusPlano">Status</label>
           <select id="statusPlano" name="status">
-            <option>Planejado</option>
-            <option>Em andamento</option>
-            <option>Concluído</option>
+            <option value="planejado">Planejado</option>
+            <option value="andamento">Em andamento</option>
+            <option value="concluido">Concluído</option>
           </select>
         </div>
         <div class="field">
           <label for="inicioPlano">Início</label>
-          <input type="date" id="inicioPlano" name="inicio">
+          <input type="date" id="inicioPlano" name="inicio" required>
         </div>
         <div class="field">
           <label for="fimPlano">Término</label>
-          <input type="date" id="fimPlano" name="fim">
+          <input type="date" id="fimPlano" name="fim" required>
         </div>
         <div class="field field--full">
           <label for="objetivoPlano">Objetivo</label>
@@ -131,98 +138,15 @@
     </section>
 
     <!-- GRID DE PLANOS -->
-    <section class="card-grid">
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Bloco de finalização</strong>
-            <span>Foco técnico</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Melhorar precisão de finalização de dentro e fora da área.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--progress">Em andamento</span>
-          <span class="tag">até 30/05</span>
-        </div>
-      </div>
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Saída de bola sob pressão</strong>
-            <span>Foco tático</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Trabalhar construção de jogadas a partir da defesa.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--progress">Em andamento</span>
-          <span class="tag">até 06/06</span>
-        </div>
-      </div>
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Resistência e velocidade</strong>
-            <span>Foco físico</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Circuito de sprints curtos e recuperação ativa.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--neutral">Planejado</span>
-          <span class="tag">a partir de 09/06</span>
-        </div>
-      </div>
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Foco e disciplina em campo</strong>
-            <span>Foco mental</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Dinâmicas para lidar com frustração após erros.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--neutral">Planejado</span>
-          <span class="tag">a partir de 12/06</span>
-        </div>
-      </div>
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Fundamentos de passe curto</strong>
-            <span>Foco técnico</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Precisão e velocidade de decisão no passe curto.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Concluído</span>
-          <span class="tag">encerrado em 05/05</span>
-        </div>
-      </div>
-
-      <div class="entity-card">
-        <div class="entity-card-top">
-          <div>
-            <strong>Marcação em zona</strong>
-            <span>Foco tático</span>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;font-size:12px;">Organização defensiva e cobertura entre linhas.</p>
-        <div class="entity-card-foot">
-          <span class="badge badge--done">Concluído</span>
-          <span class="tag">encerrado em 28/04</span>
-        </div>
-      </div>
-
+    <section class="card-grid" id="listaPlanos">
+      <p class="empty-state">Carregando planos...</p>
     </section>
 
   </main>
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/planos.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

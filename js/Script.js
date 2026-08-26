@@ -202,34 +202,3 @@ document.querySelectorAll("[data-nivel-atleta]").forEach((linha) => {
 
   render();
 });
-
-// ------------------------------------------------------
-// Comunicação — adiciona o recado na lista visualmente (não é salvo)
-// ------------------------------------------------------
-const formRecado = document.getElementById("formRecado");
-if (formRecado) {
-  formRecado.addEventListener("submit", () => {
-    const lista = document.getElementById("listaMensagens");
-    const destinatario = formRecado.querySelector("[name=destinatario]");
-    const texto = formRecado.querySelector("[name=mensagem]");
-    if (!lista || !texto || !texto.value.trim()) return;
-
-    const li = document.createElement("li");
-    li.className = "message-item";
-
-    const head = document.createElement("div");
-    head.className = "message-item-head";
-    const strong = document.createElement("strong");
-    strong.textContent = destinatario ? destinatario.selectedOptions[0].textContent : "Turma";
-    const quando = document.createElement("span");
-    quando.textContent = "agora mesmo";
-    head.append(strong, quando);
-
-    const paragrafo = document.createElement("p");
-    paragrafo.textContent = texto.value.trim();
-
-    li.append(head, paragrafo);
-    lista.prepend(li);
-    formRecado.reset();
-  });
-}
