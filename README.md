@@ -43,6 +43,21 @@ tecnico         → cadastra/edita atletas, turmas, avaliações, frequência, p
 responsavel     → só leitura, vê a evolução do(s) atleta(s) vinculado(s) a ele
 ```
 
+**Não existe um papel separado pra "cliente do plano mais completo"** —
+qualquer `administrador` pode virar isso: o dono libera `limiteEscolas` +
+`licencaFim` no perfil dele (em admin-escolas.html), e ele passa a poder
+cadastrar/gerenciar escolas EXTRAS, além da própria. Ver seção "Múltiplas
+escolas" mais abaixo — foi uma decisão consciente de simplificar (existia
+um papel `gestor` à parte numa versão anterior, mas causava confusão
+recorrente sobre "administrador vira gestor ou não" — foi removido).
+
+Ao logar, dono cai em `admin-escolas.html`, responsável em
+`responsavel.html`, técnico direto na escola dele (`index.html`), e
+**administrador sempre cai em `gestor-escolas.html`** ("Minhas escolas") —
+mostra a própria escola (com opção de editar o nome) e, se ele tiver
+`limiteEscolas` liberado, também as escolas extras (cadastrar/editar/
+excluir). Dali ele clica "Entrar na escola →" pra ir operar de verdade.
+
 Guardados em `usuarios/{uid}` no Firestore (`uid` = Firebase Auth uid), com
 `role` + `escolaId` (null só pro dono) + `atletaIds` (só pro responsável).
 O modelo completo de dados está documentado no cabeçalho de
@@ -73,6 +88,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `sem-acesso.html` | `sem-acesso.js` | ✅ real — mensagem genérica, ou aviso de trial/licença vencida com link pra `escolher-plano.html` |
 | `cadastro-trial.html` | `cadastro-trial.js` | ✅ real — cadastro público de teste grátis por 7 dias, ver seção própria abaixo |
 | `escolher-plano.html` | `escolher-plano.js` | ✅ real — administrador/técnico pede um plano (mesmo com licença vencida), ver seção "Planos de assinatura" abaixo |
+| `gestor-escolas.html` ("Minhas escolas") | `gestor-escolas.js` | ✅ real — landing page do administrador, ver seção "Múltiplas escolas" abaixo |
 | `vendas.html` | — (script inline) | página pública de vendas/marketing, sem auth-guard — standalone, sem dado do Firestore |
 
 O responsável (`responsavel.html`) só vê **recados endereçados diretamente
@@ -123,6 +139,100 @@ existe** — decisão consciente, discutida com o Rafael: exigiria
 integração real com um provedor de pagamento (ex: extensão oficial do
 Stripe pro Firebase) e migrar o Firebase pro plano pago (Blaze). Fica
 pra quando o Rafael tiver um provedor de pagamento configurado.
+
+### Múltiplas escolas — o mesmo administrador, escopo maior
+
+**Não existe um papel `gestor` separado** (existiu numa versão anterior, foi
+removido — ver nota em "Papéis de acesso" acima). Em vez disso, qualquer
+`administrador` pode ganhar a capacidade de gerenciar mais de uma escola: o
+dono libera isso ao clicar num administrador na lista "Administradores desta
+escola" (dentro de editar escola, em `admin-escolas.html`) e preenche
+"Múltiplas escolas" — `usuarios/{uid}.limiteEscolas` (quantas escolas EXTRAS,
+além da própria) + `licencaFim` (vencimento do pacote que cobre elas).
+**Ainda não está ligado ao fluxo de "Solicitação de plano"** — é um passo
+manual à parte, decisão consciente pra não misturar dois fluxos de venda
+diferentes nesta primeira versão.
+
+Todo administrador cai em `gestor-escolas.html` ("Minhas escolas", o nome do
+arquivo ficou de uma versão anterior mas a página é só do administrador
+agora) ao logar:
+
+- **Escola "de casa"** (`window.CF.escolaId`, fixo no perfil, do jeito que
+  sempre foi): SEMPRE aparece, com um botão "Editar nome". **Nunca aparece
+  "Excluir"** — apagar a própria escola continua exigindo o dono, decisão
+  consciente pra não deixar a escola "sumir" sem ele saber.
+- **Escolas extras** (`escolas/{id}.administradorUid == seu uid`): só
+  aparecem (cadastrar/editar/excluir) pra quem tem `limiteEscolas` liberado
+  pelo dono — pra administrador comum (a maioria), essa parte da tela nem
+  aparece (`js/gestor-escolas.js` esconde os elementos
+  `[data-requer-multi-escola]` quando `window.CF.limiteEscolas` é 0/null).
+- **Limite de escolas extras é só na interface** (o botão "Cadastrar escola"
+  some depois do limite) — mesma decisão consciente de "visibilidade, não
+  bloqueio hermético" já usada pro limite de treinador/aluno dos planos de
+  assinatura. Não tem um contador à prova de burla na regra do Firestore
+  (exigiria manter um campo sincronizado à parte); ver comentário no topo de
+  `firestore.rules`.
+- **O acesso a uma escola extra NÃO depende do licencaFim dela** —
+  `isStaffAtivo()` em `firestore.rules` dá acesso total (ler, escrever,
+  criar técnico, editar, excluir) enquanto `escolas/{id}.administradorUid
+  == seu uid`, sem checar o `licencaFim` da escola em si. Esse campo só é
+  usado como teto na hora de CRIAR (não dá pra criar uma escola extra com
+  vencimento além do PACOTE do administrador), depois disso é só um dado
+  informativo. Quem corta o acesso é o dono, manualmente (zerando
+  `limiteEscolas` ou apagando o perfil) — mesmo padrão manual do resto do app.
+- **Excluir uma escola extra** — botão "Excluir escola" no card (nunca
+  aparece no card da escola de casa). Apaga em cascata
+  turmas/atletas(+progressão)/avaliações/frequência/planos/mensagens/
+  resumosPublicos e os perfis (`usuarios/{uid}`) de administrador/técnicos/
+  responsáveis vinculados — mesmo padrão de `excluirEscolaTrialVencida()`
+  que o dono já usa pra trials vencidas. **Limitação conhecida**: como o
+  resto do app, não apaga a conta de login (Firebase Auth) de quem ficou
+  vinculado, só o acesso (perfil em `usuarios/{uid}`) — não dá pra apagar a
+  conta Auth de outra pessoa a partir do cliente, sem Admin SDK.
+- **"Entrar na escola →"**: no card (de casa ou extra), um botão leva pra
+  dentro dela (`index.html`, `atletas.html` etc.), como se fosse o
+  administrador dela. Um link "← Minhas escolas" aparece no topo dessas
+  páginas pra voltar. Escolher uma escola EXTRA fica guardado no
+  `localStorage` deste navegador (`cf_gestorEscolaAtiva`, nome também
+  legado) e tem prioridade sobre a de casa até trocar de novo — é por isso
+  que `js/auth-guard.js` tem uma lógica própria pra resolver
+  `window.CF.escolaId`. Sem nenhuma escolha (a grande maioria dos
+  administradores), continua sendo sempre a escola de casa, sem mudança
+  nenhuma de comportamento.
+- Dentro de qualquer escola (de casa ou extra), o acesso é idêntico ao de
+  sempre (inclusive criar técnicos, ver "Gestão de usuários" abaixo) —
+  **nenhuma tela operacional (atletas/avaliações/frequência/...) precisou
+  de código novo**, elas só leem `window.CF.escolaId`, que já chega certo.
+
+### Gestão de usuários — administrador cadastra técnico direto pelo site
+
+Nova seção em `configuracoes.html` ("Gestão de usuários", visível só pra
+administrador — técnico não vê, `data-roles="administrador"`): lista os
+técnicos da escola atual (de casa ou extra, tanto faz) e deixa cadastrar um
+novo (nome/e-mail/senha provisória), usando o mesmo padrão de
+conta-sem-deslogar (`criarContaSemDeslogar()`) já usado em
+`admin-escolas.js`/`gestor-escolas.js`. A PERMISSÃO de administrador criar
+técnico já existia nas regras desde sempre — só faltava a tela.
+
+Cada técnico da lista tem um botão **"Enviar redefinição de senha"** — manda
+um e-mail (`sendPasswordResetEmail`) com um link pra ele escolher uma senha
+nova. **Não existe "resetar e ver a senha nova na tela"**: o projeto é
+100% client-side (sem Admin SDK), então definir a senha de outra pessoa
+diretamente não é possível a partir do navegador — o e-mail é o único jeito
+seguro de fazer isso sem servidor.
+
+### Status de pagamento do aluno — indicador visual (não é cobrança de verdade)
+
+Cada atleta tem um campo `statusPagamento` (`"em_dia"` ou `"inadimplente"`),
+mostrado como uma etiqueta no card do atleta em `atletas.html` — o técnico
+clica pra alternar. É **só um lembrete visual**, não tem cobrança/gateway de
+pagamento nenhum rodando por trás (mensalidade da escolinha pro aluno é um
+fluxo manual, fora do sistema, por enquanto). O responsável também vê esse
+status (só leitura) em `responsavel.html`.
+
+De propósito, **não aparece na "Área do atleta"** (`area-do-atleta.html`,
+link sem login) — informação de pagamento é sensível demais pra uma página
+sem autenticação.
 
 ### Área do atleta — acesso sem login por código
 
@@ -312,6 +422,27 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   conferir se a escola atualiza `planoId`/`licencaFim` certinho. Também
   não testei a exceção do `auth-guard.js` pra essa página com uma escola
   de verdade com licença vencida.
+- **Múltiplas escolas / "Minhas escolas"**
+  (`gestor-escolas.html`/`js/gestor-escolas.js`, seção "Múltiplas escolas"
+  acima) — validei sintaxe (import dinâmico de todos os módulos tocados,
+  sem erro) e que todo ID usado no JS existe no HTML. **Testado ao vivo em
+  2026-08-27** (pelo Rafael, com a conta "Rafa"): administrador cai em
+  `gestor-escolas.html` vendo a própria escola, "Alunos" conta certo. Ainda
+  NÃO testado: dono liberar `limiteEscolas`/`licencaFim` num administrador
+  (painel "Múltiplas escolas" em admin-escolas.html) e ele cadastrar/editar/
+  excluir uma escola extra a partir daí.
+  ⚠️ **Bug encontrado nesse teste e corrigido**: "Treinadores" aparecia como
+  "—" (contagem falhando) porque a regra de leitura de `usuarios` só
+  liberava o próprio perfil ou o dono — administrador/técnico não
+  conseguiam contar os colegas da própria escola. Ainda não retestado
+  depois da correção.
+- **Gestão de usuários** (seção nova em `configuracoes.html`) — validei
+  sintaxe, mas não testei ao vivo: administrador cadastrando um técnico
+  pela tela (em vez de precisar do dono) e o botão de redefinição de senha
+  mandando o e-mail de verdade.
+- **Status de pagamento do aluno** (badge em `atletas.html`, leitura em
+  `responsavel.html`) — já testado ao vivo pelo Rafael em 2026-08-27,
+  funcionando (badge "Em dia" aparecendo certo no card de cada atleta).
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -330,14 +461,14 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- ⚠️ **`firestore.rules` mudou de novo** (coleção `solicitacoesPlano`,
-  depois da publicação anterior que já tinha levado `planosAssinatura`) e
-  **precisa ser publicado de novo** — Firestore Database → Regras →
-  colar → Publicar. É sempre manual, não tem deploy automático.
-- Testar `responsavel.html`, Planos de assinatura e o fluxo de
-  Solicitação de plano de ponta a ponta (ver seções acima) —
-  `cadastro-trial.html` e `area-do-atleta.html` já foram testados e
-  funcionam.
+- Testar `responsavel.html`, Planos de assinatura, o fluxo de Solicitação de
+  plano e o fluxo de "Minhas escolas"/múltiplas escolas de ponta a ponta
+  (ver seções acima) — `cadastro-trial.html`, `area-do-atleta.html` e a
+  escola de casa em "Minhas escolas" já foram testados e funcionam.
+- Ligar a liberação de "múltiplas escolas" ao fluxo de venda (hoje é manual,
+  o dono abre um administrador em admin-escolas.html e preenche
+  `limiteEscolas`/`licencaFim`) — decidir se isso passa pelo mesmo
+  `solicitacoesPlano`/`escolher-plano.html` já existente ou fica separado.
 - Assim que o Rafael tiver um provedor de pagamento (Mercado Pago,
   PagSeguro, Stripe...) configurado, ligar a confirmação automática por
   webhook — hoje o dono confirma manualmente em "Solicitações de plano"

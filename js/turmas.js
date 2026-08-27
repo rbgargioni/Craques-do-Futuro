@@ -5,9 +5,11 @@
 // ======================================================
 
 import {
-  collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp,
+  collection, addDoc, doc, setDoc, updateDoc, onSnapshot, query, where, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from "./firebase-init.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { app as appPrincipal, auth, db } from "./firebase-init.js";
 
 function turmasRef() {
   return collection(db, "escolas", window.CF.escolaId, "turmas");
@@ -137,6 +139,128 @@ function configurarFormEditarTurma() {
   });
 }
 
+// ------------------------------------------------------
+// Gestão de usuários — técnicos da escola (só administrador vê esta seção,
+// ver data-roles em configuracoes.html). A permissão de criar técnico já
+// existe nas regras do Firestore (podeCriarTecnico) desde sempre — só
+// faltava esta tela.
+// ------------------------------------------------------
+
+// Mesmo padrão de criarContaSemDeslogar() já usado em admin-escolas.js e
+// gestor-escolas.js: cria a conta de login do técnico sem deslogar quem
+// está usando o site, via uma instância secundária e descartável do Firebase App.
+async function criarContaSemDeslogar(email, senha) {
+  const appSecundario = initializeApp(appPrincipal.options, `secundario-${Date.now()}`);
+  const authSecundario = getAuth(appSecundario);
+  try {
+    const credencial = await createUserWithEmailAndPassword(authSecundario, email, senha);
+    return credencial.user.uid;
+  } finally {
+    await signOut(authSecundario).catch(() => {});
+    await deleteApp(appSecundario).catch(() => {});
+  }
+}
+
+function traduzirErroUsuario(erro) {
+  const codigo = erro && erro.code ? erro.code : "";
+  if (codigo.includes("email-already-in-use")) return "Esse e-mail já está sendo usado por outra conta.";
+  if (codigo.includes("weak-password")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (codigo.includes("invalid-email")) return "E-mail inválido.";
+  if (codigo.includes("permission-denied")) return "Você não tem permissão pra fazer essa ação.";
+  return (erro && erro.message) || "Algo deu errado. Tente novamente em alguns segundos.";
+}
+
+function criarItemTecnico(dados) {
+  const li = document.createElement("li");
+  li.className = "message-item";
+
+  const head = document.createElement("div");
+  head.className = "message-item-head";
+  const nomeEl = document.createElement("strong");
+  nomeEl.textContent = dados.nome || dados.email;
+  const emailEl = document.createElement("span");
+  emailEl.textContent = dados.email;
+  head.append(nomeEl, emailEl);
+
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "btn btn-outline btn-sm";
+  botao.style.marginTop = "8px";
+  botao.textContent = "Enviar redefinição de senha";
+  botao.title = "Manda um e-mail pro técnico escolher uma senha nova — não dá pra ver/definir a senha dele diretamente por aqui.";
+  botao.addEventListener("click", async () => {
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+    try {
+      await sendPasswordResetEmail(auth, dados.email);
+      showToast(`E-mail de redefinição enviado pra ${dados.email}.`);
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível enviar o e-mail. Tente novamente.");
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Enviar redefinição de senha";
+    }
+  });
+
+  li.append(head, botao);
+  return li;
+}
+
+function ouvirTecnicos() {
+  const lista = document.getElementById("listaTecnicos");
+  const q = query(collection(db, "usuarios"), where("escolaId", "==", window.CF.escolaId), where("role", "==", "tecnico"));
+  onSnapshot(
+    q,
+    (snapshot) => {
+      lista.innerHTML = "";
+      if (snapshot.empty) {
+        lista.innerHTML = '<li class="empty-state">Nenhum técnico cadastrado ainda.</li>';
+        return;
+      }
+      snapshot.forEach((docSnap) => lista.appendChild(criarItemTecnico(docSnap.data())));
+    },
+    (erro) => {
+      console.error("Erro ao carregar técnicos:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar os técnicos.</li>';
+    }
+  );
+}
+
+function configurarFormCadastrarTecnico() {
+  const form = document.getElementById("formCadastrarTecnico");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Adicionando...";
+
+    try {
+      const nome = form.nome.value.trim();
+      const email = form.email.value.trim();
+      const senha = form.senha.value;
+
+      const novoUid = await criarContaSemDeslogar(email, senha);
+      await setDoc(doc(db, "usuarios", novoUid), {
+        role: "tecnico",
+        escolaId: window.CF.escolaId,
+        nome,
+        email,
+      });
+
+      showToast(`Técnico "${nome}" adicionado.`);
+      form.reset();
+      document.getElementById("painelTecnico").classList.add("is-hidden");
+    } catch (erro) {
+      console.error(erro);
+      showToast(traduzirErroUsuario(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Adicionar técnico";
+    }
+  });
+}
+
 document.addEventListener("cf:pronto", () => {
   carregarTurmas();
   configurarFormCadastrarTurma();
@@ -146,4 +270,9 @@ document.addEventListener("cf:pronto", () => {
   document.getElementById("btnCadastrarTurma").addEventListener("click", () => {
     document.getElementById("painelEditarTurma").classList.add("is-hidden");
   });
+
+  if (window.CF.role === "administrador") {
+    ouvirTecnicos();
+    configurarFormCadastrarTecnico();
+  }
 });

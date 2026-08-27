@@ -8,8 +8,13 @@
 // ------------------------------------------------------
 // usuarios/{uid}                        uid = Firebase Auth uid
 //   role: "dono" | "administrador" | "tecnico" | "responsavel"
-//   escolaId: string | null             null só para dono
+//   escolaId: string | null             a escola "de casa" do administrador/técnico
+//                                        (null só pra dono); ver "múltiplas escolas" abaixo
 //   atletaIds: array<string>            só para responsavel
+//   limiteEscolas: number | ausente     só em administrador de plano com mais de uma escola —
+//                                        quantas escolas EXTRAS (além da de casa) ele pode ter
+//   licencaFim: Timestamp | ausente     só junto com limiteEscolas — vencimento do PACOTE que
+//                                        cobre as escolas extras (ver abaixo)
 //
 //   Hierarquia de criação: dono cria escolas + administradores (pode ter mais de 1 por escola);
 //   administrador cria técnicos (e também pode cadastrar atletas/turmas, mesmo acesso a dados que
@@ -17,9 +22,36 @@
 //   o mesmo acesso aos DADOS da escola (atletas/turmas/avaliações/...) — a diferença entre os dois
 //   é só que administrador também pode criar técnicos.
 //
+//   MÚLTIPLAS ESCOLAS (plano mais completo): não existe um papel separado pra isso — é o MESMO
+//   "administrador", só que com `limiteEscolas` e `licencaFim` preenchidos no próprio perfil
+//   (o dono define isso ao editar o administrador em admin-escolas.html). Com isso, ele pode
+//   cadastrar escolas EXTRAS além da "de casa" (a do próprio `escolaId`) em gestor-escolas.html
+//   ("Minhas escolas") — até `limiteEscolas`, cada uma virando `escolas/{id}.administradorUid ==
+//   seu uid`. Ele "entra" em cada uma (a de casa OU uma extra) pra operar como staff dela.
+//   NÃO é o mesmo que "dono": dono tem acesso irrestrito a QUALQUER escola de QUALQUER cliente;
+//   este administrador só enxerga/cria/edita/exclui as escolas EXTRAS que ele mesmo criou — a
+//   de casa ele edita mas não exclui (isso continua exigindo o dono, ver regra de escolas abaixo).
+//   O limite de `limiteEscolas` é checado na regra de criação de escola (abaixo), mas SÓ pra
+//   escola nova em si — não tem uma trava de "contar quantas escolas extras ele já tem" na regra
+//   (exigiria um contador mantido à parte); por enquanto é reforçado só na interface
+//   (gestor-escolas.js esconde o botão de cadastrar depois do limite). Decisão consciente,
+//   mesmo padrão de "visibilidade, não bloqueio hermético" já usado pro limite de treinador/aluno.
+//   O acesso às escolas extras NÃO depende do licencaFim de CADA escola — só de ele continuar
+//   sendo o administradorUid dela (ver isStaffAtivo mais abaixo). Quem corta o acesso de um
+//   administrador inadimplente é o DONO, manualmente (desativar/excluir o perfil dele, ou tirar
+//   o limiteEscolas/licencaFim se for só as escolas extras que devem sumir).
+//
 // escolas/{escolaId}
 //   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa" | "trial"
 //   planoId: string | null — referência a planosAssinatura/{planoId} (null = sem plano definido)
+//   administradorUid: string | null — uid de usuarios/{uid} que criou esta escola como EXTRA
+//     (via "múltiplas escolas", ver nota acima). null = escola "de casa" de alguém (vínculo vem
+//     do lado contrário, usuarios/{uid}.escolaId) ou cadastrada pelo dono direto. Ao criar uma
+//     extra, a regra trava `licencaFim` da escola pra nunca passar do `licencaFim` do PACOTE do
+//     administrador (meDoc().licencaFim) — não dá pra se dar uma licença de escola mais longa
+//     que a do próprio pacote. Quando o dono renova o pacote (estende usuarios/{uid}.licencaFim),
+//     isso NÃO atualiza sozinho o licencaFim das escolas extras já criadas — precisa editar cada
+//     uma manualmente em admin-escolas.html, igual a qualquer outra escola. Limitação conhecida.
 //
 //   "trial" = escola criada pelo cadastro público de teste grátis (cadastro-trial.html),
 //   sem passar por um dono. licencaFim é travada em no máximo 7 dias a partir da criação
@@ -36,6 +68,12 @@
 //     categoriaAtual, nivelAtual (1-9, ajustado manualmente), nivelDesde (Timestamp — usado para o
 //       aviso de "pronto para subir" depois de um tempo mínimo no nível 9)
 //     codigoPublico (string, 6 caracteres) — código da "Área do atleta" (ver resumosPublicos abaixo)
+//     statusPagamento: "em_dia" | "inadimplente" — indicador VISUAL de mensalidade da escolinha
+//       em dia, ajustado manualmente pelo técnico/administrador (não tem cobrança de verdade
+//       rolando por trás, é só um marcador pra lembrete). Visível pro técnico (card do atleta em
+//       atletas.html, com botão pra alternar) e pro responsável (responsavel.html, só leitura).
+//       De propósito NÃO aparece em resumosPublicos/área do atleta (link sem login) — é
+//       informação sensível de dinheiro, não cabe numa página sem autenticação.
 //
 //     escolas/{escolaId}/atletas/{atletaId}/progressao/{progressaoId}
 //       tipo: "promocao" | "reversao"
@@ -106,6 +144,14 @@ service cloud.firestore {
     function isAdmin()       { return myRole() == 'administrador'; }
     function isTecnico()     { return myRole() == 'tecnico'; }
 
+    // Administrador "dono comercial" de uma escola EXTRA (ver nota sobre "múltiplas escolas" no
+    // topo do arquivo) — diferente da escola "de casa" (vínculo fixo em usuarios/{uid}.escolaId),
+    // o vínculo com uma escola extra vive no campo administradorUid da PRÓPRIA escola.
+    function souAdminDaEscolaExtra(escolaId) {
+      return signedIn() && isAdmin()
+        && get(/databases/$(database)/documents/escolas/$(escolaId)).data.administradorUid == request.auth.uid;
+    }
+
     // Cadastro público de teste grátis (cadastro-trial.html) — ver nota sobre
     // "trial" no modelo de dados, no topo do arquivo.
     function ehCriacaoDeTrialValida(dados) {
@@ -119,9 +165,22 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/escolas/$(id)).data.licencaFim >= request.time;
     }
 
-    // administrador e técnico têm o mesmo acesso aos dados da escola, contanto que a licença esteja válida
+    // administrador e técnico têm o mesmo acesso aos dados da escola "de casa", contanto que a
+    // licença esteja válida. Administrador ganha o MESMO acesso dentro de qualquer escola EXTRA
+    // que ele mesmo gerencia (souAdminDaEscolaExtra) SEM depender do licencaFim dela — a escola
+    // em si é dele (pode até excluí-la), então o controle é só "essa escola é sua?", não licença
+    // por licença; quem decide cortar um administrador inadimplente é o dono, manualmente.
     function isStaffAtivo(escolaId) {
-      return signedIn() && (isAdmin() || isTecnico()) && myEscolaId() == escolaId && escolaAtiva(escolaId);
+      return signedIn()
+        && (((isAdmin() || isTecnico()) && myEscolaId() == escolaId && escolaAtiva(escolaId))
+            || souAdminDaEscolaExtra(escolaId));
+    }
+
+    // Só administrador (da própria escola de casa, com licença válida, ou dono de uma escola
+    // extra, ver isStaffAtivo acima) pode criar conta de técnico — técnico sozinho não cria
+    // outro técnico.
+    function podeCriarTecnico(escolaId) {
+      return (isAdmin() && myEscolaId() == escolaId && escolaAtiva(escolaId)) || souAdminDaEscolaExtra(escolaId);
     }
 
     function isResponsavelDe(escolaId, atletaId) {
@@ -130,44 +189,78 @@ service cloud.firestore {
     }
 
     match /usuarios/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isDono());
+      // Além do próprio perfil e do dono, um administrador/técnico/responsável também pode ser
+      // LIDO por quem mais atende a mesma escola (isStaffAtivo) — usado pra contar treinadores
+      // (getCountFromServer) e listar técnicos/administradores em admin-escolas.html/
+      // gestor-escolas.html/configuracoes.html.
+      allow read: if signedIn()
+        && (request.auth.uid == uid || isDono()
+            || (resource.data.escolaId != null && isStaffAtivo(resource.data.escolaId)));
 
-      // dono cria/edita qualquer perfil; administrador só CRIA técnicos da própria escola;
-      // administrador/técnico só CRIAM perfis de responsável da própria escola; e um
-      // usuário totalmente novo (sem perfil ainda) pode criar o PRÓPRIO perfil de
+      // dono cria/edita qualquer perfil; administrador só CRIA técnicos da própria escola (de
+      // casa ou extra); administrador/técnico só CRIAM perfis de responsável da própria escola;
+      // e um usuário totalmente novo (sem perfil ainda) pode criar o PRÓPRIO perfil de
       // administrador, mas só apontando pra uma escola que ele acabou de criar como trial
       // (a escola já precisa existir com status 'trial' — ver ordem em cadastro-trial.js:
       // primeiro cria a escola, depois este perfil).
       allow create: if isDono()
-        || (isAdmin() && escolaAtiva(myEscolaId())
-            && request.resource.data.role == 'tecnico'
-            && request.resource.data.escolaId == myEscolaId())
+        || (podeCriarTecnico(request.resource.data.escolaId)
+            && request.resource.data.role == 'tecnico')
         || (isStaffAtivo(request.resource.data.escolaId)
             && request.resource.data.role == 'responsavel')
+        || (souAdminDaEscolaExtra(request.resource.data.escolaId)
+            && request.resource.data.role == 'administrador')
         || (signedIn() && request.auth.uid == uid && !meuPerfilExiste()
             && request.resource.data.role == 'administrador'
             && get(/databases/$(database)/documents/escolas/$(request.resource.data.escolaId)).data.status == 'trial');
 
-      // administrador/técnico podem só adicionar atletaIds a um perfil de responsável da própria escola
+      // administrador/técnico podem só adicionar atletaIds a um perfil de responsável
+      // da escola que atendem (isStaffAtivo já cobre os dois, ver função acima)
       allow update: if isDono()
-        || (isStaffAtivo(myEscolaId())
+        || (isStaffAtivo(resource.data.escolaId)
             && resource.data.role == 'responsavel'
-            && resource.data.escolaId == myEscolaId()
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['atletaIds']));
 
-      allow delete: if isDono();
+      // dono apaga qualquer perfil; administrador só apaga perfis (administrador/técnico/
+      // responsável, sempre têm escolaId) de uma escola EXTRA que ELE MESMO gerencia — usado ao
+      // excluir essa escola inteira em gestor-escolas.js (mesmo padrão de
+      // excluirEscolaTrialVencida do dono). Não cobre a escola de casa dele mesmo — apagar
+      // colegas da própria escola continua exigindo o dono.
+      allow delete: if isDono()
+        || (isAdmin() && resource.data.escolaId != null && souAdminDaEscolaExtra(resource.data.escolaId));
     }
 
     match /escolas/{escolaId} {
+      // isStaffAtivo já cobre "administrador dono desta escola extra" incondicionalmente (não
+      // depende de escolaAtiva, ver função acima) — então ele sempre lê as próprias escolas
+      // extras, mesmo com licença vencida, sem precisar de uma cláusula à parte aqui.
       allow read:  if isDono() || isStaffAtivo(escolaId)
                    || (myRole() == 'responsavel' && myEscolaId() == escolaId);
       // create: dono cria qualquer escola; OU um usuário autenticado sem nenhum perfil
       // ainda pode criar UMA escola de teste grátis pra si mesmo (o próximo passo dele é
-      // criar o próprio usuarios/{uid} apontando pra cá — ver regra de usuarios acima).
-      // update/delete continuam só do dono (inclusive apagar uma trial vencida).
+      // criar o próprio usuarios/{uid} apontando pra cá — ver regra de usuarios acima); OU
+      // um administrador com limiteEscolas/licencaFim no próprio perfil cria uma escola EXTRA
+      // sua (administradorUid == seu uid), com a licença dela travada pra nunca passar do
+      // vencimento do PACOTE dele (meDoc().licencaFim) — ver nota sobre "múltiplas escolas"
+      // no topo do arquivo.
       allow create: if isDono()
-        || (signedIn() && !meuPerfilExiste() && ehCriacaoDeTrialValida(request.resource.data));
-      allow update, delete: if isDono();
+        || (signedIn() && !meuPerfilExiste() && ehCriacaoDeTrialValida(request.resource.data))
+        || (isAdmin() && request.resource.data.administradorUid == request.auth.uid
+            && request.resource.data.status == 'ativa'
+            && 'limiteEscolas' in meDoc() && meDoc().limiteEscolas > 0
+            && 'licencaFim' in meDoc()
+            && request.resource.data.licencaFim <= meDoc().licencaFim);
+      // update: dono edita qualquer campo; administrador (na de casa OU numa extra que
+      // gerencia) só pode renomear (nunca mexer em licencaFim/status/planoId/administradorUid
+      // por essa via — quem controla isso é o dono). delete: dono apaga qualquer escola
+      // (inclusive trial vencida); administrador apaga só as EXTRAS que ele mesmo criou —
+      // NÃO pode excluir a própria escola de casa (só o dono), decisão consciente pra não
+      // deixar a escola "sumir" sem o dono saber.
+      allow update: if isDono()
+        || ((souAdminDaEscolaExtra(escolaId)
+             || (isAdmin() && myEscolaId() == escolaId && escolaAtiva(escolaId)))
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nome']));
+      allow delete: if isDono() || souAdminDaEscolaExtra(escolaId);
 
       match /turmas/{turmaId} {
         allow read:  if isDono() || isStaffAtivo(escolaId)

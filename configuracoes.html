@@ -159,6 +159,44 @@
       <p class="empty-state">Carregando turmas...</p>
     </section>
 
+    <!-- GESTÃO DE USUÁRIOS (técnicos desta escola) — só administrador, técnico não cria técnico -->
+    <div id="secaoGestaoUsuarios" data-roles="administrador">
+      <section class="page-header" style="margin-top:20px;">
+        <h2>Gestão de usuários</h2>
+        <div class="page-header-actions">
+          <button class="btn btn-primary" id="btnCadastrarTecnico" data-toggle-panel="painelTecnico">＋ Adicionar técnico</button>
+        </div>
+      </section>
+
+      <section class="panel is-hidden" id="painelTecnico">
+        <div class="panel-head">
+          <h3>Novo técnico</h3>
+        </div>
+        <form id="formCadastrarTecnico" class="form-grid">
+          <div class="field">
+            <label for="nomeTecnico">Nome</label>
+            <input type="text" id="nomeTecnico" name="nome" placeholder="Nome do técnico" required>
+          </div>
+          <div class="field">
+            <label for="emailTecnico">E-mail</label>
+            <input type="email" id="emailTecnico" name="email" placeholder="tecnico@email.com" required>
+          </div>
+          <div class="field field--full">
+            <label for="senhaTecnico">Senha provisória</label>
+            <input type="text" id="senhaTecnico" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
+          </div>
+          <div class="form-actions field--full">
+            <button type="button" class="btn btn-outline" data-toggle-panel="painelTecnico">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Adicionar técnico</button>
+          </div>
+        </form>
+      </section>
+
+      <ul class="message-list" id="listaTecnicos" style="margin-bottom:20px;">
+        <li class="empty-state">Carregando...</li>
+      </ul>
+    </div>
+
     <!-- PREFERÊNCIAS -->
     <section class="panel" style="margin-top:20px;">
       <div class="panel-head">

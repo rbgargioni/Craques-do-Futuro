@@ -246,6 +246,10 @@
       <h3>Administradores desta escola</h3>
       <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelAdministrador">＋ Adicionar administrador</button>
     </div>
+    <p class="status-note">
+      <span>ℹ</span>
+      <span>Clique num administrador pra liberar (ou ajustar) o plano de múltiplas escolas — ele passa a poder cadastrar e gerenciar escolas extras, além desta, em "Minhas escolas".</span>
+    </p>
     <ul class="message-list" id="listaAdministradoresEscola">
       <li class="empty-state">Carregando...</li>
     </ul>
@@ -272,6 +276,27 @@
         <div class="form-actions field--full">
           <button type="button" class="btn btn-outline" data-toggle-panel="painelAdministrador">Cancelar</button>
           <button type="submit" class="btn btn-primary">Adicionar administrador</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- PAINEL: PLANO DE MÚLTIPLAS ESCOLAS (aberto ao clicar num administrador da lista acima) -->
+    <section class="panel is-hidden" id="painelMultiEscola" style="margin-top:16px; box-shadow:none; border-style:dashed;">
+      <div class="panel-head">
+        <h3>Múltiplas escolas — <span id="nomeAdminParaMultiEscola"></span></h3>
+        <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelMultiEscola">Fechar</button>
+      </div>
+      <form id="formMultiEscola" class="form-grid">
+        <div class="field">
+          <label for="limiteEscolasMulti">Limite de escolas extras</label>
+          <input type="number" id="limiteEscolasMulti" name="limiteEscolas" min="0" step="1" placeholder="0 = plano de escola única">
+        </div>
+        <div class="field">
+          <label for="licencaFimMulti">Pacote válido até</label>
+          <input type="date" id="licencaFimMulti" name="licencaFim">
+        </div>
+        <div class="form-actions field--full">
+          <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
       </form>
     </section>

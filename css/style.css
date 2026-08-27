@@ -713,6 +713,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .badge--progress { background: var(--warn-bg); color: var(--warn); }
 .badge--done { background: var(--good-bg); color: var(--good); }
 .badge--bad { background: var(--bad-bg); color: var(--bad); }
+.badge-toggle { border: none; cursor: pointer; font-family: inherit; }
 
 /* ===================================================
    SWITCH (configurações)

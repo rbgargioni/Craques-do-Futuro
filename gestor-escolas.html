@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minhas escolas — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-allowed-roles="administrador">
+
+<header class="simple-topbar">
+  <div class="brand">
+    <div class="brand-badge">CF</div>
+    <div class="brand-text">
+      <strong>Craques</strong>
+      <span>do Futuro · Minhas escolas</span>
+    </div>
+  </div>
+  <div class="simple-topbar-right">
+    <div class="profile">
+      <div class="avatar">?</div>
+      <div class="profile-text">
+        <strong>—</strong>
+        <span>—</span>
+      </div>
+    </div>
+    <a href="#" class="link-sair" data-sair>Sair</a>
+  </div>
+</header>
+
+<main class="simple-main">
+
+  <section class="page-header">
+    <h2>Minhas escolas <span class="tag" id="totalEscolasGestor">carregando...</span></h2>
+    <div class="page-header-actions is-hidden" data-requer-multi-escola>
+      <button class="btn btn-primary" id="btnCadastrarEscolaGestor" data-toggle-panel="painelEscolaGestor">＋ Cadastrar escola</button>
+    </div>
+  </section>
+
+  <p class="status-note is-hidden" data-requer-multi-escola>
+    <span>ℹ</span>
+    <span id="infoLimiteGestor">Carregando informações do seu plano...</span>
+  </p>
+
+  <p id="erroGestor" class="is-hidden status-note" style="background:var(--bad-bg);color:var(--bad);border-color:#f3c8c4;"></p>
+
+  <!-- PAINEL: NOVA ESCOLA (só quem tem limiteEscolas no perfil — administrador comum já tem a
+       própria escola de casa, não cadastra mais). O is-hidden fica no DIV por fora, não no
+       painel: o painel já usa is-hidden pro toggle abrir/fechar; se o de fora e o de dentro
+       fossem o mesmo elemento, mostrar a seção destravaria o painel junto. -->
+  <div class="is-hidden" data-requer-multi-escola>
+    <section class="panel is-hidden" id="painelEscolaGestor">
+      <div class="panel-head">
+        <h3>Nova escola</h3>
+      </div>
+      <form id="formCadastrarEscolaGestor" class="form-grid">
+        <div class="field field--full">
+          <label for="nomeEscolaGestor">Nome da escola</label>
+          <input type="text" id="nomeEscolaGestor" name="nome" placeholder="Ex: Escolinha Estrela do Futuro" required>
+        </div>
+        <div class="field field--full">
+          <label for="nomeAdminInicialGestor">Nome do administrador desta escola</label>
+          <input type="text" id="nomeAdminInicialGestor" name="nomeAdmin" placeholder="Ex: Rafael Terra" required>
+        </div>
+        <div class="field">
+          <label for="emailAdminInicialGestor">E-mail do administrador</label>
+          <input type="email" id="emailAdminInicialGestor" name="emailAdmin" placeholder="admin@email.com" required>
+        </div>
+        <div class="field">
+          <label for="senhaAdminInicialGestor">Senha provisória</label>
+          <input type="text" id="senhaAdminInicialGestor" name="senhaAdmin" placeholder="Ele pode trocar depois" required minlength="6">
+        </div>
+        <div class="form-actions field--full">
+          <button type="button" class="btn btn-outline" data-toggle-panel="painelEscolaGestor">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar escola</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- PAINEL: EDITAR ESCOLA (aberto ao clicar "Editar" no card) -->
+  <section class="panel is-hidden" id="painelEditarEscolaGestor">
+    <div class="panel-head">
+      <h3 id="tituloEditarEscolaGestor">Editar escola</h3>
+      <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelEditarEscolaGestor">Fechar</button>
+    </div>
+    <form id="formEditarEscolaGestor" class="form-grid">
+      <div class="field field--full">
+        <label for="nomeEditarEscolaGestor">Nome da escola</label>
+        <input type="text" id="nomeEditarEscolaGestor" name="nome" required>
+      </div>
+      <div class="form-actions field--full">
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- GRID DE ESCOLAS (preenchido pelo js/gestor-escolas.js) -->
+  <section class="card-grid" id="listaEscolasGestor">
+    <p class="empty-state">Carregando escolas...</p>
+  </section>
+
+</main>
+
+<script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/gestor-escolas.js"></script>
+<script src="js/Script.js"></script>
+</body>
+</html>

@@ -303,6 +303,41 @@ function criarLinhaNivel(atletaId, dados) {
 }
 
 // ------------------------------------------------------
+// Status de pagamento — indicador visual (não é cobrança de verdade), o
+// técnico clica pra alternar entre "Em dia" e "Inadimplente". Ver nota em
+// firestore.rules (campo statusPagamento).
+// ------------------------------------------------------
+function criarBadgePagamento(atletaId, dados) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.title = "Clique para alternar o status de pagamento";
+
+  function render(status) {
+    const inadimplente = status === "inadimplente";
+    btn.className = `badge badge-toggle ${inadimplente ? "badge--bad" : "badge--done"}`;
+    btn.textContent = inadimplente ? "Inadimplente" : "Em dia";
+  }
+  render(dados.statusPagamento);
+
+  btn.addEventListener("click", async () => {
+    const novoStatus = dados.statusPagamento === "inadimplente" ? "em_dia" : "inadimplente";
+    btn.disabled = true;
+    try {
+      await updateDoc(atletaRef(atletaId), { statusPagamento: novoStatus });
+      dados.statusPagamento = novoStatus;
+      render(novoStatus);
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível atualizar o status de pagamento. Tente novamente.");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  return btn;
+}
+
+// ------------------------------------------------------
 // Cards de atleta
 // ------------------------------------------------------
 function criarCardAtleta(atletaId, dados) {
@@ -387,7 +422,13 @@ function criarCardAtleta(atletaId, dados) {
   const emAtencao = dados.status === "atencao";
   badge.className = emAtencao ? "badge badge--bad" : "badge badge--done";
   badge.textContent = emAtencao ? "Atenção" : "Ativo";
-  foot.appendChild(badge);
+
+  const badgesWrap = document.createElement("div");
+  badgesWrap.style.display = "flex";
+  badgesWrap.style.gap = "6px";
+  badgesWrap.appendChild(badge);
+  badgesWrap.appendChild(criarBadgePagamento(atletaId, dados));
+  foot.appendChild(badgesWrap);
 
   const { linha, pronto } = criarLinhaNivel(atletaId, dados);
 
@@ -467,6 +508,7 @@ function configurarFormCadastrarAtleta() {
         observacoes: form.observacoes.value.trim(),
         turmaId: turmaAtivaId,
         status: "ativo",
+        statusPagamento: "em_dia",
         categoriaAtual: (turma && turma.categoria) || "Sub-9",
         nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),

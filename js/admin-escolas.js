@@ -155,6 +155,54 @@ function configurarFormAdicionarSocio() {
   });
 }
 
+// ------------------------------------------------------
+// Administradores de uma escola — clicar num deles abre "Múltiplas escolas"
+// (limiteEscolas/licencaFim), pra liberar o plano de mais de uma escola pra
+// ele — ver nota sobre "múltiplas escolas" no topo de firestore.rules.
+// ------------------------------------------------------
+function abrirEdicaoMultiEscola(uid, dados) {
+  esconderErro();
+  const form = document.getElementById("formMultiEscola");
+  form.dataset.uid = uid;
+  form.limiteEscolas.value = dados.limiteEscolas || 0;
+  form.licencaFim.value = dados.licencaFim ? dados.licencaFim.toDate().toISOString().slice(0, 10) : "";
+
+  document.getElementById("nomeAdminParaMultiEscola").textContent = dados.nome || dados.email;
+  document.getElementById("painelAdministrador").classList.add("is-hidden");
+  const painel = document.getElementById("painelMultiEscola");
+  painel.classList.remove("is-hidden");
+  painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function configurarFormMultiEscola() {
+  const form = document.getElementById("formMultiEscola");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    esconderErro();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      const limiteEscolas = Number(form.limiteEscolas.value) || 0;
+      const dados = { limiteEscolas };
+      // licencaFim só é obrigatório se o limite for maior que 0 — sem escolas extras liberadas,
+      // não faz sentido travar o formulário pedindo uma data.
+      if (form.licencaFim.value) dados.licencaFim = dataInputParaTimestamp(form.licencaFim.value);
+
+      await updateDoc(doc(db, "usuarios", form.dataset.uid), dados);
+      showToast("Plano de múltiplas escolas atualizado.");
+      document.getElementById("painelMultiEscola").classList.add("is-hidden");
+    } catch (erro) {
+      console.error(erro);
+      mostrarErro(traduzirErro(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar";
+    }
+  });
+}
+
 function ouvirAdministradoresDaEscola(escolaId) {
   const lista = document.getElementById("listaAdministradoresEscola");
   lista.innerHTML = '<li class="empty-state">Carregando...</li>';
@@ -174,6 +222,8 @@ function ouvirAdministradoresDaEscola(escolaId) {
         const dados = docSnap.data();
         const li = document.createElement("li");
         li.className = "message-item";
+        li.style.cursor = "pointer";
+        li.title = "Clique para ver/editar o plano de múltiplas escolas";
         const head = document.createElement("div");
         head.className = "message-item-head";
         const nomeEl = document.createElement("strong");
@@ -182,6 +232,18 @@ function ouvirAdministradoresDaEscola(escolaId) {
         emailEl.textContent = dados.email;
         head.append(nomeEl, emailEl);
         li.appendChild(head);
+
+        if (dados.limiteEscolas > 0) {
+          const detalhes = document.createElement("p");
+          detalhes.style.margin = "6px 0 0";
+          detalhes.style.fontSize = "12px";
+          detalhes.style.color = "var(--text-muted)";
+          const licencaTxt = dados.licencaFim ? dados.licencaFim.toDate().toLocaleDateString("pt-BR") : "—";
+          detalhes.textContent = `Até ${dados.limiteEscolas} escola${dados.limiteEscolas === 1 ? "" : "s"} extra${dados.limiteEscolas === 1 ? "" : "s"} · pacote até ${licencaTxt}`;
+          li.appendChild(detalhes);
+        }
+
+        li.addEventListener("click", () => abrirEdicaoMultiEscola(docSnap.id, dados));
         lista.appendChild(li);
       });
     },
@@ -765,6 +827,7 @@ document.addEventListener("cf:pronto", () => {
   configurarFormCadastrarEscola();
   configurarFormEditarEscola();
   configurarFormAdicionarAdministrador();
+  configurarFormMultiEscola();
 
   // "Cadastrar escola" e "Editar escola" não fazem sentido abertos ao mesmo tempo
   document.getElementById("btnCadastrarEscola").addEventListener("click", () => {

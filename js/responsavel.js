@@ -79,6 +79,7 @@ async function atualizarInfoEscolaTurma() {
   const atleta = atletasCache[atletaAtivoId];
   if (!atleta) {
     info.textContent = "";
+    document.getElementById("badgePagamento").classList.add("is-hidden");
     return;
   }
 
@@ -100,6 +101,13 @@ async function atualizarInfoEscolaTurma() {
   }
 
   info.textContent = partes.join(" · ") || "—";
+
+  // Status de pagamento — só leitura aqui (o técnico é quem alterna, em atletas.html).
+  const badge = document.getElementById("badgePagamento");
+  const inadimplente = atleta.statusPagamento === "inadimplente";
+  badge.classList.remove("is-hidden");
+  badge.className = `badge ${inadimplente ? "badge--bad" : "badge--done"}`;
+  badge.textContent = inadimplente ? "Mensalidade pendente" : "Mensalidade em dia";
 }
 
 // ------------------------------------------------------
