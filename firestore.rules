@@ -19,6 +19,7 @@
 //
 // escolas/{escolaId}
 //   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa" | "trial"
+//   planoId: string | null — referência a planosAssinatura/{planoId} (null = sem plano definido)
 //
 //   "trial" = escola criada pelo cadastro público de teste grátis (cadastro-trial.html),
 //   sem passar por um dono. licencaFim é travada em no máximo 7 dias a partir da criação
@@ -62,6 +63,15 @@
 //      (isso continua exigindo login de verdade em responsavel.html). A leitura é liberada
 //      (allow get) só por ID exato — NUNCA por list/query — então não dá pra "varrer" o banco
 //      procurando códigos: quem não souber o código de 6 caracteres não acha o documento.
+//
+// planosAssinatura/{planoId}                            coleção plana, fora de escolas/{}
+//   nome, limiteTecnicos (number, 0 = ilimitado), limiteAlunos (number, 0 = ilimitado),
+//   ativo (bool — desativar em vez de apagar, pra não quebrar escola já vinculada), criadoEm
+//   -> catálogo de planos de ASSINATURA (preço/limite), gerenciado só pelo dono em
+//      admin-escolas.html. NÃO confundir com escolas/{escolaId}/planos/{planoId}, que são os
+//      planos de TREINO que o técnico cadastra pra turma — nomes parecidos, coisas diferentes.
+//      Contagem de uso (quantos treinadores/alunos a escola já tem) é calculada na hora, via
+//      getCountFromServer(), não fica guardada/sincronizada em nenhum campo.
 //
 // Papel e vínculos vêm de usuarios/{uid} (lido via get() nas regras), não de custom claims —
 // custom claims exigiriam Cloud Functions/Admin SDK, e este projeto é 100% client-side.
@@ -203,6 +213,11 @@ service cloud.firestore {
       allow list: if false;
       allow create: if isDono() || isStaffAtivo(request.resource.data.escolaId);
       allow update, delete: if isDono() || isStaffAtivo(resource.data.escolaId);
+    }
+
+    // Catálogo de planos de assinatura — só o dono mexe aqui (ver nota no topo do arquivo).
+    match /planosAssinatura/{planoId} {
+      allow read, write: if isDono();
     }
   }
 }

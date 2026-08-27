@@ -58,7 +58,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | Página | JS dedicado | Situação |
 |---|---|---|
 | `login.html` | `login.js` | ✅ real (Firebase Auth) |
-| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, e revisão/exclusão de trials vencidos |
+| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
 | `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria |
 | `avaliacoes.html` | `avaliacoes.js` | ✅ real — inclui fundamentos técnicos por posição |
@@ -78,6 +78,28 @@ O responsável (`responsavel.html`) só vê **recados endereçados diretamente
 ao atleta dele** (`mensagens.destinatarioId == atletaId`) — recados de
 "toda a turma" ainda ficam só pra equipe (decisão consciente, ver
 comentário em `firestore.rules`).
+
+### Planos de assinatura — catálogo + uso por escola
+
+Nova coleção plana `planosAssinatura/{planoId}` (nome, `limiteTecnicos`,
+`limiteAlunos` — 0 = ilimitado, `ativo`), gerenciada só pelo dono numa
+seção própria em `admin-escolas.html` ("Planos de assinatura", ao lado de
+"Sócios da conta"). **Não confundir com `escolas/{id}/planos`**, que são
+os planos de TREINO que o técnico cadastra — nomes parecidos, coisas
+bem diferentes; ver comentário no topo de `firestore.rules`.
+
+Cada `escola` ganhou um campo `planoId` (referência ao plano, `null` =
+sem plano definido — é o caso de toda escola criada antes dessa feature).
+Ao abrir uma escola pra editar, `admin-escolas.js` mostra quantos
+treinadores (administrador + técnico) e alunos ela já tem, contra o
+limite do plano contratado (`getCountFromServer()` — conta sem baixar os
+documentos, calculado na hora, não fica sincronizado em nenhum campo).
+
+**É só visibilidade, não trava nada:** passar do limite não impede
+cadastrar mais um técnico ou atleta — o dono só vê o número (com aviso
+visual em amarelo/vermelho perto do limite) e decide manualmente se
+sugere upgrade pro cliente. Combina com o resto do app: tudo aqui é
+decisão manual do dono, nada automático.
 
 ### Área do atleta — acesso sem login por código
 
@@ -254,12 +276,17 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   gráficos e que todo ID do JS existe no HTML, mas não testei com uma
   conta de responsável real vinculada a um atleta com avaliações/frequência/
   recados cadastrados.
-- `area-do-atleta.html`/`js/area-do-atleta.js` — testei o fluxo de "código
-  não encontrado" contra o Firestore de verdade (funcionou), mas ainda não
-  testei com um código real. As regras de `resumosPublicos` já foram
-  publicadas (mesma publicação que levou as regras de trial, 2026-08-27),
-  então não deveria mais dar `permission-denied` — só falta testar com um
-  atleta que tenha `codigoPublico` de verdade.
+- **Planos de assinatura** (`admin-escolas.html`/`js/admin-escolas.js`,
+  ver seção própria acima) — validei sintaxe e que todo ID do JS existe no
+  HTML, mas ainda não testei ao vivo (criar um plano, vincular numa escola,
+  conferir se a contagem de treinadores/alunos aparece certa). Confere se
+  `getCountFromServer()` está mesmo contando os dois papéis
+  (administrador + técnico) juntos, e se o aviso amarelo/vermelho aparece
+  perto do limite.
+
+`area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
+ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
+retornou o nome corretamente) e funciona.
 
 `cadastro-trial.html`/`js/cadastro-trial.js` (cadastro público de teste
 grátis) **já foi testado de ponta a ponta no Firebase real** em
@@ -274,11 +301,14 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- `firestore.rules` já está publicado no console (inclui `resumosPublicos`
-  e o cadastro de teste grátis) — se editar o arquivo de novo, lembre de
-  publicar de novo, é sempre manual.
-- Testar `responsavel.html` e `area-do-atleta.html` de ponta a ponta (ver
-  seção acima) — `cadastro-trial.html` já foi testado e funciona.
+- ⚠️ **`firestore.rules` mudou de novo** (coleção `planosAssinatura` +
+  campo `escolas.planoId`) e **ainda não foi publicado** — precisa colar
+  o conteúdo atualizado no console (Firestore Database → Regras →
+  Publicar) antes de testar Planos de assinatura, senão dá
+  `permission-denied`. É sempre manual, não tem deploy automático.
+- Testar `responsavel.html` e o novo recurso de Planos de assinatura de
+  ponta a ponta (ver seções acima) — `cadastro-trial.html` e
+  `area-do-atleta.html` já foram testados e funcionam.
 - Checar no Firestore Console se sobrou alguma escola de teste com
   `licencaFim` inválido/ausente (ver nota na seção "Não testado de ponta a
   ponta" acima) — provavelmente um resquício de teste manual, mas vale

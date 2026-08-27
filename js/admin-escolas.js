@@ -7,13 +7,17 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, addDoc, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDocs, getCountFromServer, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app as appPrincipal, db } from "./firebase-init.js";
 
 // onSnapshot ativo da lista de administradores da escola aberta no painel de edição —
 // precisa ser cancelado ao trocar de escola, senão fica ouvindo a escola antiga também.
 let pararDeOuvirAdministradores = null;
+
+// planoId -> dados, mantido em dia por ouvirPlanosAssinatura() — usado tanto pra montar
+// os <select> de escola quanto pra saber o limite do plano ao mostrar "uso do plano".
+let planosCache = {};
 
 // Cria uma conta de login (Auth) sem deslogar o dono: usa uma segunda instância
 // isolada do Firebase App só pra essa chamada, e descarta ela logo depois.
@@ -188,6 +192,178 @@ function ouvirAdministradoresDaEscola(escolaId) {
   );
 }
 
+// ------------------------------------------------------
+// Catálogo de planos de assinatura
+// ------------------------------------------------------
+function popularSelectsDePlano() {
+  const idsAtivos = Object.keys(planosCache).filter((id) => planosCache[id].ativo !== false);
+  ["planoEscola", "planoEditarEscola"].forEach((elId) => {
+    const select = document.getElementById(elId);
+    const valorAtual = select.value;
+    select.innerHTML = '<option value="">Sem plano definido</option>';
+    idsAtivos.forEach((id) => {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = planosCache[id].nome;
+      select.appendChild(opt);
+    });
+    if (idsAtivos.includes(valorAtual)) select.value = valorAtual;
+  });
+}
+
+function criarItemPlanoAssinatura(planoId, dados) {
+  const li = document.createElement("li");
+  li.className = "message-item";
+  li.style.cursor = "pointer";
+  li.title = "Clique para editar";
+
+  const head = document.createElement("div");
+  head.className = "message-item-head";
+  const nomeEl = document.createElement("strong");
+  nomeEl.textContent = dados.nome;
+  const statusEl = document.createElement("span");
+  statusEl.textContent = dados.ativo === false ? "Desativado" : "Ativo";
+  head.append(nomeEl, statusEl);
+
+  const detalhes = document.createElement("p");
+  detalhes.style.margin = "6px 0 0";
+  detalhes.style.fontSize = "12px";
+  detalhes.style.color = "var(--text-muted)";
+  const treinadoresTxt = dados.limiteTecnicos > 0 ? `até ${dados.limiteTecnicos} treinador${dados.limiteTecnicos === 1 ? "" : "es"}` : "treinadores ilimitados";
+  const alunosTxt = dados.limiteAlunos > 0 ? `até ${dados.limiteAlunos} aluno${dados.limiteAlunos === 1 ? "" : "s"}` : "alunos ilimitados";
+  detalhes.textContent = `${treinadoresTxt} · ${alunosTxt}`;
+
+  li.append(head, detalhes);
+  li.addEventListener("click", () => abrirEdicaoPlanoAssinatura(planoId, dados));
+  return li;
+}
+
+function abrirEdicaoPlanoAssinatura(planoId, dados) {
+  esconderErro();
+  const form = document.getElementById("formPlanoAssinatura");
+  form.dataset.planoId = planoId;
+  form.nome.value = dados.nome;
+  form.limiteTecnicos.value = dados.limiteTecnicos || 0;
+  form.limiteAlunos.value = dados.limiteAlunos || 0;
+
+  document.getElementById("tituloPlanoAssinatura").textContent = `Editar ${dados.nome}`;
+  const painel = document.getElementById("painelPlanoAssinatura");
+  painel.classList.remove("is-hidden");
+  painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function ouvirPlanosAssinatura() {
+  const lista = document.getElementById("listaPlanosAssinatura");
+  onSnapshot(
+    collection(db, "planosAssinatura"),
+    (snapshot) => {
+      planosCache = {};
+      lista.innerHTML = "";
+      if (snapshot.empty) {
+        lista.innerHTML = '<li class="empty-state">Nenhum plano cadastrado ainda.</li>';
+        popularSelectsDePlano();
+        return;
+      }
+      snapshot.forEach((docSnap) => {
+        planosCache[docSnap.id] = docSnap.data();
+        lista.appendChild(criarItemPlanoAssinatura(docSnap.id, docSnap.data()));
+      });
+      popularSelectsDePlano();
+    },
+    (erro) => {
+      console.error("Erro ao carregar planos de assinatura:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar os planos.</li>';
+    }
+  );
+}
+
+function configurarFormPlanoAssinatura() {
+  const form = document.getElementById("formPlanoAssinatura");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    esconderErro();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      const dados = {
+        nome: form.nome.value.trim(),
+        limiteTecnicos: Number(form.limiteTecnicos.value) || 0,
+        limiteAlunos: Number(form.limiteAlunos.value) || 0,
+        ativo: true,
+      };
+
+      if (form.dataset.planoId) {
+        await updateDoc(doc(db, "planosAssinatura", form.dataset.planoId), dados);
+        showToast(`Plano "${dados.nome}" atualizado.`);
+      } else {
+        await addDoc(collection(db, "planosAssinatura"), { ...dados, criadoEm: serverTimestamp() });
+        showToast(`Plano "${dados.nome}" criado.`);
+      }
+
+      form.reset();
+      delete form.dataset.planoId;
+      document.getElementById("painelPlanoAssinatura").classList.add("is-hidden");
+    } catch (erro) {
+      console.error(erro);
+      mostrarErro(traduzirErro(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar plano";
+    }
+  });
+}
+
+// ------------------------------------------------------
+// Uso do plano (treinadores/alunos) de uma escola — calculado na hora que o
+// dono abre a escola pra editar, não fica guardado/sincronizado em campo nenhum.
+// ------------------------------------------------------
+function aplicarUsoNoCard(elValor, elIcone, total, limite) {
+  if (limite > 0) {
+    const percentual = Math.round((total / limite) * 100);
+    elValor.textContent = `${total} de ${limite} (${percentual}%)`;
+    elIcone.className = `stat-icon ${percentual >= 100 ? "stat-icon--bad" : percentual >= 80 ? "stat-icon--warn" : "stat-icon--good"}`;
+  } else {
+    elValor.textContent = `${total} (ilimitado)`;
+    elIcone.className = "stat-icon stat-icon--neutral";
+  }
+}
+
+async function carregarUsoDaEscola(escolaId, planoId) {
+  const treinadoresEl = document.getElementById("usoTreinadores");
+  const alunosEl = document.getElementById("usoAlunos");
+  const treinadoresIcone = document.getElementById("usoTreinadoresIcone");
+  const alunosIcone = document.getElementById("usoAlunosIcone");
+  treinadoresEl.textContent = "Carregando...";
+  alunosEl.textContent = "Carregando...";
+
+  const plano = planoId ? planosCache[planoId] : null;
+  const limiteTecnicos = plano ? plano.limiteTecnicos || 0 : 0;
+  const limiteAlunos = plano ? plano.limiteAlunos || 0 : 0;
+
+  try {
+    const qTreinadores = query(
+      collection(db, "usuarios"),
+      where("escolaId", "==", escolaId),
+      where("role", "in", ["administrador", "tecnico"])
+    );
+    const snapTreinadores = await getCountFromServer(qTreinadores);
+    aplicarUsoNoCard(treinadoresEl, treinadoresIcone, snapTreinadores.data().count, limiteTecnicos);
+  } catch (erro) {
+    console.error("Erro ao contar treinadores da escola:", erro);
+    treinadoresEl.textContent = "—";
+  }
+
+  try {
+    const snapAlunos = await getCountFromServer(collection(db, "escolas", escolaId, "atletas"));
+    aplicarUsoNoCard(alunosEl, alunosIcone, snapAlunos.data().count, limiteAlunos);
+  } catch (erro) {
+    console.error("Erro ao contar alunos da escola:", erro);
+    alunosEl.textContent = "—";
+  }
+}
+
 function abrirEdicaoEscola(escolaId, dados) {
   esconderErro();
 
@@ -197,6 +373,7 @@ function abrirEdicaoEscola(escolaId, dados) {
   form.licencaInicio.value = dados.licencaInicio.toDate().toISOString().slice(0, 10);
   form.licencaFim.value = dados.licencaFim.toDate().toISOString().slice(0, 10);
   form.status.value = dados.status || "ativa";
+  form.planoId.value = dados.planoId || "";
 
   document.getElementById("tituloEditarEscola").textContent = `Editar ${dados.nome}`;
   document.getElementById("escolaDoAdminHidden").value = escolaId;
@@ -210,6 +387,7 @@ function abrirEdicaoEscola(escolaId, dados) {
   painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
   ouvirAdministradoresDaEscola(escolaId);
+  carregarUsoDaEscola(escolaId, dados.planoId || null);
 }
 
 function configurarFormEditarEscola() {
@@ -223,13 +401,16 @@ function configurarFormEditarEscola() {
 
     try {
       const escolaId = form.dataset.escolaId;
+      const planoId = form.planoId.value || null;
       await updateDoc(doc(db, "escolas", escolaId), {
         nome: form.nome.value.trim(),
         licencaInicio: dataInputParaTimestamp(form.licencaInicio.value),
         licencaFim: dataInputParaTimestamp(form.licencaFim.value),
         status: form.status.value,
+        planoId,
       });
       document.getElementById("tituloEditarEscola").textContent = `Editar ${form.nome.value.trim()}`;
+      carregarUsoDaEscola(escolaId, planoId); // limite pode ter mudado se trocou de plano
       showToast("Escola atualizada.");
     } catch (erro) {
       console.error(erro);
@@ -392,12 +573,14 @@ function configurarFormCadastrarEscola() {
       const nomeAdmin = form.nomeAdmin.value.trim();
       const emailAdmin = form.emailAdmin.value.trim();
       const senhaAdmin = form.senhaAdmin.value;
+      const planoId = form.planoId.value || null;
 
       escolaRef = await addDoc(collection(db, "escolas"), {
         nome,
         licencaInicio,
         licencaFim,
         status: "ativa",
+        planoId,
         criadoEm: serverTimestamp(),
       });
 
@@ -465,6 +648,8 @@ function configurarFormAdicionarAdministrador() {
 document.addEventListener("cf:pronto", () => {
   ouvirSocios();
   configurarFormAdicionarSocio();
+  ouvirPlanosAssinatura();
+  configurarFormPlanoAssinatura();
   carregarEscolas();
   configurarFormCadastrarEscola();
   configurarFormEditarEscola();
@@ -473,5 +658,14 @@ document.addEventListener("cf:pronto", () => {
   // "Cadastrar escola" e "Editar escola" não fazem sentido abertos ao mesmo tempo
   document.getElementById("btnCadastrarEscola").addEventListener("click", () => {
     document.getElementById("painelEditarEscola").classList.add("is-hidden");
+  });
+
+  // "+ Novo plano" precisa começar com o form limpo (senão reabriria em modo edição
+  // se o dono tivesse clicado num plano existente antes).
+  document.getElementById("btnNovoPlanoAssinatura").addEventListener("click", () => {
+    const form = document.getElementById("formPlanoAssinatura");
+    delete form.dataset.planoId;
+    form.reset();
+    document.getElementById("tituloPlanoAssinatura").textContent = "Novo plano";
   });
 });

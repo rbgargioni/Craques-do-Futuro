@@ -68,6 +68,42 @@
     <li class="empty-state">Carregando...</li>
   </ul>
 
+  <!-- PLANOS DE ASSINATURA (catálogo — nome, limites de treinador/aluno) -->
+  <section class="page-header">
+    <h2>Planos de assinatura</h2>
+    <div class="page-header-actions">
+      <button class="btn btn-outline" id="btnNovoPlanoAssinatura" data-toggle-panel="painelPlanoAssinatura">＋ Novo plano</button>
+    </div>
+  </section>
+
+  <section class="panel is-hidden" id="painelPlanoAssinatura">
+    <div class="panel-head">
+      <h3 id="tituloPlanoAssinatura">Novo plano</h3>
+    </div>
+    <form id="formPlanoAssinatura" class="form-grid">
+      <div class="field field--full">
+        <label for="nomePlanoAssinatura">Nome do plano</label>
+        <input type="text" id="nomePlanoAssinatura" name="nome" placeholder="Ex: Formação" required>
+      </div>
+      <div class="field">
+        <label for="limiteTecnicosPlano">Limite de treinadores</label>
+        <input type="number" id="limiteTecnicosPlano" name="limiteTecnicos" min="0" step="1" value="0" placeholder="0 = ilimitado">
+      </div>
+      <div class="field">
+        <label for="limiteAlunosPlano">Limite de alunos</label>
+        <input type="number" id="limiteAlunosPlano" name="limiteAlunos" min="0" step="1" value="0" placeholder="0 = ilimitado">
+      </div>
+      <div class="form-actions field--full">
+        <button type="button" class="btn btn-outline" data-toggle-panel="painelPlanoAssinatura">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar plano</button>
+      </div>
+    </form>
+  </section>
+
+  <ul class="message-list" id="listaPlanosAssinatura" style="margin-bottom:28px;">
+    <li class="empty-state">Carregando...</li>
+  </ul>
+
   <section class="page-header">
     <h2>Escolas <span class="tag" id="totalEscolas">carregando...</span></h2>
     <div class="page-header-actions">
@@ -123,6 +159,12 @@
         <label for="senhaAdminInicial">Senha provisória do administrador</label>
         <input type="text" id="senhaAdminInicial" name="senhaAdmin" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
       </div>
+      <div class="field field--full">
+        <label for="planoEscola">Plano de assinatura</label>
+        <select id="planoEscola" name="planoId">
+          <option value="">Sem plano definido</option>
+        </select>
+      </div>
       <div class="form-actions field--full">
         <button type="button" class="btn btn-outline" data-toggle-panel="painelEscola">Cancelar</button>
         <button type="submit" class="btn btn-primary">Criar escola</button>
@@ -157,12 +199,38 @@
           <option value="trial">Teste grátis (7 dias)</option>
         </select>
       </div>
+      <div class="field field--full">
+        <label for="planoEditarEscola">Plano de assinatura</label>
+        <select id="planoEditarEscola" name="planoId">
+          <option value="">Sem plano definido</option>
+        </select>
+      </div>
       <div class="form-actions field--full">
         <button type="submit" class="btn btn-primary">Salvar alterações</button>
       </div>
     </form>
 
     <div class="panel-head" style="margin-top:22px;">
+      <h3>Uso do plano</h3>
+    </div>
+    <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--neutral" id="usoTreinadoresIcone">👥</span>
+        <div>
+          <strong id="usoTreinadores">—</strong>
+          <span>Treinadores</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon stat-icon--neutral" id="usoAlunosIcone">🧑‍🤝‍🧑</span>
+        <div>
+          <strong id="usoAlunos">—</strong>
+          <span>Alunos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-head">
       <h3>Administradores desta escola</h3>
       <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelAdministrador">＋ Adicionar administrador</button>
     </div>
