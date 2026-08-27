@@ -117,6 +117,18 @@
 
   <p id="erroAdmin" class="is-hidden status-note" style="background:var(--bad-bg);color:var(--bad);border-color:#f3c8c4;"></p>
 
+  <!-- SOLICITAÇÕES DE PLANO (pedido de administrador/técnico, esperando confirmação do dono) -->
+  <section id="secaoSolicitacoesPlano" class="is-hidden" style="margin-bottom:28px;">
+    <div class="page-header">
+      <h2>Solicitações de plano <span class="tag" id="totalSolicitacoesPlano">0</span></h2>
+    </div>
+    <p class="status-note">
+      <span>💳</span>
+      <span>Confirme só depois de receber o pagamento por fora (Pix, link de pagamento etc.) — confirmar aqui já atualiza o plano e a data de vencimento da escola na hora.</span>
+    </p>
+    <ul class="message-list" id="listaSolicitacoesPlano"></ul>
+  </section>
+
   <!-- TRIALS VENCIDOS (cadastro público de 7 dias grátis que não virou plano pago) -->
   <section id="secaoTrialsVencidos" class="is-hidden" style="margin-bottom:28px;">
     <div class="page-header">

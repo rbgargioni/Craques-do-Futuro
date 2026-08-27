@@ -97,7 +97,9 @@ onAuthStateChanged(auth, async (user) => {
     try {
       const escolaSnap = await getDoc(doc(db, "escolas", perfil.escolaId));
       const venceu = !escolaSnap.exists() || escolaSnap.data().licencaFim.toDate() < new Date();
-      if (venceu && paginaAtual() !== "sem-acesso.html") {
+      // escolher-plano.html também fica de fora — é justamente pra onde a escola vencida
+      // precisa poder ir pra pedir um plano novo; sem essa exceção, cairia num loop de volta pra sem-acesso.html.
+      if (venceu && paginaAtual() !== "sem-acesso.html" && paginaAtual() !== "escolher-plano.html") {
         location.href = "sem-acesso.html";
         return;
       }

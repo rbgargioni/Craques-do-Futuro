@@ -16,11 +16,19 @@ document.addEventListener("cf:pronto", async (e) => {
 
   try {
     const snap = await getDoc(doc(db, "escolas", escolaId));
-    if (!snap.exists() || snap.data().status !== "trial") return;
+    if (!snap.exists()) return;
+    const dados = snap.data();
+    const vencida = !dados.licencaFim || dados.licencaFim.toDate() < new Date();
+    if (!vencida) return; // sem-acesso por outro motivo (ex.: papel sem página) — mantém o aviso genérico
 
-    document.getElementById("nomeEscolaTrialVencida").textContent = snap.data().nome || "sua escola";
     document.getElementById("blocoGenerico").classList.add("is-hidden");
-    document.getElementById("blocoTrialVencido").classList.remove("is-hidden");
+    if (dados.status === "trial") {
+      document.getElementById("nomeEscolaTrialVencida").textContent = dados.nome || "sua escola";
+      document.getElementById("blocoTrialVencido").classList.remove("is-hidden");
+    } else {
+      document.getElementById("nomeEscolaLicencaVencida").textContent = dados.nome || "sua escola";
+      document.getElementById("blocoLicencaVencida").classList.remove("is-hidden");
+    }
   } catch (erro) {
     console.error("Falha ao verificar status da escola:", erro);
   }

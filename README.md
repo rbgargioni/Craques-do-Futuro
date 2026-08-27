@@ -58,7 +58,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | Página | JS dedicado | Situação |
 |---|---|---|
 | `login.html` | `login.js` | ✅ real (Firebase Auth) |
-| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, e revisão/exclusão de trials vencidos |
+| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, fila de solicitações de plano, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
 | `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria |
 | `avaliacoes.html` | `avaliacoes.js` | ✅ real — inclui fundamentos técnicos por posição |
@@ -70,8 +70,9 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `configuracoes.html` | `turmas.js` | ⚠️ turmas real; formulário de perfil do usuário ainda é mockup (`data-fake-form`) |
 | `responsavel.html` | `responsavel.js` | ✅ real — evolução, radar, frequência, linha do tempo e recados do técnico |
 | `area-do-atleta.html` | `area-do-atleta.js` | ✅ real — **sem login**, ver seção própria abaixo |
-| `sem-acesso.html` | `sem-acesso.js` | ✅ real — mensagem genérica, ou aviso de teste grátis vencido com link pra `vendas.html#planos` |
+| `sem-acesso.html` | `sem-acesso.js` | ✅ real — mensagem genérica, ou aviso de trial/licença vencida com link pra `escolher-plano.html` |
 | `cadastro-trial.html` | `cadastro-trial.js` | ✅ real — cadastro público de teste grátis por 7 dias, ver seção própria abaixo |
+| `escolher-plano.html` | `escolher-plano.js` | ✅ real — administrador/técnico pede um plano (mesmo com licença vencida), ver seção "Planos de assinatura" abaixo |
 | `vendas.html` | — (script inline) | página pública de vendas/marketing, sem auth-guard — standalone, sem dado do Firestore |
 
 O responsável (`responsavel.html`) só vê **recados endereçados diretamente
@@ -100,6 +101,28 @@ cadastrar mais um técnico ou atleta — o dono só vê o número (com aviso
 visual em amarelo/vermelho perto do limite) e decide manualmente se
 sugere upgrade pro cliente. Combina com o resto do app: tudo aqui é
 decisão manual do dono, nada automático.
+
+#### Solicitação de plano (venda semi-automática)
+
+`escolher-plano.html` — administrador/técnico logado escolhe um plano
+(`planosAssinatura` com `ativo == true`) e uma duração (1 ou 2 anos),
+manda um pedido, e o dono confirma em "Solicitações de plano"
+(`admin-escolas.html`). **Não tem pagamento processado pelo sistema
+ainda** — o dono confirma manualmente depois de receber o pagamento por
+fora (Pix, link de pagamento etc.); confirmar já atualiza `planoId`,
+`status` e recalcula `licencaFim` (data de hoje + duração) na escola.
+
+Essa página funciona **mesmo com a licença da escola vencida** — é
+justamente pra isso que serve. `js/auth-guard.js` tem uma exceção
+específica pra ela (senão cairia num loop de redirecionamento pra
+`sem-acesso.html`, que é onde o link pra ela aparece quando o trial/
+licença vence).
+
+**Automação total (webhook confirmando pagamento sozinho) ainda não
+existe** — decisão consciente, discutida com o Rafael: exigiria
+integração real com um provedor de pagamento (ex: extensão oficial do
+Stripe pro Firebase) e migrar o Firebase pro plano pago (Blaze). Fica
+pra quando o Rafael tiver um provedor de pagamento configurado.
 
 ### Área do atleta — acesso sem login por código
 
@@ -277,12 +300,18 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   conta de responsável real vinculada a um atleta com avaliações/frequência/
   recados cadastrados.
 - **Planos de assinatura** (`admin-escolas.html`/`js/admin-escolas.js`,
-  ver seção própria acima) — validei sintaxe e que todo ID do JS existe no
-  HTML, mas ainda não testei ao vivo (criar um plano, vincular numa escola,
-  conferir se a contagem de treinadores/alunos aparece certa). Confere se
-  `getCountFromServer()` está mesmo contando os dois papéis
-  (administrador + técnico) juntos, e se o aviso amarelo/vermelho aparece
-  perto do limite.
+  ver seção própria acima) — o Rafael já confirmou que o painel "Novo
+  plano" abre certo, mas ainda falta testar de ponta a ponta: salvar um
+  plano, vincular numa escola, conferir se a contagem de treinadores/alunos
+  (`getCountFromServer()`) aparece certa e se o aviso amarelo/vermelho
+  aparece perto do limite.
+- **Solicitação de plano** (`escolher-plano.html` → "Solicitações de
+  plano" em `admin-escolas.html`) — validei sintaxe, geometria da data
+  (`+12`/`+24` meses) e que todo ID existe no HTML, mas ainda não testei
+  ao vivo: pedir um plano como administrador, confirmar como dono, e
+  conferir se a escola atualiza `planoId`/`licencaFim` certinho. Também
+  não testei a exceção do `auth-guard.js` pra essa página com uma escola
+  de verdade com licença vencida.
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -301,14 +330,18 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- ⚠️ **`firestore.rules` mudou de novo** (coleção `planosAssinatura` +
-  campo `escolas.planoId`) e **ainda não foi publicado** — precisa colar
-  o conteúdo atualizado no console (Firestore Database → Regras →
-  Publicar) antes de testar Planos de assinatura, senão dá
-  `permission-denied`. É sempre manual, não tem deploy automático.
-- Testar `responsavel.html` e o novo recurso de Planos de assinatura de
-  ponta a ponta (ver seções acima) — `cadastro-trial.html` e
-  `area-do-atleta.html` já foram testados e funcionam.
+- ⚠️ **`firestore.rules` mudou de novo** (coleção `solicitacoesPlano`,
+  depois da publicação anterior que já tinha levado `planosAssinatura`) e
+  **precisa ser publicado de novo** — Firestore Database → Regras →
+  colar → Publicar. É sempre manual, não tem deploy automático.
+- Testar `responsavel.html`, Planos de assinatura e o fluxo de
+  Solicitação de plano de ponta a ponta (ver seções acima) —
+  `cadastro-trial.html` e `area-do-atleta.html` já foram testados e
+  funcionam.
+- Assim que o Rafael tiver um provedor de pagamento (Mercado Pago,
+  PagSeguro, Stripe...) configurado, ligar a confirmação automática por
+  webhook — hoje o dono confirma manualmente em "Solicitações de plano"
+  depois de receber o pagamento por fora do sistema.
 - Checar no Firestore Console se sobrou alguma escola de teste com
   `licencaFim` inválido/ausente (ver nota na seção "Não testado de ponta a
   ponta" acima) — provavelmente um resquício de teste manual, mas vale

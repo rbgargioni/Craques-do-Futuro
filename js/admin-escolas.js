@@ -457,6 +457,116 @@ async function excluirEscolaTrialVencida(escolaId) {
   await deleteDoc(doc(db, "escolas", escolaId));
 }
 
+// ------------------------------------------------------
+// Solicitações de plano — administrador/técnico pede em escolher-plano.html,
+// o dono confirma aqui depois de checar o pagamento por fora do sistema.
+// ------------------------------------------------------
+function calcularLicencaFim(duracaoMeses) {
+  const data = new Date();
+  data.setMonth(data.getMonth() + duracaoMeses);
+  return Timestamp.fromDate(data);
+}
+
+const ROTULO_DURACAO = { 12: "1 ano", 24: "2 anos" };
+
+async function confirmarSolicitacaoPlano(solicitacaoId, dados, botao) {
+  botao.disabled = true;
+  botao.textContent = "Confirmando...";
+  try {
+    await updateDoc(doc(db, "escolas", dados.escolaId), {
+      planoId: dados.planoId,
+      status: "ativa",
+      licencaInicio: Timestamp.fromDate(new Date()),
+      licencaFim: calcularLicencaFim(dados.duracaoMeses),
+    });
+    await updateDoc(doc(db, "solicitacoesPlano", solicitacaoId), { status: "confirmada" });
+    showToast(`Plano "${dados.planoNome}" ativado para "${dados.escolaNome}".`);
+  } catch (erro) {
+    console.error(erro);
+    mostrarErro(traduzirErro(erro));
+    botao.disabled = false;
+    botao.textContent = "Confirmar";
+  }
+}
+
+async function recusarSolicitacaoPlano(solicitacaoId, botao) {
+  botao.disabled = true;
+  botao.textContent = "Recusando...";
+  try {
+    await updateDoc(doc(db, "solicitacoesPlano", solicitacaoId), { status: "recusada" });
+    showToast("Pedido recusado.");
+  } catch (erro) {
+    console.error(erro);
+    mostrarErro(traduzirErro(erro));
+    botao.disabled = false;
+    botao.textContent = "Recusar";
+  }
+}
+
+function renderizarSolicitacoesPlano(docs) {
+  const secao = document.getElementById("secaoSolicitacoesPlano");
+  const lista = document.getElementById("listaSolicitacoesPlano");
+  const totalEl = document.getElementById("totalSolicitacoesPlano");
+
+  if (docs.length === 0) {
+    secao.classList.add("is-hidden");
+    lista.innerHTML = "";
+    return;
+  }
+
+  secao.classList.remove("is-hidden");
+  totalEl.textContent = docs.length;
+  lista.innerHTML = "";
+
+  docs.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const li = document.createElement("li");
+    li.className = "message-item";
+
+    const head = document.createElement("div");
+    head.className = "message-item-head";
+    const nomeEl = document.createElement("strong");
+    nomeEl.textContent = dados.escolaNome;
+    const quandoEl = document.createElement("span");
+    quandoEl.textContent = dados.criadoEm ? dados.criadoEm.toDate().toLocaleDateString("pt-BR") : "";
+    head.append(nomeEl, quandoEl);
+
+    const detalhes = document.createElement("p");
+    detalhes.style.margin = "6px 0 10px";
+    detalhes.style.fontSize = "12px";
+    detalhes.style.color = "var(--text-muted)";
+    const duracaoTxt = ROTULO_DURACAO[dados.duracaoMeses] || `${dados.duracaoMeses} meses`;
+    detalhes.textContent = `Plano ${dados.planoNome} · ${duracaoTxt} · pedido por ${dados.solicitanteNome || dados.solicitanteEmail}`;
+
+    const acoes = document.createElement("div");
+    acoes.style.display = "flex";
+    acoes.style.gap = "8px";
+    const btnConfirmar = document.createElement("button");
+    btnConfirmar.type = "button";
+    btnConfirmar.className = "btn btn-primary btn-sm";
+    btnConfirmar.textContent = "Confirmar";
+    btnConfirmar.addEventListener("click", () => confirmarSolicitacaoPlano(docSnap.id, dados, btnConfirmar));
+    const btnRecusar = document.createElement("button");
+    btnRecusar.type = "button";
+    btnRecusar.className = "btn btn-outline btn-sm";
+    btnRecusar.textContent = "Recusar";
+    btnRecusar.addEventListener("click", () => recusarSolicitacaoPlano(docSnap.id, btnRecusar));
+    acoes.append(btnConfirmar, btnRecusar);
+
+    li.append(head, detalhes, acoes);
+    lista.appendChild(li);
+  });
+}
+
+function ouvirSolicitacoesPlano() {
+  const q = query(collection(db, "solicitacoesPlano"), where("status", "==", "pendente"));
+  onSnapshot(
+    q,
+    (snapshot) => renderizarSolicitacoesPlano(snapshot.docs),
+    (erro) => console.error("Erro ao carregar solicitações de plano:", erro)
+  );
+}
+
 function trialVencido(dados) {
   if (dados.status !== "trial" || !dados.licencaFim) return false;
   return dados.licencaFim.toDate() < new Date();
@@ -650,6 +760,7 @@ document.addEventListener("cf:pronto", () => {
   configurarFormAdicionarSocio();
   ouvirPlanosAssinatura();
   configurarFormPlanoAssinatura();
+  ouvirSolicitacoesPlano();
   carregarEscolas();
   configurarFormCadastrarEscola();
   configurarFormEditarEscola();

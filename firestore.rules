@@ -73,6 +73,15 @@
 //      Contagem de uso (quantos treinadores/alunos a escola já tem) é calculada na hora, via
 //      getCountFromServer(), não fica guardada/sincronizada em nenhum campo.
 //
+// solicitacoesPlano/{solicitacaoId}                     coleção plana, fora de escolas/{}
+//   escolaId, escolaNome, planoId, planoNome, duracaoMeses (12 | 24),
+//   solicitanteNome, solicitanteEmail, status: "pendente" | "confirmada" | "recusada", criadoEm
+//   -> pedido criado por um administrador/técnico em escolher-plano.html (funciona mesmo com a
+//      licença vencida — é justamente pra isso que serve). O dono revisa em admin-escolas.html
+//      ("Solicitações de plano") e confirma manualmente: isso É a "venda" — não tem pagamento
+//      processado pelo sistema ainda, o dono confirma depois de receber o pagamento por fora
+//      (Pix, link de pagamento etc.). Confirmar grava planoId + recalcula licencaFim na escola.
+//
 // Papel e vínculos vêm de usuarios/{uid} (lido via get() nas regras), não de custom claims —
 // custom claims exigiriam Cloud Functions/Admin SDK, e este projeto é 100% client-side.
 // ======================================================
@@ -218,6 +227,18 @@ service cloud.firestore {
     // Catálogo de planos de assinatura — só o dono mexe aqui (ver nota no topo do arquivo).
     match /planosAssinatura/{planoId} {
       allow read, write: if isDono();
+    }
+
+    // Pedidos de plano — administrador/técnico da escola cria (mesmo com licença vencida,
+    // de propósito: não usa isStaffAtivo() porque isso exigiria escolaAtiva()); só o dono
+    // confirma/recusa. Sem update por quem criou — depois de enviado, não dá pra editar.
+    match /solicitacoesPlano/{solicitacaoId} {
+      allow read: if isDono()
+        || (signedIn() && (isAdmin() || isTecnico()) && myEscolaId() == resource.data.escolaId);
+      allow create: if signedIn() && (isAdmin() || isTecnico())
+        && request.resource.data.escolaId == myEscolaId()
+        && request.resource.data.status == 'pendente';
+      allow update, delete: if isDono();
     }
   }
 }
