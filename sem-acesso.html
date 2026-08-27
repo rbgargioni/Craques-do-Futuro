@@ -20,25 +20,35 @@
       </div>
     </div>
 
-    <div class="empty-state" style="padding:8px 0 20px;">
+    <div class="empty-state" id="blocoGenerico" style="padding:8px 0 20px;">
       <div style="font-size:34px;margin-bottom:10px;">🔒</div>
       <h1 style="font-size:17px;color:var(--text);margin-bottom:8px;">Sem acesso no momento</h1>
       <p style="margin:0;">
         Isso pode acontecer por dois motivos: a licença da sua escola expirou, ou sua conta ainda não tem
         permissão para acessar esta área.
       </p>
+      <div class="status-note" style="margin-top:16px;text-align:left;">
+        <span>⚠</span>
+        <span>Se você é técnico ou responsável, fale com quem administra sua escola para renovar o acesso.</span>
+      </div>
     </div>
 
-    <div class="status-note">
-      <span>⚠</span>
-      <span>Se você é técnico ou responsável, fale com quem administra sua escola para renovar o acesso.</span>
+    <div class="empty-state is-hidden" id="blocoTrialVencido" style="padding:8px 0 20px;">
+      <div style="font-size:34px;margin-bottom:10px;">⏳</div>
+      <h1 style="font-size:17px;color:var(--text);margin-bottom:8px;">Seu teste grátis acabou</h1>
+      <p style="margin:0;">
+        Os 7 dias de acesso gratuito de <strong id="nomeEscolaTrialVencida">sua escola</strong> chegaram ao fim.
+        Quer continuar usando o Craques do Futuro com sua escola inteira?
+      </p>
+      <a href="vendas.html#planos" class="btn btn-primary" style="display:block;width:100%;text-align:center;text-decoration:none;margin-top:16px;">Ver planos e continuar</a>
     </div>
 
-    <button type="button" class="btn btn-primary" style="width:100%;" data-sair>Sair e voltar para o login</button>
+    <button type="button" class="btn btn-outline" style="width:100%;margin-top:14px;" data-sair>Sair e voltar para o login</button>
   </div>
 </div>
 
 <script type="module" src="js/auth-guard.js"></script>
+<script type="module" src="js/sem-acesso.js"></script>
 <script src="js/Script.js"></script>
 </body>
 </html>

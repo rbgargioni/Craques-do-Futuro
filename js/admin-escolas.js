@@ -7,7 +7,7 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  collection, addDoc, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app as appPrincipal, db } from "./firebase-init.js";
 
@@ -241,6 +241,104 @@ function configurarFormEditarEscola() {
   });
 }
 
+// Apaga todos os documentos retornados por uma query/coleção, em paralelo.
+async function excluirDocsDe(refOuQuery) {
+  const snap = await getDocs(refOuQuery);
+  await Promise.all(snap.docs.map((docSnap) => deleteDoc(docSnap.ref)));
+}
+
+// Exclusão em cascata de uma escola trial vencida: apaga todo o conteúdo da
+// escola (turmas/atletas+progressao/avaliações/frequência/planos/mensagens),
+// os resumosPublicos e os perfis em usuarios/{uid} vinculados a ela, e por
+// fim a própria escola.
+//
+// Limitação conhecida (100% client-side, sem Cloud Functions/Admin SDK): isso
+// NÃO apaga a conta de login (Firebase Auth) dos administradores/técnicos —
+// só um usuário pode apagar a própria conta Auth, nunca a de outra pessoa a
+// partir do cliente. Na prática o acesso já fica bloqueado (auth-guard.js
+// desloga quem não tem mais um perfil em usuarios/{uid}), mas a entrada continua
+// existindo em Authentication > Users no Firebase Console, e pode ser removida
+// de lá manualmente se quiser limpar de vez.
+async function excluirEscolaTrialVencida(escolaId) {
+  const snapAtletas = await getDocs(collection(db, "escolas", escolaId, "atletas"));
+  for (const atletaDoc of snapAtletas.docs) {
+    await excluirDocsDe(collection(db, "escolas", escolaId, "atletas", atletaDoc.id, "progressao"));
+    await deleteDoc(atletaDoc.ref);
+  }
+
+  await excluirDocsDe(collection(db, "escolas", escolaId, "turmas"));
+  await excluirDocsDe(collection(db, "escolas", escolaId, "avaliacoes"));
+  await excluirDocsDe(collection(db, "escolas", escolaId, "frequencia"));
+  await excluirDocsDe(collection(db, "escolas", escolaId, "planos"));
+  await excluirDocsDe(collection(db, "escolas", escolaId, "mensagens"));
+  await excluirDocsDe(query(collection(db, "resumosPublicos"), where("escolaId", "==", escolaId)));
+  await excluirDocsDe(query(collection(db, "usuarios"), where("escolaId", "==", escolaId)));
+  await deleteDoc(doc(db, "escolas", escolaId));
+}
+
+function trialVencido(dados) {
+  return dados.status === "trial" && dados.licencaFim.toDate() < new Date();
+}
+
+function renderizarTrialsVencidos(escolasDocs) {
+  const secao = document.getElementById("secaoTrialsVencidos");
+  const lista = document.getElementById("listaTrialsVencidos");
+  const totalEl = document.getElementById("totalTrialsVencidos");
+
+  const vencidas = escolasDocs.filter((docSnap) => trialVencido(docSnap.data()));
+
+  if (vencidas.length === 0) {
+    secao.classList.add("is-hidden");
+    lista.innerHTML = "";
+    return;
+  }
+
+  secao.classList.remove("is-hidden");
+  totalEl.textContent = vencidas.length;
+  lista.innerHTML = "";
+
+  vencidas.forEach((docSnap) => {
+    const dados = docSnap.data();
+    const li = document.createElement("li");
+    li.className = "message-item";
+
+    const head = document.createElement("div");
+    head.className = "message-item-head";
+    const nomeEl = document.createElement("strong");
+    nomeEl.textContent = dados.nome;
+    const dataEl = document.createElement("span");
+    dataEl.textContent = `Teste venceu em ${dados.licencaFim.toDate().toLocaleDateString("pt-BR")}`;
+    head.append(nomeEl, dataEl);
+
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "btn btn-outline btn-sm";
+    botao.style.marginTop = "8px";
+    botao.textContent = "Excluir escola e dados";
+    botao.addEventListener("click", async () => {
+      const confirmado = confirm(
+        `Excluir "${dados.nome}" e todos os dados dela (turmas, atletas, avaliações, frequência, recados)?\n\nEssa ação não pode ser desfeita.`
+      );
+      if (!confirmado) return;
+
+      botao.disabled = true;
+      botao.textContent = "Excluindo...";
+      try {
+        await excluirEscolaTrialVencida(docSnap.id);
+        showToast(`"${dados.nome}" foi excluída.`);
+      } catch (erro) {
+        console.error(erro);
+        mostrarErro(traduzirErro(erro));
+        botao.disabled = false;
+        botao.textContent = "Excluir escola e dados";
+      }
+    });
+
+    li.append(head, botao);
+    lista.appendChild(li);
+  });
+}
+
 function carregarEscolas() {
   const container = document.getElementById("listaEscolas");
   const totalEl = document.getElementById("totalEscolas");
@@ -249,6 +347,7 @@ function carregarEscolas() {
     collection(db, "escolas"),
     (snapshot) => {
       container.innerHTML = "";
+      renderizarTrialsVencidos(snapshot.docs);
 
       if (snapshot.empty) {
         container.innerHTML = '<p class="empty-state">Nenhuma escola cadastrada ainda. Clique em "Cadastrar escola" pra criar a primeira.</p>';

@@ -58,7 +58,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | Página | JS dedicado | Situação |
 |---|---|---|
 | `login.html` | `login.js` | ✅ real (Firebase Auth) |
-| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores |
+| `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
 | `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria |
 | `avaliacoes.html` | `avaliacoes.js` | ✅ real — inclui fundamentos técnicos por posição |
@@ -70,7 +70,9 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `configuracoes.html` | `turmas.js` | ⚠️ turmas real; formulário de perfil do usuário ainda é mockup (`data-fake-form`) |
 | `responsavel.html` | `responsavel.js` | ✅ real — evolução, radar, frequência, linha do tempo e recados do técnico |
 | `area-do-atleta.html` | `area-do-atleta.js` | ✅ real — **sem login**, ver seção própria abaixo |
-| `sem-acesso.html` | — | página estática (só precisa do auth-guard pro botão "Sair") |
+| `sem-acesso.html` | `sem-acesso.js` | ✅ real — mensagem genérica, ou aviso de teste grátis vencido com link pra `vendas.html#planos` |
+| `cadastro-trial.html` | `cadastro-trial.js` | ✅ real — cadastro público de teste grátis por 7 dias, ver seção própria abaixo |
+| `vendas.html` | — (script inline) | página pública de vendas/marketing, sem auth-guard — standalone, sem dado do Firestore |
 
 O responsável (`responsavel.html`) só vê **recados endereçados diretamente
 ao atleta dele** (`mensagens.destinatarioId == atletaId`) — recados de
@@ -111,6 +113,61 @@ Como funciona por baixo (importante entender antes de mexer):
   existiam antes não entram retroativamente no resumo. O link "Recalcular a
   partir do histórico" no card do atleta conserta isso na hora (relê todas
   as avaliações/frequência dele e reconstrói o resumo do zero).
+
+### Teste grátis de 7 dias — cadastro público sem passar por um dono
+
+`vendas.html` (página pública de marketing, sem vínculo com o Firestore) e
+`login.html` linkam pra `cadastro-trial.html`, onde qualquer pessoa cria uma
+conta nova sozinha: digita nome da escola, seu nome, e-mail e senha, e o
+`js/cadastro-trial.js`:
+
+1. Cria a conta de login (`createUserWithEmailAndPassword` na instância
+   **principal** do Auth — diferente do `criarContaSemDeslogar()` usado em
+   `admin-escolas.js`, porque aqui é a própria pessoa se cadastrando, não um
+   dono criando conta de outra pessoa).
+2. Cria `escolas/{id}` com `status: "trial"` e `licencaFim` travada em no
+   máximo 7 dias a partir de agora.
+3. Cria `usuarios/{uid}` como `administrador` apontando pra essa escola.
+4. Manda pra `index.html`, e o `auth-guard.js` assume o resto normalmente.
+
+Se qualquer passo depois da criação da conta falhar, desfaz o que já tiver
+sido criado (`deleteDoc` da escola, `deleteUser` da própria conta) — senão
+sobra escola ou conta órfã.
+
+**A trava de 7 dias é da regra do Firestore, não do JS** —
+`ehCriacaoDeTrialValida()` em `firestore.rules` confere que
+`licencaFim <= licencaInicio + 7 dias`, então não dá pra um cliente adulterado
+se dar um trial mais longo. Pra um usuário completamente novo (sem
+`usuarios/{uid}` ainda) poder criar o próprio perfil sem que `myRole()` dê
+erro de avaliação num documento que não existe, `myRole()` ganhou uma
+guarda (`meuPerfilExiste()`) — leia o comentário no topo de
+`firestore.rules` antes de mexer em qualquer função de papel.
+
+**O que acontece depois dos 7 dias (decisão consciente, não é limitação
+técnica):** nada automático. Sem Cloud Functions/plano pago, o modelo
+escolhido foi:
+- `sem-acesso.js` detecta `status == "trial"` na escola de quem tenta entrar
+  e mostra "seu teste acabou" com link pra `vendas.html#planos`.
+- **Pagamento é manual por enquanto**: a pessoa fala com o Rafael, que
+  confirma o pagamento e muda `status` pra `"ativa"` (e estende
+  `licencaFim`) direto no formulário de editar escola em
+  `admin-escolas.html` — já dava pra fazer isso, só faltava a opção
+  "Teste grátis (7 dias)" no `<select>` de status pra não ficar em branco
+  ao abrir uma escola trial pra editar.
+- **Exclusão também é manual, com revisão do dono**: `admin-escolas.html`
+  lista toda escola com `status == "trial"` e `licencaFim` vencida numa
+  seção "Trials vencidos", com um botão "Excluir escola e dados" por linha
+  (`excluirEscolaTrialVencida()` em `js/admin-escolas.js`). **Nada é
+  apagado sozinho** — o dono só vê a lista e decide.
+- A exclusão apaga turmas/atletas(+progressao)/avaliações/frequência/
+  planos/mensagens da escola, os `resumosPublicos` e os `usuarios/{uid}`
+  vinculados a ela. **Limitação conhecida:** não apaga a conta de login
+  (Firebase Auth) de quem ficou vinculado — só é possível apagar a própria
+  conta Auth a partir do cliente, nunca a de outra pessoa, sem Admin SDK.
+  Na prática o acesso já fica bloqueado (auth-guard desloga quem não tem
+  mais perfil em `usuarios/{uid}`), mas a entrada continua existindo em
+  Authentication → Users no console, e pode ser removida de lá manualmente
+  se quiser limpar de vez.
 
 `js/metricas.js` centraliza toda a régua de avaliação (nota geral, corte
 bom/atenção, tendência, progressão de categoria, pesos dos fundamentos
@@ -203,13 +260,28 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   commit mais recente) **ainda não foram publicadas** no console do
   Firebase — publique antes de testar, senão toda busca dá
   `permission-denied`.
+- `cadastro-trial.html`/`js/cadastro-trial.js` + as regras novas de trial em
+  `firestore.rules` (`ehCriacaoDeTrialValida`, `meuPerfilExiste`) — validei
+  a lógica de criação/rollback com Firestore mockado (sucesso, falha ao
+  criar a conta, falha ao criar o perfil com rollback da escola e da conta),
+  e a exclusão em cascata de `excluirEscolaTrialVencida()` (confirma que só
+  apaga dados da escola alvo, sem tocar em outra escola). **O que falta**:
+  publicar `firestore.rules` no console e testar o cadastro de verdade num
+  navegador — não faço login/cadastro de verdade por segurança, então isso
+  precisa ser testado por você (ou pelo sócio).
 
 ## Próximos passos conhecidos
 
 - Publicar a versão mais recente de `firestore.rules` no console (tem
-  regras novas de `resumosPublicos` que ainda não estão no ar).
-- Testar `responsavel.html` e `area-do-atleta.html` de ponta a ponta (ver
-  seção acima).
+  regras novas de `resumosPublicos` **e** do cadastro de teste grátis —
+  `ehCriacaoDeTrialValida`, `meuPerfilExiste` — que ainda não estão no ar).
+- Testar `responsavel.html`, `area-do-atleta.html` e `cadastro-trial.html`
+  de ponta a ponta (ver seção acima).
+- Preencher um contato de verdade (e-mail/WhatsApp) em `vendas.html` — hoje
+  o botão de "Agendar uma demonstração" usa um `mailto:` placeholder
+  (`contato@craquesdofuturo.com.br`).
+- Decidir se/quando publicar preços reais nos planos de `vendas.html`
+  (hoje ficam como "Valor em definição" de propósito).
 - Terminar o formulário de perfil do usuário em `configuracoes.html`
   (ainda `data-fake-form`).
 - Validar com o sócio os pesos de fundamentos técnicos de Goleiro,

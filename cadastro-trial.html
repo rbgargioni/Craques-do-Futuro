@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste grátis — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<script>
+  // Página pública, sem auth-guard.js (que só roda em telas que exigem login) —
+  // então nada nunca adicionaria a classe que libera o body escondido por
+  // padrão em css/style.css (regra pensada pra evitar flash de conteúdo errado
+  // enquanto o "porteiro" confere quem está logado). Aqui não tem porteiro pra
+  // esperar, então libera na hora.
+  document.documentElement.classList.add("is-authorized");
+</script>
+
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-badge">CF</div>
+      <div class="brand-text">
+        <strong>Craques</strong>
+        <span>do Futuro</span>
+      </div>
+    </div>
+
+    <h1>7 dias grátis</h1>
+    <p class="muted">Crie sua escola e comece a usar agora — sem cartão, sem compromisso.</p>
+
+    <form id="formCadastroTrial">
+      <p id="erroCadastro" class="is-hidden" style="color:var(--bad);font-size:12px;margin:-6px 0 0;">&nbsp;</p>
+      <div class="field">
+        <label for="nomeEscolaTrial">Nome da escola</label>
+        <input type="text" id="nomeEscolaTrial" name="nomeEscola" placeholder="Ex: Escolinha Estrela do Futuro" required autocomplete="organization">
+      </div>
+      <div class="field">
+        <label for="nomeResponsavelTrial">Seu nome</label>
+        <input type="text" id="nomeResponsavelTrial" name="nomeResponsavel" placeholder="Nome de quem vai administrar" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="emailTrial">E-mail</label>
+        <input type="email" id="emailTrial" name="email" placeholder="seu@email.com" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="senhaTrial">Senha</label>
+        <input type="password" id="senhaTrial" name="senha" placeholder="Pelo menos 6 caracteres" required minlength="6" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary">Começar teste grátis</button>
+    </form>
+
+    <p class="auth-role-hint">
+      Seu acesso completo fica liberado por 7 dias. Depois disso, se quiser continuar, é só falar com a
+      gente — nada é cobrado automaticamente e nenhum dado é apagado sem você ver antes.
+    </p>
+
+    <div class="auth-links">
+      <a href="vendas.html">Conhecer o sistema</a>
+      <a href="login.html">Já tenho uma conta</a>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/cadastro-trial.js"></script>
+<script src="js/Script.js"></script>
+</body>
+</html>

@@ -18,7 +18,16 @@
 //   é só que administrador também pode criar técnicos.
 //
 // escolas/{escolaId}
-//   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa"
+//   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa" | "trial"
+//
+//   "trial" = escola criada pelo cadastro público de teste grátis (cadastro-trial.html),
+//   sem passar por um dono. licencaFim é travada em no máximo 7 dias a partir da criação
+//   DIRETO NA REGRA (ver ehCriacaoDeTrialValida abaixo) — o cliente nunca é confiável pra
+//   dizer "meus 7 dias começam quando eu quiser". O acesso expira sozinho pelo mecanismo
+//   que já existe (escolaAtiva() checa licencaFim, igual pra qualquer escola paga vencida);
+//   não tem Cloud Function apagando nada sozinho. Quem decide apagar uma escola trial
+//   vencida e não convertida é o dono, manualmente, na tela "Trials vencidos" do
+//   admin-escolas.html.
 //
 //   escolas/{escolaId}/turmas/{turmaId}          — nome, categoria, temporada, ativa
 //   escolas/{escolaId}/atletas/{atletaId}
@@ -63,13 +72,29 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn()      { return request.auth != null; }
+    // meuPerfilExiste() existe pra que myRole() nunca precise chamar get().data
+    // num documento que ainda não existe — isso é exatamente o que acontece durante
+    // o cadastro público de teste grátis, no instante em que a conta de login já foi
+    // criada mas o perfil em usuarios/{uid} ainda não. Sem essa guarda, isDono()/
+    // isAdmin()/isTecnico() dariam erro de avaliação (em vez de simplesmente "false")
+    // pra esse usuário, o que é arriscado demais deixar pra sorte com curto-circuito.
+    function meuPerfilExiste() { return exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)); }
     function meDoc()         { return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data; }
-    function myRole()        { return signedIn() ? meDoc().role : null; }
+    function myRole()        { return (signedIn() && meuPerfilExiste()) ? meDoc().role : null; }
     function myEscolaId()    { return meDoc().escolaId; }
     function myAtletaIds()   { return meDoc().atletaIds; }
     function isDono()        { return myRole() == 'dono'; }
     function isAdmin()       { return myRole() == 'administrador'; }
     function isTecnico()     { return myRole() == 'tecnico'; }
+
+    // Cadastro público de teste grátis (cadastro-trial.html) — ver nota sobre
+    // "trial" no modelo de dados, no topo do arquivo.
+    function ehCriacaoDeTrialValida(dados) {
+      return dados.status == 'trial'
+        && dados.licencaFim > request.time
+        && dados.licencaFim <= dados.licencaInicio + duration.value(7, 'd')
+        && dados.licencaInicio <= request.time;
+    }
 
     function escolaAtiva(id) {
       return get(/databases/$(database)/documents/escolas/$(id)).data.licencaFim >= request.time;
@@ -89,13 +114,20 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isDono());
 
       // dono cria/edita qualquer perfil; administrador só CRIA técnicos da própria escola;
-      // administrador/técnico só CRIAM perfis de responsável da própria escola
+      // administrador/técnico só CRIAM perfis de responsável da própria escola; e um
+      // usuário totalmente novo (sem perfil ainda) pode criar o PRÓPRIO perfil de
+      // administrador, mas só apontando pra uma escola que ele acabou de criar como trial
+      // (a escola já precisa existir com status 'trial' — ver ordem em cadastro-trial.js:
+      // primeiro cria a escola, depois este perfil).
       allow create: if isDono()
         || (isAdmin() && escolaAtiva(myEscolaId())
             && request.resource.data.role == 'tecnico'
             && request.resource.data.escolaId == myEscolaId())
         || (isStaffAtivo(request.resource.data.escolaId)
-            && request.resource.data.role == 'responsavel');
+            && request.resource.data.role == 'responsavel')
+        || (signedIn() && request.auth.uid == uid && !meuPerfilExiste()
+            && request.resource.data.role == 'administrador'
+            && get(/databases/$(database)/documents/escolas/$(request.resource.data.escolaId)).data.status == 'trial');
 
       // administrador/técnico podem só adicionar atletaIds a um perfil de responsável da própria escola
       allow update: if isDono()
@@ -110,7 +142,13 @@ service cloud.firestore {
     match /escolas/{escolaId} {
       allow read:  if isDono() || isStaffAtivo(escolaId)
                    || (myRole() == 'responsavel' && myEscolaId() == escolaId);
-      allow write: if isDono();
+      // create: dono cria qualquer escola; OU um usuário autenticado sem nenhum perfil
+      // ainda pode criar UMA escola de teste grátis pra si mesmo (o próximo passo dele é
+      // criar o próprio usuarios/{uid} apontando pra cá — ver regra de usuarios acima).
+      // update/delete continuam só do dono (inclusive apagar uma trial vencida).
+      allow create: if isDono()
+        || (signedIn() && !meuPerfilExiste() && ehCriacaoDeTrialValida(request.resource.data));
+      allow update, delete: if isDono();
 
       match /turmas/{turmaId} {
         allow read:  if isDono() || isStaffAtivo(escolaId)

@@ -81,6 +81,18 @@
 
   <p id="erroAdmin" class="is-hidden status-note" style="background:var(--bad-bg);color:var(--bad);border-color:#f3c8c4;"></p>
 
+  <!-- TRIALS VENCIDOS (cadastro público de 7 dias grátis que não virou plano pago) -->
+  <section id="secaoTrialsVencidos" class="is-hidden" style="margin-bottom:28px;">
+    <div class="page-header">
+      <h2>Trials vencidos <span class="tag" id="totalTrialsVencidos">0</span></h2>
+    </div>
+    <p class="status-note">
+      <span>⚠</span>
+      <span>Essas escolas vieram do cadastro de teste grátis e os 7 dias já passaram sem virar um plano pago. Excluir apaga turmas, atletas, avaliações, frequência, planos e recados dessa escola, além do acesso dos administradores/técnicos vinculados — não dá pra desfazer.</span>
+    </p>
+    <ul class="message-list" id="listaTrialsVencidos"></ul>
+  </section>
+
   <!-- PAINEL: NOVA ESCOLA -->
   <section class="panel is-hidden" id="painelEscola">
     <div class="panel-head">
@@ -142,6 +154,7 @@
         <select id="statusEditarEscola" name="status">
           <option value="ativa">Ativa</option>
           <option value="suspensa">Suspensa</option>
+          <option value="trial">Teste grátis (7 dias)</option>
         </select>
       </div>
       <div class="form-actions field--full">
