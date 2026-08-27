@@ -277,7 +277,8 @@ async function excluirEscolaTrialVencida(escolaId) {
 }
 
 function trialVencido(dados) {
-  return dados.status === "trial" && dados.licencaFim.toDate() < new Date();
+  if (dados.status !== "trial" || !dados.licencaFim) return false;
+  return dados.licencaFim.toDate() < new Date();
 }
 
 function renderizarTrialsVencidos(escolasDocs) {
@@ -358,7 +359,13 @@ function carregarEscolas() {
       totalEl.textContent = `${snapshot.size} cliente${snapshot.size === 1 ? "" : "s"}`;
 
       snapshot.forEach((docSnap) => {
-        container.appendChild(criarCardEscola(docSnap.id, docSnap.data()));
+        // Uma escola com dado quebrado (ex.: licencaFim ausente/inválido) não pode
+        // travar o forEach e esconder as escolas seguintes — só pula essa e loga.
+        try {
+          container.appendChild(criarCardEscola(docSnap.id, docSnap.data()));
+        } catch (erro) {
+          console.error(`Escola ${docSnap.id} com dado inválido, pulando:`, docSnap.data(), erro);
+        }
       });
     },
     (erro) => {
