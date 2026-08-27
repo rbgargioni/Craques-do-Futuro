@@ -255,28 +255,34 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   conta de responsável real vinculada a um atleta com avaliações/frequência/
   recados cadastrados.
 - `area-do-atleta.html`/`js/area-do-atleta.js` — testei o fluxo de "código
-  não encontrado" contra o Firestore de verdade (funcionou), mas não testei
-  com um código real ainda porque as regras novas (`resumosPublicos`,
-  commit mais recente) **ainda não foram publicadas** no console do
-  Firebase — publique antes de testar, senão toda busca dá
-  `permission-denied`.
-- `cadastro-trial.html`/`js/cadastro-trial.js` + as regras novas de trial em
-  `firestore.rules` (`ehCriacaoDeTrialValida`, `meuPerfilExiste`) — validei
-  a lógica de criação/rollback com Firestore mockado (sucesso, falha ao
-  criar a conta, falha ao criar o perfil com rollback da escola e da conta),
-  e a exclusão em cascata de `excluirEscolaTrialVencida()` (confirma que só
-  apaga dados da escola alvo, sem tocar em outra escola). **O que falta**:
-  publicar `firestore.rules` no console e testar o cadastro de verdade num
-  navegador — não faço login/cadastro de verdade por segurança, então isso
-  precisa ser testado por você (ou pelo sócio).
+  não encontrado" contra o Firestore de verdade (funcionou), mas ainda não
+  testei com um código real. As regras de `resumosPublicos` já foram
+  publicadas (mesma publicação que levou as regras de trial, 2026-08-27),
+  então não deveria mais dar `permission-denied` — só falta testar com um
+  atleta que tenha `codigoPublico` de verdade.
+
+`cadastro-trial.html`/`js/cadastro-trial.js` (cadastro público de teste
+grátis) **já foi testado de ponta a ponta no Firebase real** em
+2026-08-27 e funciona: cadastro cria a conta, a escola trial e o perfil de
+administrador, e a escola aparece pro dono em `admin-escolas.html` pra
+editar status/licença manualmente. No caminho, um card de escola com
+`licencaFim` inválido/ausente estava travando o `forEach` e escondendo as
+escolas seguintes da lista — corrigido (agora pula só a escola com
+problema e loga no console, ver `carregarEscolas()`/`trialVencido()` em
+`js/admin-escolas.js`). Se aparecer esse log de erro no console, vale
+achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- Publicar a versão mais recente de `firestore.rules` no console (tem
-  regras novas de `resumosPublicos` **e** do cadastro de teste grátis —
-  `ehCriacaoDeTrialValida`, `meuPerfilExiste` — que ainda não estão no ar).
-- Testar `responsavel.html`, `area-do-atleta.html` e `cadastro-trial.html`
-  de ponta a ponta (ver seção acima).
+- `firestore.rules` já está publicado no console (inclui `resumosPublicos`
+  e o cadastro de teste grátis) — se editar o arquivo de novo, lembre de
+  publicar de novo, é sempre manual.
+- Testar `responsavel.html` e `area-do-atleta.html` de ponta a ponta (ver
+  seção acima) — `cadastro-trial.html` já foi testado e funciona.
+- Checar no Firestore Console se sobrou alguma escola de teste com
+  `licencaFim` inválido/ausente (ver nota na seção "Não testado de ponta a
+  ponta" acima) — provavelmente um resquício de teste manual, mas vale
+  conferir/apagar.
 - Preencher um contato de verdade (e-mail/WhatsApp) em `vendas.html` — hoje
   o botão de "Agendar uma demonstração" usa um `mailto:` placeholder
   (`contato@craquesdofuturo.com.br`).
