@@ -116,22 +116,25 @@ export function pontosEvolucao(avaliacoesOrdenadas, { xMin = 10, xMax = 270, yTo
 // Fundamentos técnicos por posição — usados pra calcular o pilar "Técnico"
 // a partir de notas de 1 a 10 em cada fundamento, em vez de uma nota única.
 //
-// ⚠️ STATUS DESTE BLOCO (26/08/2026):
-// - "Volante" veio de uma conversa do Rafael com o sócio — pesos reais
-//   confirmados, somam exatamente 100.
+// ⚠️ STATUS DESTE BLOCO (27/08/2026):
+// - "Volante" e "Atacante" vieram de conversas do Rafael com o sócio — pesos
+//   reais confirmados, cada um somando exatamente 100.
 // - "Meio de campo" (usado hoje só por "Meia") veio de uma conversa anterior
 //   do Rafael com o sócio (ChatGPT) — os pesos somam 93 (não 100); a função
 //   calcularNotaTecnica() normaliza pela soma dos pesos, então isso não
 //   quebra a conta, mas vale conferir com o sócio se não faltou um
-//   fundamento. Agora que "Volante" tem peso próprio confirmado, esse
-//   conjunto "Meio de campo" ficou sendo só o rascunho de "Meia".
-// - Goleiro, Zagueiro, Lateral e Atacante AINDA NÃO foram combinados com o
-//   sócio — são um ponto de partida razoável que eu (Claude) montei, só
-//   pra existir uma estrutura pra revisar. Tratar como rascunho até vir
-//   confirmação real, igual foi feito com Volante e Meio de campo.
-// - Ainda NÃO está ligado nas telas de Avaliações/Atletas — é só a lógica,
-//   isolada aqui, pra vocês avaliarem os números antes de eu mexer na
-//   interface (formulário, tela de resultado, ranking de fundamentos).
+//   fundamento. Agora que "Volante" e "Atacante" têm peso próprio
+//   confirmado, esse conjunto "Meio de campo" ficou sendo só o rascunho de
+//   "Meia".
+// - Goleiro, Zagueiro e Lateral AINDA NÃO foram combinados com o sócio —
+//   são um ponto de partida razoável que eu (Claude) montei, só pra existir
+//   uma estrutura pra revisar. Tratar como rascunho até vir confirmação
+//   real, igual foi feito com Volante, Atacante e Meio de campo.
+// - Já ESTÁ ligado na tela de Avaliações (formulário por fundamento, nota
+//   final calculada, melhor fundamento e ponto a melhorar) — funciona pra
+//   qualquer posição aqui em baixo, rascunho ou confirmada. Os indicadores
+//   extras (Inteligência Defensiva, Capacidade de Ataque, Poder de
+//   Finalização, mais abaixo) ainda NÃO aparecem em nenhuma tela.
 //
 // As chaves de posição usam exatamente os mesmos textos do <select> de
 // posição em atletas.html (Goleiro/Zagueiro/Lateral/Volante/Meia/Atacante).
@@ -201,15 +204,18 @@ const FUNDAMENTOS_LATERAL = {
   conducao: { label: "Condução", peso: 6 },
 };
 
+// Confirmado com o sócio (27/08/2026) — pesos somam 100.
 const FUNDAMENTOS_ATACANTE = {
-  finalizacao: { label: "Finalização", peso: 22 },
-  dominioOrientado: { label: "Domínio / controle orientado", peso: 15 },
-  movimentacao: { label: "Movimentação sem bola", peso: 15 },
-  drible: { label: "Drible", peso: 12 },
-  dueloAereo: { label: "Cabeceio / duelo aéreo", peso: 10 },
-  passe: { label: "Passe / assistência", peso: 10 },
-  peNaoDominante: { label: "Pé não dominante", peso: 8 },
-  conducao: { label: "Condução", peso: 8 },
+  finalizacao: { label: "Finalização", peso: 20 },
+  explosaoNaCorrida: { label: "Explosão na corrida", peso: 15 },
+  profundidade: { label: "Profundidade / ataque ao espaço", peso: 14 },
+  posicionamentoOfensivo: { label: "Posicionamento ofensivo", peso: 14 },
+  drible: { label: "Drible", peso: 10 },
+  cabeceio: { label: "Cabeceio", peso: 10 },
+  controleOrientado: { label: "Domínio / controle orientado", peso: 6 },
+  peNaoDominante: { label: "Uso do pé não dominante", peso: 5 },
+  conducaoComVelocidade: { label: "Condução com velocidade", peso: 4 },
+  leituraDeJogada: { label: "Leitura de jogada", peso: 2 },
 };
 
 export const FUNDAMENTOS_POR_POSICAO = {
@@ -250,28 +256,52 @@ export function analisarFundamentos(posicao, notasFundamentos) {
 }
 
 // ------------------------------------------------------
-// Indicador de "inteligência defensiva" (Volante) — combina os 4
-// fundamentos que mostram quem realmente entende o jogo: posicionamento,
-// interceptação, desarme antecipado e leitura de jogo. O sócio pediu pra
-// "combinar" esses 4 sem especificar peso relativo entre eles, então usei
-// os pesos originais de cada um (16/15/12/8), recalculados só entre esses
-// 4 — ou seja, mantém a mesma proporção de importância que eles já têm na
-// nota geral do Volante. Ajustar aqui se o sócio preferir outro critério
-// (ex: média simples, pesos diferentes).
+// Indicadores combinados — cada um pega um subconjunto dos fundamentos de
+// uma posição e recalcula a média ponderada só entre eles (mantendo a
+// proporção de importância que já têm na nota geral daquela posição), pra
+// dar uma nota 0-10 de uma característica específica do atleta.
 // ------------------------------------------------------
+function calcularMediaPonderada(pesos, notasFundamentos) {
+  const chaves = Object.keys(pesos);
+  const somaPesos = chaves.reduce((soma, chave) => soma + pesos[chave], 0);
+  const soma = chaves.reduce((total, chave) => total + (notasFundamentos[chave] || 0) * pesos[chave], 0);
+  return Math.round((soma / somaPesos) * 10) / 10;
+}
+
+// "Inteligência defensiva" (Volante) — posicionamento, interceptação,
+// desarme antecipado e leitura de jogo. O sócio pediu pra "combinar" esses
+// 4 sem especificar peso relativo entre eles, então usei os pesos originais
+// de cada um (16/15/12/8) do conjunto do Volante.
 const PESOS_INTELIGENCIA_DEFENSIVA = {
   posicionamento: 16,
   interceptacao: 15,
   desarmeAntecipado: 12,
   leituraDeJogo: 8,
 };
-
 export function calcularInteligenciaDefensiva(notasFundamentos) {
-  const chaves = Object.keys(PESOS_INTELIGENCIA_DEFENSIVA);
-  const somaPesos = chaves.reduce((soma, chave) => soma + PESOS_INTELIGENCIA_DEFENSIVA[chave], 0);
-  const soma = chaves.reduce(
-    (total, chave) => total + (notasFundamentos[chave] || 0) * PESOS_INTELIGENCIA_DEFENSIVA[chave],
-    0
-  );
-  return Math.round((soma / somaPesos) * 10) / 10;
+  return calcularMediaPonderada(PESOS_INTELIGENCIA_DEFENSIVA, notasFundamentos);
+}
+
+// "Capacidade de Ataque" (Atacante) — explosão na corrida, profundidade/
+// ataque ao espaço, posicionamento ofensivo e leitura de jogada. Pesos
+// originais do conjunto do Atacante (15/14/14/2).
+const PESOS_CAPACIDADE_DE_ATAQUE = {
+  explosaoNaCorrida: 15,
+  profundidade: 14,
+  posicionamentoOfensivo: 14,
+  leituraDeJogada: 2,
+};
+export function calcularCapacidadeDeAtaque(notasFundamentos) {
+  return calcularMediaPonderada(PESOS_CAPACIDADE_DE_ATAQUE, notasFundamentos);
+}
+
+// "Poder de Finalização" (Atacante) — finalização, cabeceio e uso do pé não
+// dominante. Pesos originais do conjunto do Atacante (20/10/5).
+const PESOS_PODER_DE_FINALIZACAO = {
+  finalizacao: 20,
+  cabeceio: 10,
+  peNaoDominante: 5,
+};
+export function calcularPoderDeFinalizacao(notasFundamentos) {
+  return calcularMediaPonderada(PESOS_PODER_DE_FINALIZACAO, notasFundamentos);
 }
