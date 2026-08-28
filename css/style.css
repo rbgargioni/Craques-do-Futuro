@@ -526,6 +526,13 @@ select.btn-ghost option {
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 16px;
 }
+/* gestor-escolas.html ("Minhas escolas") normalmente tem só 1-3 cards, bem maiores
+   (2 linhas de stats) que os de atletas/turmas — auto-fill deixava o card espremido
+   num canto com um monte de colunas vazias ao lado numa tela grande. auto-fit some
+   com as colunas vazias e deixa o(s) card(s) que existem crescer até um teto razoável. */
+#listaEscolasGestor {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 420px));
+}
 .entity-card {
   background: var(--card);
   border: 1px solid var(--border);

@@ -6,10 +6,12 @@
 //   - Escola "de casa" (window.CF.escolaId, fixo no perfil): sempre
 //     aparece, com botão "Editar nome" mas SEM "Excluir" (isso continua
 //     exigindo o dono).
-//   - Escolas EXTRAS (escolas.administradorUid == meu uid): só existem
-//     pra quem tem limiteEscolas/licencaFim definidos no próprio perfil
-//     (o dono libera isso ao editar o administrador em admin-escolas.html)
-//     — aparecem "Cadastrar escola"/"Editar nome"/"Excluir escola".
+//   - Escolas EXTRAS (escolas.administradorUid == meu uid): QUALQUER
+//     administrador pode cadastrar (decisão de 2026-08-28 — revogou o
+//     modelo anterior de "limiteEscolas" liberado pelo dono). Como não
+//     tem mais um "pacote" com licencaFim pra herdar, quem cadastra
+//     define a licença da escola nova na hora, igual o dono faz em
+//     admin-escolas.html.
 // Ver nota sobre "múltiplas escolas" no topo de firestore.rules antes de
 // mexer aqui.
 // ======================================================
@@ -23,7 +25,6 @@ import { app as appPrincipal, db } from "./firebase-init.js";
 
 const CHAVE_ESCOLA_ATIVA_EXTRA = "cf_gestorEscolaAtiva";
 
-let totalExtrasAtual = 0;
 let pararEscolaDeCasa = null;
 let pararEscolasExtras = null;
 
@@ -60,28 +61,8 @@ function esconderErro() {
   document.getElementById("erroGestor").classList.add("is-hidden");
 }
 
-function limiteEscolasExtras() {
-  return window.CF.limiteEscolas || 0;
-}
-
-// Elementos [data-requer-multi-escola] (cadastrar escola, aviso de limite) só existem pra quem
-// tem limiteEscolas>0 no perfil — a maioria dos administradores (escola única) não vê nada disso.
-function aplicarVisibilidadeMultiEscola() {
-  const podeExpandir = limiteEscolasExtras() > 0;
-  document.querySelectorAll("[data-requer-multi-escola]").forEach((el) => el.classList.toggle("is-hidden", !podeExpandir));
-}
-
-function atualizarInfoLimite() {
-  const info = document.getElementById("infoLimiteGestor");
-  const licenca = window.CF.licencaFimPacote ? window.CF.licencaFimPacote.toDate().toLocaleDateString("pt-BR") : "—";
-  info.textContent = `Seu plano permite até ${limiteEscolasExtras()} escola${limiteEscolasExtras() === 1 ? "" : "s"} extra${limiteEscolasExtras() === 1 ? "" : "s"}, além da sua. Válido até ${licenca} — escolas novas usam essa mesma data de vencimento.`;
-}
-
-function atualizarBotaoCadastrar() {
-  const btn = document.getElementById("btnCadastrarEscolaGestor");
-  const atingiuLimite = totalExtrasAtual >= limiteEscolasExtras();
-  btn.disabled = atingiuLimite;
-  btn.title = atingiuLimite ? "Você já cadastrou o máximo de escolas extras do seu plano." : "";
+function dataInputParaTimestamp(valorInput) {
+  return Timestamp.fromDate(new Date(`${valorInput}T12:00:00`));
 }
 
 async function aplicarUsoNoCard(card, escolaId) {
@@ -329,8 +310,7 @@ function renderizarEscolas() {
   const totalEl = document.getElementById("totalEscolasGestor");
   const ids = Object.keys(cardsPorId);
 
-  totalEl.textContent = limiteEscolasExtras() > 0 ? `${ids.length} (${totalExtrasAtual} de ${limiteEscolasExtras()} extras)` : `${ids.length}`;
-  atualizarBotaoCadastrar();
+  totalEl.textContent = `${ids.length}`;
 
   container.innerHTML = "";
   if (ids.length === 0) {
@@ -362,8 +342,6 @@ function carregarEscolas() {
     }
   );
 
-  if (limiteEscolasExtras() === 0) return; // sem plano de múltiplas escolas, nem tenta a query extra
-
   const q = query(collection(db, "escolas"), where("administradorUid", "==", window.CF.uid));
   pararEscolasExtras = onSnapshot(
     q,
@@ -373,7 +351,6 @@ function carregarEscolas() {
       Object.keys(cardsPorId).forEach((id) => {
         if (cardsPorId[id]._veioDaQueryExtra) delete cardsPorId[id];
       });
-      totalExtrasAtual = snapshot.size;
       snapshot.forEach((docSnap) => {
         if (docSnap.id === homeEscolaId) return; // não deveria acontecer, mas evita duplicar o card
         cardsPorId[docSnap.id] = { dados: docSnap.data(), ehDeCasa: false, _veioDaQueryExtra: true };
@@ -393,11 +370,6 @@ function configurarFormCadastrarEscola() {
     e.preventDefault();
     esconderErro();
 
-    if (totalExtrasAtual >= limiteEscolasExtras()) {
-      mostrarErro(`Você já atingiu o limite de ${limiteEscolasExtras()} escola${limiteEscolasExtras() === 1 ? "" : "s"} extra${limiteEscolasExtras() === 1 ? "" : "s"} do seu plano.`);
-      return;
-    }
-
     const botao = form.querySelector("button[type=submit]");
     botao.disabled = true;
     botao.textContent = "Criando...";
@@ -411,8 +383,8 @@ function configurarFormCadastrarEscola() {
 
       escolaRef = await addDoc(collection(db, "escolas"), {
         nome,
-        licencaInicio: Timestamp.fromDate(new Date()),
-        licencaFim: window.CF.licencaFimPacote,
+        licencaInicio: dataInputParaTimestamp(form.licencaInicio.value),
+        licencaFim: dataInputParaTimestamp(form.licencaFim.value),
         status: "ativa",
         planoId: null,
         administradorUid: window.CF.uid,
@@ -443,12 +415,7 @@ function configurarFormCadastrarEscola() {
 }
 
 document.addEventListener("cf:pronto", () => {
-  aplicarVisibilidadeMultiEscola();
   carregarEscolas();
   configurarFormEditarEscola();
-
-  if (limiteEscolasExtras() > 0) {
-    atualizarInfoLimite();
-    configurarFormCadastrarEscola();
-  }
+  configurarFormCadastrarEscola();
 });

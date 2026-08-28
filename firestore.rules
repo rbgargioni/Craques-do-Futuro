@@ -11,10 +11,13 @@
 //   escolaId: string | null             a escola "de casa" do administrador/técnico
 //                                        (null só pra dono); ver "múltiplas escolas" abaixo
 //   atletaIds: array<string>            só para responsavel
-//   limiteEscolas: number | ausente     só em administrador de plano com mais de uma escola —
-//                                        quantas escolas EXTRAS (além da de casa) ele pode ter
-//   licencaFim: Timestamp | ausente     só junto com limiteEscolas — vencimento do PACOTE que
-//                                        cobre as escolas extras (ver abaixo)
+//   limiteEscolas: number | ausente     LEGADO, não é mais checado em nenhuma regra (ver nota
+//                                        "MÚLTIPLAS ESCOLAS" abaixo) — o painel em
+//                                        admin-escolas.html ainda escreve nesse campo, mas nada
+//                                        lê mais ele. Mantido só porque apagar o painel não foi
+//                                        pedido; não confiar nesse campo pra nada novo.
+//   licencaFim: Timestamp | ausente     idem acima — mesmo status de legado, sempre junto com
+//                                        limiteEscolas.
 //
 //   Hierarquia de criação: dono cria escolas + administradores (pode ter mais de 1 por escola);
 //   administrador cria técnicos (e também pode cadastrar atletas/turmas, mesmo acesso a dados que
@@ -22,24 +25,21 @@
 //   o mesmo acesso aos DADOS da escola (atletas/turmas/avaliações/...) — a diferença entre os dois
 //   é só que administrador também pode criar técnicos.
 //
-//   MÚLTIPLAS ESCOLAS (plano mais completo): não existe um papel separado pra isso — é o MESMO
-//   "administrador", só que com `limiteEscolas` e `licencaFim` preenchidos no próprio perfil
-//   (o dono define isso ao editar o administrador em admin-escolas.html). Com isso, ele pode
-//   cadastrar escolas EXTRAS além da "de casa" (a do próprio `escolaId`) em gestor-escolas.html
-//   ("Minhas escolas") — até `limiteEscolas`, cada uma virando `escolas/{id}.administradorUid ==
-//   seu uid`. Ele "entra" em cada uma (a de casa OU uma extra) pra operar como staff dela.
-//   NÃO é o mesmo que "dono": dono tem acesso irrestrito a QUALQUER escola de QUALQUER cliente;
-//   este administrador só enxerga/cria/edita/exclui as escolas EXTRAS que ele mesmo criou — a
-//   de casa ele edita mas não exclui (isso continua exigindo o dono, ver regra de escolas abaixo).
-//   O limite de `limiteEscolas` é checado na regra de criação de escola (abaixo), mas SÓ pra
-//   escola nova em si — não tem uma trava de "contar quantas escolas extras ele já tem" na regra
-//   (exigiria um contador mantido à parte); por enquanto é reforçado só na interface
-//   (gestor-escolas.js esconde o botão de cadastrar depois do limite). Decisão consciente,
-//   mesmo padrão de "visibilidade, não bloqueio hermético" já usado pro limite de treinador/aluno.
-//   O acesso às escolas extras NÃO depende do licencaFim de CADA escola — só de ele continuar
-//   sendo o administradorUid dela (ver isStaffAtivo mais abaixo). Quem corta o acesso de um
-//   administrador inadimplente é o DONO, manualmente (desativar/excluir o perfil dele, ou tirar
-//   o limiteEscolas/licencaFim se for só as escolas extras que devem sumir).
+//   MÚLTIPLAS ESCOLAS: não existe um papel separado pra isso — é o MESMO "administrador". Desde
+//   2026-08-28, QUALQUER administrador pode cadastrar escolas EXTRAS além da "de casa" (a do
+//   próprio `escolaId`) em gestor-escolas.html ("Minhas escolas"), sem precisar de nenhuma
+//   liberação do dono — cada uma vira `escolas/{id}.administradorUid == seu uid`, com
+//   licencaInicio/licencaFim definidos na hora por quem cadastra (não tem mais um "pacote" pra
+//   herdar/travar contra). Ele "entra" em cada uma (a de casa OU uma extra) pra operar como staff
+//   dela. NÃO é o mesmo que "dono": dono tem acesso irrestrito a QUALQUER escola de QUALQUER
+//   cliente; este administrador só enxerga/cria/edita/exclui as escolas EXTRAS que ele mesmo
+//   criou — a de casa ele edita mas não exclui (isso continua exigindo o dono, ver regra de
+//   escolas abaixo). SEM limite de quantas escolas extras um administrador pode ter — decisão
+//   consciente de 2026-08-28, revogou o modelo anterior (`limiteEscolas` liberado pelo dono,
+//   virou campo legado, ver nota acima). O acesso às escolas extras NÃO depende do licencaFim de
+//   CADA escola — só de ele continuar sendo o administradorUid dela (ver isStaffAtivo mais
+//   abaixo). Quem corta o acesso de um administrador é o DONO, manualmente (desativar/excluir o
+//   perfil dele — isso também tira o acesso de QUALQUER escola extra que ele tenha criado).
 //
 // escolas/{escolaId}
 //   nome, licencaInicio, licencaFim (Timestamp), status: "ativa" | "suspensa" | "trial"
@@ -245,17 +245,13 @@ service cloud.firestore {
       // create: dono cria qualquer escola; OU um usuário autenticado sem nenhum perfil
       // ainda pode criar UMA escola de teste grátis pra si mesmo (o próximo passo dele é
       // criar o próprio usuarios/{uid} apontando pra cá — ver regra de usuarios acima); OU
-      // um administrador com limiteEscolas/licencaFim no próprio perfil cria uma escola EXTRA
-      // sua (administradorUid == seu uid), com a licença dela travada pra nunca passar do
-      // vencimento do PACOTE dele (meDoc().licencaFim) — ver nota sobre "múltiplas escolas"
-      // no topo do arquivo.
+      // QUALQUER administrador cria uma escola EXTRA sua (administradorUid == seu uid), sem
+      // precisar de liberação do dono nem de um "pacote" pra travar a licença contra (decisão
+      // de 2026-08-28 — ver nota sobre "múltiplas escolas" no topo do arquivo).
       allow create: if isDono()
         || (signedIn() && !meuPerfilExiste() && ehCriacaoDeTrialValida(request.resource.data))
         || (isAdmin() && request.resource.data.administradorUid == request.auth.uid
-            && request.resource.data.status == 'ativa'
-            && 'limiteEscolas' in meDoc() && meDoc().limiteEscolas > 0
-            && 'licencaFim' in meDoc()
-            && request.resource.data.licencaFim <= meDoc().licencaFim);
+            && request.resource.data.status == 'ativa');
       // update: dono edita qualquer campo; administrador (na de casa OU numa extra que
       // gerencia) só pode renomear (nunca mexer em licencaFim/status/planoId/administradorUid
       // por essa via — quem controla isso é o dono). delete: dono apaga qualquer escola

@@ -144,14 +144,21 @@ pra quando o Rafael tiver um provedor de pagamento configurado.
 
 **Não existe um papel `gestor` separado** (existiu numa versão anterior, foi
 removido — ver nota em "Papéis de acesso" acima). Em vez disso, qualquer
-`administrador` pode ganhar a capacidade de gerenciar mais de uma escola: o
-dono libera isso ao clicar num administrador na lista "Administradores desta
-escola" (dentro de editar escola, em `admin-escolas.html`) e preenche
-"Múltiplas escolas" — `usuarios/{uid}.limiteEscolas` (quantas escolas EXTRAS,
-além da própria) + `licencaFim` (vencimento do pacote que cobre elas).
-**Ainda não está ligado ao fluxo de "Solicitação de plano"** — é um passo
-manual à parte, decisão consciente pra não misturar dois fluxos de venda
-diferentes nesta primeira versão.
+`administrador` pode gerenciar mais de uma escola.
+
+⚠️ **Mudança de modelo em 2026-08-28**: antes, só quem tinha `limiteEscolas`
+liberado pelo dono (painel "Múltiplas escolas" em `admin-escolas.html`)
+conseguia cadastrar escolas extras. Decisão consciente do Rafael: **agora
+QUALQUER administrador pode cadastrar escolas extras livremente**, sem
+depender de nenhuma liberação prévia do dono — o botão "Cadastrar escola"
+em `gestor-escolas.html` está sempre visível. `usuarios/{uid}.limiteEscolas`
+e `.licencaFim` viraram **campos legados**: o painel em `admin-escolas.html`
+ainda escreve neles, mas nenhuma regra do Firestore nem tela lê mais esses
+valores pra decidir nada — não confiar neles pra novidade nenhuma (ver nota
+no topo de `firestore.rules`). Como não existe mais um "pacote" com
+`licencaFim` pra herdar, quem cadastra uma escola extra agora define a
+licença dela na hora (mesmos campos de data que o dono usa em
+`admin-escolas.html`).
 
 Todo administrador cai em `gestor-escolas.html` ("Minhas escolas", o nome do
 arquivo ficou de uma versão anterior mas a página é só do administrador
@@ -161,25 +168,15 @@ agora) ao logar:
   sempre foi): SEMPRE aparece, com um botão "Editar nome". **Nunca aparece
   "Excluir"** — apagar a própria escola continua exigindo o dono, decisão
   consciente pra não deixar a escola "sumir" sem ele saber.
-- **Escolas extras** (`escolas/{id}.administradorUid == seu uid`): só
-  aparecem (cadastrar/editar/excluir) pra quem tem `limiteEscolas` liberado
-  pelo dono — pra administrador comum (a maioria), essa parte da tela nem
-  aparece (`js/gestor-escolas.js` esconde os elementos
-  `[data-requer-multi-escola]` quando `window.CF.limiteEscolas` é 0/null).
-- **Limite de escolas extras é só na interface** (o botão "Cadastrar escola"
-  some depois do limite) — mesma decisão consciente de "visibilidade, não
-  bloqueio hermético" já usada pro limite de treinador/aluno dos planos de
-  assinatura. Não tem um contador à prova de burla na regra do Firestore
-  (exigiria manter um campo sincronizado à parte); ver comentário no topo de
-  `firestore.rules`.
+- **Escolas extras** (`escolas/{id}.administradorUid == seu uid`): qualquer
+  administrador pode cadastrar/editar/excluir — sem limite de quantidade.
 - **O acesso a uma escola extra NÃO depende do licencaFim dela** —
   `isStaffAtivo()` em `firestore.rules` dá acesso total (ler, escrever,
   criar técnico, editar, excluir) enquanto `escolas/{id}.administradorUid
-  == seu uid`, sem checar o `licencaFim` da escola em si. Esse campo só é
-  usado como teto na hora de CRIAR (não dá pra criar uma escola extra com
-  vencimento além do PACOTE do administrador), depois disso é só um dado
-  informativo. Quem corta o acesso é o dono, manualmente (zerando
-  `limiteEscolas` ou apagando o perfil) — mesmo padrão manual do resto do app.
+  == seu uid`, sem checar o `licencaFim` da escola em si (esse campo hoje é
+  só informativo, mostrado no badge do card). Quem corta o acesso é o dono,
+  manualmente (apagando o perfil do administrador) — mesmo padrão manual do
+  resto do app.
 - **Excluir uma escola extra** — botão "Excluir escola" no card (nunca
   aparece no card da escola de casa). Apaga em cascata
   turmas/atletas(+progressão)/avaliações/frequência/planos/mensagens/
@@ -471,22 +468,23 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   de verdade com licença vencida.
 - **Múltiplas escolas / "Minhas escolas"**
   (`gestor-escolas.html`/`js/gestor-escolas.js`, seção "Múltiplas escolas"
-  acima) — validei sintaxe (import dinâmico de todos os módulos tocados,
-  sem erro) e que todo ID usado no JS existe no HTML. **Testado ao vivo em
-  2026-08-27** (pelo Rafael, com a conta "Rafa"): administrador cai em
-  `gestor-escolas.html` vendo a própria escola, "Alunos" conta certo. Ainda
-  NÃO testado: dono liberar `limiteEscolas`/`licencaFim` num administrador
-  (painel "Múltiplas escolas" em admin-escolas.html) e ele cadastrar/editar/
-  excluir uma escola extra a partir daí.
-  ⚠️ **Bug encontrado nesse teste e corrigido**: "Treinadores" aparecia como
-  "—" (contagem falhando) porque a regra de leitura de `usuarios` só
-  liberava o próprio perfil ou o dono — administrador/técnico não
-  conseguiam contar os colegas da própria escola. Ainda não retestado
-  depois da correção.
-- **Gestão de usuários** (seção nova em `configuracoes.html`) — validei
-  sintaxe, mas não testei ao vivo: administrador cadastrando um técnico
-  pela tela (em vez de precisar do dono) e o botão de redefinição de senha
-  mandando o e-mail de verdade.
+  acima) — **testado ao vivo em 2026-08-27 e 2026-08-28** (pelo Rafael, com
+  a conta "Rafa"): administrador cai em `gestor-escolas.html` vendo a
+  própria escola, Treinadores/Alunos/Turmas contam certo, "Gestão de
+  usuários" leva pro lugar certo, lista de administradores bate com a
+  contagem de Treinadores. **Ainda NÃO testado**: cadastrar/editar/excluir
+  uma escola EXTRA a partir daqui — o modelo mudou em 2026-08-28 (qualquer
+  administrador pode, sem limiteEscolas, ver nota acima) e essa parte só
+  foi validada com Firestore mockado até agora.
+  ⚠️ **Bug encontrado no teste de 2026-08-27 e corrigido**: "Treinadores"
+  aparecia como "—" (contagem falhando) porque a regra de leitura de
+  `usuarios` só liberava o próprio perfil ou o dono. Corrigido e já
+  reconfirmado funcionando.
+- **Gestão de usuários** (seção em `configuracoes.html`) — **testado ao
+  vivo em 2026-08-28**: um técnico cadastrado pela tela apareceu certo na
+  lista, e a contagem de Treinadores bateu depois de adicionar a lista de
+  administradores (ver seção acima). Ainda não testado: o botão de
+  redefinição de senha mandando o e-mail de verdade.
 - **Status de pagamento do aluno** (badge em `atletas.html`, leitura em
   `responsavel.html`) — já testado ao vivo pelo Rafael em 2026-08-27,
   funcionando (badge "Em dia" aparecendo certo no card de cada atleta).
@@ -524,10 +522,13 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
   plano e o fluxo de "Minhas escolas"/múltiplas escolas de ponta a ponta
   (ver seções acima) — `cadastro-trial.html`, `area-do-atleta.html` e a
   escola de casa em "Minhas escolas" já foram testados e funcionam.
-- Ligar a liberação de "múltiplas escolas" ao fluxo de venda (hoje é manual,
-  o dono abre um administrador em admin-escolas.html e preenche
-  `limiteEscolas`/`licencaFim`) — decidir se isso passa pelo mesmo
-  `solicitacoesPlano`/`escolher-plano.html` já existente ou fica separado.
+- Testar ao vivo o cadastro de escola EXTRA em "Minhas escolas" sem
+  `limiteEscolas` (modelo novo de 2026-08-28, ver seção "Múltiplas escolas"
+  acima) — só validado com Firestore mockado até agora.
+- Decidir o que fazer com o painel "Múltiplas escolas" em
+  `admin-escolas.html` agora que `limiteEscolas`/`licencaFim` viraram campos
+  legados sem efeito nenhum — remover o painel (mais honesto, evita o dono
+  achar que está limitando algo) ou deixar como está.
 - Assim que o Rafael tiver um provedor de pagamento (Mercado Pago,
   PagSeguro, Stripe...) configurado, ligar a confirmação automática por
   webhook — hoje o dono confirma manualmente em "Solicitações de plano"
