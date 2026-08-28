@@ -166,10 +166,13 @@ agora) ao logar:
   pelo dono — pra administrador comum (a maioria), essa parte da tela nem
   aparece (`js/gestor-escolas.js` esconde os elementos
   `[data-requer-multi-escola]` quando `window.CF.limiteEscolas` é 0/null).
-- **Limite de escolas extras é só na interface** (o botão "Cadastrar escola"
-  some depois do limite) — mesma decisão consciente de "visibilidade, não
-  bloqueio hermético" já usada pro limite de treinador/aluno dos planos de
-  assinatura. Não tem um contador à prova de burla na regra do Firestore
+- **Limite de escolas extras é no máximo 5**, seja lá o que o dono digitar —
+  o campo `limiteEscolasMulti` em `admin-escolas.html` tem `max="5"` e o
+  submit recusa valor maior (`js/admin-escolas.js`). Fora esse teto, a
+  contagem em si é só na interface (o botão "Cadastrar escola" some depois
+  do limite que o dono deu) — mesma decisão consciente de "visibilidade,
+  não bloqueio hermético" já usada pro limite de treinador/aluno dos planos
+  de assinatura. Não tem um contador à prova de burla na regra do Firestore
   (exigiria manter um campo sincronizado à parte); ver comentário no topo de
   `firestore.rules`.
 - **O acesso a uma escola extra NÃO depende do licencaFim dela** —
@@ -471,22 +474,23 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   de verdade com licença vencida.
 - **Múltiplas escolas / "Minhas escolas"**
   (`gestor-escolas.html`/`js/gestor-escolas.js`, seção "Múltiplas escolas"
-  acima) — validei sintaxe (import dinâmico de todos os módulos tocados,
-  sem erro) e que todo ID usado no JS existe no HTML. **Testado ao vivo em
-  2026-08-27** (pelo Rafael, com a conta "Rafa"): administrador cai em
-  `gestor-escolas.html` vendo a própria escola, "Alunos" conta certo. Ainda
-  NÃO testado: dono liberar `limiteEscolas`/`licencaFim` num administrador
-  (painel "Múltiplas escolas" em admin-escolas.html) e ele cadastrar/editar/
-  excluir uma escola extra a partir daí.
-  ⚠️ **Bug encontrado nesse teste e corrigido**: "Treinadores" aparecia como
-  "—" (contagem falhando) porque a regra de leitura de `usuarios` só
-  liberava o próprio perfil ou o dono — administrador/técnico não
-  conseguiam contar os colegas da própria escola. Ainda não retestado
-  depois da correção.
-- **Gestão de usuários** (seção nova em `configuracoes.html`) — validei
-  sintaxe, mas não testei ao vivo: administrador cadastrando um técnico
-  pela tela (em vez de precisar do dono) e o botão de redefinição de senha
-  mandando o e-mail de verdade.
+  acima) — **testado ao vivo em 2026-08-27 e 2026-08-28** (pelo Rafael, com
+  a conta "Rafa"): administrador cai em `gestor-escolas.html` vendo a
+  própria escola, Treinadores/Alunos/Turmas contam certo, "Gestão de
+  usuários" leva pro lugar certo, lista de administradores bate com a
+  contagem de Treinadores. **Ainda NÃO testado**: dono liberar
+  `limiteEscolas`/`licencaFim` num administrador (painel "Múltiplas
+  escolas" em admin-escolas.html, agora travado em máximo 5) e ele
+  cadastrar/editar/excluir uma escola extra a partir daí.
+  ⚠️ **Bug encontrado no teste de 2026-08-27 e corrigido**: "Treinadores"
+  aparecia como "—" (contagem falhando) porque a regra de leitura de
+  `usuarios` só liberava o próprio perfil ou o dono. Corrigido e já
+  reconfirmado funcionando.
+- **Gestão de usuários** (seção em `configuracoes.html`) — **testado ao
+  vivo em 2026-08-28**: um técnico cadastrado pela tela apareceu certo na
+  lista, e a contagem de Treinadores bateu depois de adicionar a lista de
+  administradores (ver seção acima). Ainda não testado: o botão de
+  redefinição de senha mandando o e-mail de verdade.
 - **Status de pagamento do aluno** (badge em `atletas.html`, leitura em
   `responsavel.html`) — já testado ao vivo pelo Rafael em 2026-08-27,
   funcionando (badge "Em dia" aparecendo certo no card de cada atleta).
