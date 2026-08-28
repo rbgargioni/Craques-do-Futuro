@@ -228,6 +228,16 @@ do "Entrar na escola →") e já pousa em `configuracoes.html#secaoGestaoUsuario
 Cada card também mostra 3 números ao vivo (`getCountFromServer`, calculado na
 hora): **Treinadores**, **Alunos** e **Turmas**.
 
+⚠️ **Achado num teste real (2026-08-28)**: "Treinadores" conta
+administrador+técnico juntos, mas a lista de "Gestão de usuários" só mostra
+técnicos (só o dono cria/remove administrador) — então o número não batia
+com nada visível na tela, e não tinha como saber quem era o(s) outro(s)
+administrador(es) contados. Corrigido adicionando uma lista **só leitura**
+"Administradores desta escola" (`ouvirOutrosAdministradores()` em
+`js/turmas.js`, marca o próprio usuário logado com a etiqueta "você") logo
+abaixo da lista de técnicos — sem botão de criar/editar/remover, é só pra
+essa contagem fazer sentido.
+
 ### Desativar/excluir atleta — só administrador, técnico não pode
 
 Decisão consciente com o Rafael: **não existe exclusão de verdade de atleta**

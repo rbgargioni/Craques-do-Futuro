@@ -195,6 +195,14 @@
       <ul class="message-list" id="listaTecnicos" style="margin-bottom:20px;">
         <li class="empty-state">Carregando...</li>
       </ul>
+
+      <!-- Só leitura: administrador não cria/remove outro administrador (isso é só do dono),
+           mas precisa conseguir VER quem mais administra a escola — sem isso, a contagem de
+           "Treinadores" no card de gestor-escolas.html não bate com nada visível aqui. -->
+      <h3 style="font-size:14px;margin:0 0 10px;">Administradores desta escola</h3>
+      <ul class="message-list" id="listaOutrosAdministradores" style="margin-bottom:20px;">
+        <li class="empty-state">Carregando...</li>
+      </ul>
     </div>
 
     <!-- PREFERÊNCIAS -->

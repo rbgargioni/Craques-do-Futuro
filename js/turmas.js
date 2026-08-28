@@ -221,6 +221,54 @@ function criarItemTecnico(dados) {
   return li;
 }
 
+// Lista só leitura dos administradores da escola (inclusive o próprio usuário
+// logado, marcado como "(você)") — administrador não cria/remove outro
+// administrador (só o dono, em admin-escolas.html), mas precisa poder VER
+// quem mais tem esse acesso, senão a contagem de "Treinadores" em
+// gestor-escolas.html não bate com nada visível.
+function criarItemAdministrador(dados) {
+  const li = document.createElement("li");
+  li.className = "message-item";
+
+  const head = document.createElement("div");
+  head.className = "message-item-head";
+  const nomeEl = document.createElement("strong");
+  nomeEl.textContent = dados.nome || dados.email;
+  if (dados.email === window.CF.email) {
+    const voceEl = document.createElement("span");
+    voceEl.className = "tag";
+    voceEl.style.marginLeft = "6px";
+    voceEl.textContent = "você";
+    nomeEl.appendChild(voceEl);
+  }
+  const emailEl = document.createElement("span");
+  emailEl.textContent = dados.email;
+  head.append(nomeEl, emailEl);
+
+  li.appendChild(head);
+  return li;
+}
+
+function ouvirOutrosAdministradores() {
+  const lista = document.getElementById("listaOutrosAdministradores");
+  const q = query(collection(db, "usuarios"), where("escolaId", "==", window.CF.escolaId), where("role", "==", "administrador"));
+  onSnapshot(
+    q,
+    (snapshot) => {
+      lista.innerHTML = "";
+      if (snapshot.empty) {
+        lista.innerHTML = '<li class="empty-state">Nenhum administrador encontrado.</li>';
+        return;
+      }
+      snapshot.forEach((docSnap) => lista.appendChild(criarItemAdministrador(docSnap.data())));
+    },
+    (erro) => {
+      console.error("Erro ao carregar administradores:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar os administradores.</li>';
+    }
+  );
+}
+
 function ouvirTecnicos() {
   const lista = document.getElementById("listaTecnicos");
   const q = query(collection(db, "usuarios"), where("escolaId", "==", window.CF.escolaId), where("role", "==", "tecnico"));
@@ -288,5 +336,6 @@ document.addEventListener("cf:pronto", () => {
   if (window.CF.role === "administrador") {
     ouvirTecnicos();
     configurarFormCadastrarTecnico();
+    ouvirOutrosAdministradores();
   }
 });
