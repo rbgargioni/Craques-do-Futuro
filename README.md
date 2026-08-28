@@ -90,7 +90,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `escolher-plano.html` | `escolher-plano.js` | ✅ real — administrador/técnico pede um plano (mesmo com licença vencida), ver seção "Planos de assinatura" abaixo |
 | `gestor-escolas.html` ("Minhas escolas") | `gestor-escolas.js` | ✅ real — landing page do administrador, ver seção "Múltiplas escolas" abaixo |
 | `vendas.html` | — (script inline) | página pública de vendas/marketing, sem auth-guard — standalone, sem dado do Firestore |
-| `manual.html` | — (estático) | manual de uso público, sem auth-guard nem Firestore — explica todas as telas/funções por papel (dono/administrador+técnico/responsável), linkado no rodapé de `login.html` |
+| `manual.html` | — (estático) | manual de uso público, sem auth-guard nem Firestore — focado no dia a dia de administrador/técnico (não cobre dono nem responsável), linkado no rodapé de `login.html` |
 
 O responsável (`responsavel.html`) só vê **recados endereçados diretamente
 ao atleta dele** (`mensagens.destinatarioId == atletaId`) — recados de
