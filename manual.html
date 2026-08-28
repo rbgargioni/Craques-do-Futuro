@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="is-authorized">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de uso — Craques do Futuro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  .manual-header {
+    background: linear-gradient(180deg, var(--bg-sidebar) 0%, var(--bg-sidebar-alt) 100%);
+    color: #d6ece2;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .manual-header .brand { display: flex; align-items: center; gap: 12px; }
+  .manual-header a.voltar {
+    color: #d6ece2; font-size: 13px; font-weight: 600;
+    border: 1px solid rgba(214,236,226,0.3); border-radius: 999px; padding: 8px 16px;
+  }
+  .manual-header a.voltar:hover { background: rgba(214,236,226,0.1); }
+
+  .manual-shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  .manual-toc {
+    position: sticky;
+    top: 76px;
+    padding: 32px 20px 40px;
+    max-height: calc(100vh - 76px);
+    overflow-y: auto;
+  }
+  .manual-toc-group { margin-bottom: 22px; }
+  .manual-toc-group h4 {
+    font-family: var(--font-display); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 8px 4px;
+  }
+  .manual-toc a {
+    display: block; padding: 7px 10px; border-radius: 8px; font-size: 13.5px;
+    color: var(--text); font-weight: 500;
+  }
+  .manual-toc a:hover { background: var(--good-bg); color: var(--good); }
+
+  .manual-content { padding: 32px 28px 100px; min-width: 0; }
+  .manual-intro {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 28px 30px; margin-bottom: 34px; box-shadow: var(--shadow);
+  }
+  .manual-intro p { color: var(--text-muted); line-height: 1.6; margin: 10px 0 0; }
+
+  .manual-role {
+    margin: 46px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .manual-role h2 { font-size: 22px; }
+  .manual-role span { font-size: 13px; color: var(--text-muted); }
+
+  .manual-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 20px 22px; margin-bottom: 16px;
+  }
+  .manual-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .manual-card p { margin: 8px 0; line-height: 1.6; color: var(--text); }
+  .manual-card p.muted { color: var(--text-muted); font-size: 13.5px; }
+  .manual-card ul { margin: 8px 0; padding-left: 0; }
+  .manual-card li {
+    position: relative; padding: 4px 0 4px 20px; line-height: 1.55; font-size: 14px;
+  }
+  .manual-card li::before {
+    content: "•"; position: absolute; left: 4px; color: var(--accent-dark); font-weight: 700;
+  }
+  .manual-note {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--warn-bg); color: #6b5310; border-radius: var(--radius-md);
+    padding: 12px 16px; font-size: 13.5px; line-height: 1.5; margin-top: 10px;
+  }
+  .manual-note.good { background: var(--good-bg); color: #0f5c33; }
+  .manual-example { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+  @media (max-width: 860px) {
+    .manual-shell { grid-template-columns: 1fr; }
+    .manual-toc { position: static; max-height: none; padding: 20px 20px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="manual-header">
+  <div class="brand">
+    <div class="brand-badge">CF</div>
+    <div class="brand-text">
+      <strong>Craques</strong>
+      <span>do Futuro · Manual de uso</span>
+    </div>
+  </div>
+  <a href="login.html" class="voltar">← Voltar pro login</a>
+</header>
+
+<div class="manual-shell">
+
+  <nav class="manual-toc">
+    <div class="manual-toc-group">
+      <h4>Começando</h4>
+      <a href="#entrar">Como entrar no sistema</a>
+      <a href="#papeis">Quem é quem</a>
+    </div>
+    <div class="manual-toc-group">
+      <h4>Dono</h4>
+      <a href="#dono-escolas">Escolas e sócios</a>
+      <a href="#dono-planos">Planos de assinatura</a>
+      <a href="#dono-solicitacoes">Solicitações de plano</a>
+      <a href="#dono-trials">Trials vencidos</a>
+      <a href="#dono-multi">Múltiplas escolas</a>
+    </div>
+    <div class="manual-toc-group">
+      <h4>Administrador e técnico</h4>
+      <a href="#equipe-dashboard">Dashboard</a>
+      <a href="#equipe-atletas">Atletas</a>
+      <a href="#equipe-avaliacoes">Avaliações</a>
+      <a href="#equipe-frequencia">Frequência</a>
+      <a href="#equipe-planos">Planos de treino</a>
+      <a href="#equipe-relatorios">Relatórios e comparativos</a>
+      <a href="#equipe-comunicacao">Comunicação</a>
+      <a href="#equipe-configuracoes">Configurações</a>
+      <a href="#equipe-minhas-escolas">Minhas escolas</a>
+    </div>
+    <div class="manual-toc-group">
+      <h4>Responsável (pais)</h4>
+      <a href="#resp-login">Acompanhar com login</a>
+      <a href="#resp-codigo">Área do atleta sem login</a>
+    </div>
+    <div class="manual-toc-group">
+      <h4>Teste grátis</h4>
+      <a href="#trial">Cadastro de 7 dias</a>
+    </div>
+  </nav>
+
+  <main class="manual-content">
+
+    <div class="manual-intro">
+      <h1>Manual de uso</h1>
+      <p>Este manual explica, em linguagem simples, tudo que dá pra fazer no Craques do Futuro — organizado por quem usa o quê. Se você é dono da conta, técnico, administrador de uma escolinha ou responsável por um atleta, procure sua seção no menu ao lado.</p>
+    </div>
+
+    <section id="entrar" class="manual-card">
+      <h3>Como entrar no sistema</h3>
+      <p>Todo mundo entra pelo mesmo lugar — a tela de <strong>login</strong> — com o e-mail e a senha que a escola cadastrou pra você. Depois de entrar, o sistema já sabe automaticamente se você é dono, administrador, técnico ou responsável, e leva você direto pra área certa.</p>
+      <ul>
+        <li>Esqueceu a senha? Use o link "Esqueci minha senha" na tela de login.</li>
+        <li>É pai/responsável e só tem o <strong>código do atleta</strong> (sem e-mail/senha)? Use "Área do atleta" — explicado mais abaixo.</li>
+        <li>Escola nova, ainda sem conta? Dá pra testar grátis por 7 dias sem falar com ninguém — veja "Teste grátis" no menu.</li>
+      </ul>
+    </section>
+
+    <section id="papeis" class="manual-card">
+      <h3>Quem é quem</h3>
+      <p>Quatro tipos de acesso, cada um enxergando só o que precisa:</p>
+      <ul>
+        <li><strong>Dono</strong> — administra o negócio: cadastra escolas-cliente, planos e cobranças. Não participa do dia a dia da escolinha (avaliação, chamada etc.).</li>
+        <li><strong>Administrador</strong> — cuida de uma escola (ou, em planos mais completos, de várias). Faz tudo que o técnico faz e também cadastra técnicos novos.</li>
+        <li><strong>Técnico</strong> — cadastra atletas, faz avaliações, chamada, planos de treino e recados. Não cria outros técnicos.</li>
+        <li><strong>Responsável</strong> — pai/mãe/responsável por um atleta. Só visualiza a evolução do filho, sem poder editar nada.</li>
+      </ul>
+    </section>
+
+    <div class="manual-role" id="dono">
+      <h2>Para o Dono</h2>
+      <span>Painel de administração do negócio</span>
+    </div>
+
+    <section id="dono-escolas" class="manual-card">
+      <h3>Escolas e sócios</h3>
+      <p>Na tela inicial (depois de logar como dono), você cadastra uma escola nova preenchendo nome, datas de início/fim da licença e os dados do primeiro administrador dela. A conta de login do administrador já é criada na hora, com uma senha provisória que ele troca depois.</p>
+      <p>Clicando num card de escola já existente, você pode editar nome, datas da licença, status (ativa/suspensa/teste grátis), o plano de assinatura vinculado, ver quantos treinadores e alunos ela já tem, e adicionar mais administradores.</p>
+      <p><strong>Sócios da conta</strong> são outras pessoas com o mesmo nível de acesso que você (outro dono) — útil se mais de uma pessoa administra o negócio.</p>
+    </section>
+
+    <section id="dono-planos" class="manual-card">
+      <h3>Planos de assinatura</h3>
+      <p>É o catálogo dos planos que você vende (ex: "Formação", "Base", "Elite"), cada um com um limite de treinadores e de alunos. Ao vincular um plano numa escola, o sistema mostra ao vivo quantos treinadores/alunos ela já tem, com um aviso visual quando está perto do limite.</p>
+      <div class="manual-note">
+        Ultrapassar o limite não bloqueia nada automaticamente — é só um alerta visual pra você decidir se sugere um upgrade pro cliente.
+      </div>
+    </section>
+
+    <section id="dono-solicitacoes" class="manual-card">
+      <h3>Solicitações de plano</h3>
+      <p>Quando um cliente (administrador ou técnico) escolhe um plano e uma duração (1 ou 2 anos) pela tela de "Escolher plano", o pedido aparece aqui pra você revisar. Depois de confirmar que recebeu o pagamento (Pix, link de pagamento etc. — isso acontece fora do sistema), clique em <strong>Confirmar</strong>: a escola já é atualizada na hora com o novo plano e a nova data de vencimento.</p>
+      <p class="muted">Se o pedido não fizer sentido, clique em "Recusar".</p>
+    </section>
+
+    <section id="dono-trials" class="manual-card">
+      <h3>Trials vencidos</h3>
+      <p>Lista as escolas que se cadastraram sozinhas pelo teste grátis de 7 dias e o prazo já passou sem virar cliente pago. Você decide, escola por escola, se exclui os dados dela — a exclusão apaga tudo (atletas, avaliações, frequência etc.) e não pode ser desfeita.</p>
+    </section>
+
+    <section id="dono-multi" class="manual-card">
+      <h3>Múltiplas escolas</h3>
+      <p>Pra um cliente do plano mais completo (que administra mais de uma escolinha), você libera isso clicando no administrador dele, na lista "Administradores desta escola", e preenchendo quantas escolas extras ele pode ter (até 5) e até quando esse pacote vale. A partir daí, quando ele logar, vai poder cadastrar/gerenciar as escolas extras sozinho.</p>
+    </section>
+
+    <div class="manual-role" id="equipe">
+      <h2>Para Administrador e Técnico</h2>
+      <span>O dia a dia da escolinha — as duas contas usam as mesmas telas</span>
+    </div>
+
+    <section class="manual-card">
+      <p>Administrador e técnico enxergam exatamente as mesmas telas de trabalho. A única diferença é que o <strong>administrador</strong> também pode criar contas de técnico e desativar atletas — o resto é idêntico.</p>
+    </section>
+
+    <section id="equipe-dashboard" class="manual-card">
+      <h3>Dashboard</h3>
+      <p>A tela inicial ao entrar (depois de escolher a escola, se você tiver mais de uma): um resumo rápido da turma ativa — quantos atletas, como anda a frequência, últimas avaliações.</p>
+    </section>
+
+    <section id="equipe-atletas" class="manual-card">
+      <h3>Atletas</h3>
+      <p>Cadastre atletas por turma: nome, posição, data de nascimento, telefone do responsável e observações. Cada atleta ganha:</p>
+      <ul>
+        <li><strong>Nível de evolução</strong> — uma barra de 1 a 9 dentro da categoria atual (ex: Sub-9), ajustada com os botões "+"/"−". Ao chegar no nível máximo, aparece um aviso "pronto pra subir de categoria" com um botão de promover.</li>
+        <li><strong>Código da Área do atleta</strong> — 6 letras/números mostrados no card, que o responsável usa pra ver o resumo do filho sem precisar de login (veja a seção do responsável). Dá pra gerar um código novo a qualquer momento (o antigo para de funcionar).</li>
+        <li><strong>Status de pagamento</strong> — uma etiqueta "Em dia"/"Inadimplente" que você clica pra alternar. É só um lembrete visual — não existe cobrança automática, é você quem marca manualmente quando sabe que a mensalidade está atrasada.</li>
+      </ul>
+      <div class="manual-example">
+        <span class="badge badge--done">Em dia</span>
+        <span class="badge badge--bad">Inadimplente</span>
+        <span class="badge badge--bad">Inativo</span>
+      </div>
+      <p style="margin-top:14px;"><strong>Desativar/reativar atleta</strong> (só administrador): não existe "excluir" de verdade — perderia o histórico de avaliações do atleta. Desativar só marca o atleta como inativo (etiqueta "Inativo" aparece pra todo mundo), sem apagar nada; dá pra reativar quando quiser.</p>
+      <p><strong>Recalcular a partir do histórico</strong>: se um atleta já tinha avaliações/chamadas registradas antes de ganhar o código da Área do atleta, use esse link no card dele pra atualizar o resumo público com o que já existe.</p>
+    </section>
+
+    <section id="equipe-avaliacoes" class="manual-card">
+      <h3>Avaliações</h3>
+      <p>Registre uma avaliação por atleta com notas nos 5 Pilares (Técnico, Tático, Físico, Mental, Evolução) e, dependendo da posição do atleta, fundamentos técnicos específicos (ex: finalização pro atacante, desarme pro volante). O sistema calcula a nota geral e mostra a tendência de evolução ao longo do tempo.</p>
+    </section>
+
+    <section id="equipe-frequencia" class="manual-card">
+      <h3>Frequência</h3>
+      <p>Faça a chamada de uma turma marcando cada atleta como Presente, Atrasado ou Ausente. O histórico alimenta o percentual de frequência mostrado nos relatórios e na Área do atleta.</p>
+    </section>
+
+    <section id="equipe-planos" class="manual-card">
+      <h3>Planos de treino</h3>
+      <p>Cadastre planos/planejamentos de treino pra turma — não confundir com "Planos de assinatura" (isso é coisa do dono, sobre cobrança). Aqui é conteúdo pedagógico mesmo.</p>
+    </section>
+
+    <section id="equipe-relatorios" class="manual-card">
+      <h3>Relatórios e Comparativos</h3>
+      <p><strong>Relatórios</strong> reúne a visão geral da turma (evolução, frequência, distribuição de notas). <strong>Comparativos</strong> deixa colocar atletas lado a lado pra comparar desempenho.</p>
+    </section>
+
+    <section id="equipe-comunicacao" class="manual-card">
+      <h3>Comunicação</h3>
+      <p>Envie recados pra uma turma inteira ou pra um atleta específico. Um recado endereçado só a um atleta aparece pro responsável dele (na tela de evolução); recados de turma inteira ficam só entre a equipe por enquanto.</p>
+    </section>
+
+    <section id="equipe-configuracoes" class="manual-card">
+      <h3>Configurações</h3>
+      <p><strong>Turmas</strong>: cadastre e edite as turmas da escola (nome, categoria, temporada, ativa/inativa) — cada card mostra quantos alunos já tem.</p>
+      <p><strong>Gestão de usuários</strong> (só administrador): cadastre novos técnicos direto por aqui (nome, e-mail, senha provisória), sem precisar pedir pro dono. Cada técnico tem um botão "Enviar redefinição de senha", que manda um e-mail pra ele escolher uma senha nova — ninguém consegue ver/definir a senha de outra pessoa diretamente pelo sistema, por segurança. Uma lista à parte mostra os outros administradores da escola (só leitura).</p>
+    </section>
+
+    <section id="equipe-minhas-escolas" class="manual-card">
+      <h3>Minhas escolas</h3>
+      <p>É a primeira tela que todo administrador vê ao logar. Mostra a sua escola (com opção de editar o nome) e, se o dono tiver liberado o plano de múltiplas escolas pra você, também as escolas extras que você cadastrou — com cadastrar/editar/excluir e um atalho direto pra "Gestão de usuários" de cada uma. Clique em <strong>"Entrar na escola →"</strong> pra ir operar de verdade (Dashboard, Atletas etc.).</p>
+      <div class="manual-note good">
+        A maioria dos administradores usa só uma escola — nesse caso, essa tela é só um passo rápido antes de entrar, sem nada de "cadastrar nova escola" aparecendo.
+      </div>
+    </section>
+
+    <div class="manual-role" id="responsavel">
+      <h2>Para o Responsável</h2>
+      <span>Pais e responsáveis acompanhando a evolução do atleta</span>
+    </div>
+
+    <section id="resp-login" class="manual-card">
+      <h3>Acompanhar com login</h3>
+      <p>Se a escola cadastrou uma conta de responsável pra você (e-mail e senha), você vê o histórico completo do seu filho: nota geral, gráfico radar dos 5 Pilares, evolução ao longo do tempo, percentual de frequência, status de pagamento e os recados que o técnico mandou diretamente pra ele. Se tiver mais de um filho na escola, um seletor no topo deixa trocar entre eles.</p>
+    </section>
+
+    <section id="resp-codigo" class="manual-card">
+      <h3>Área do atleta — sem login</h3>
+      <p>Pra uma olhada rápida sem precisar criar conta: na tela de login, clique em "Área do atleta", digite o código de 6 caracteres que está no card do seu filho (peça pro técnico, se não souber) e veja o nome e os gráficos de evolução/frequência dele.</p>
+      <div class="manual-note">
+        Essa tela mostra só nome e gráficos — nada de telefone, observações, recados ou status de pagamento. Pra ver tudo isso, é preciso o login completo.
+      </div>
+    </section>
+
+    <div class="manual-role" id="trial">
+      <h2>Teste grátis</h2>
+      <span>Pra quem ainda não é cliente</span>
+    </div>
+
+    <section class="manual-card">
+      <h3>Cadastro de 7 dias</h3>
+      <p>Qualquer escolinha pode testar sozinha, sem falar com o dono antes: na tela de login (ou na página de vendas), clique em "comece grátis por 7 dias", preencha o nome da escola, seu nome, e-mail e senha. Uma conta de administrador é criada na hora, com acesso total ao sistema por 7 dias.</p>
+      <p>Depois desse período, se quiser continuar, é só entrar em contato — a confirmação do plano pago é feita manualmente pelo dono do sistema.</p>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>
