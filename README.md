@@ -221,6 +221,43 @@ nova. **Não existe "resetar e ver a senha nova na tela"**: o projeto é
 diretamente não é possível a partir do navegador — o e-mail é o único jeito
 seguro de fazer isso sem servidor.
 
+Cada card de escola em `gestor-escolas.html` ("Minhas escolas") tem um botão
+**"Gestão de usuários"** que salva a escolha de escola ativa (mesmo mecanismo
+do "Entrar na escola →") e já pousa em `configuracoes.html#secaoGestaoUsuarios`
+— evita ter que "entrar" na escola e depois achar a seção pelo menu lateral.
+Cada card também mostra 3 números ao vivo (`getCountFromServer`, calculado na
+hora): **Treinadores**, **Alunos** e **Turmas**.
+
+### Desativar/excluir atleta — só administrador, técnico não pode
+
+Decisão consciente com o Rafael: **não existe exclusão de verdade de atleta**
+a partir do app (perderia o histórico de avaliações/frequência de uma criança
+por engano). "Excluir" na conversa virou só um campo booleano `desativado`
+em `escolas/{id}/atletas/{id}` — **só administrador pode mudar esse campo**
+(técnico continua podendo cadastrar/editar atleta normalmente, só não pode
+desativar ninguém). Botão "Desativar atleta"/"Reativar atleta" no card, em
+`atletas.html`, só aparece pra quem está logado como administrador
+(`window.CF.role === "administrador"`, checado direto no JS — diferente do
+`data-roles` estático, porque os cards são montados dinamicamente por
+atleta). Quando desativado, o card ganha uma etiqueta **"Inativo"** visível
+pra todo mundo (inclusive técnico) — é só um aviso, o atleta continua
+aparecendo normalmente em todas as telas (avaliações, frequência, etc.),
+não some de lugar nenhum.
+
+Não confundir com o campo `status` do atleta (`"ativo"`/`"atencao"`, saúde da
+avaliação — hoje só setado uma vez na criação, nunca atualizado por nenhuma
+tela) nem com `statusPagamento` (ver seção abaixo) — três campos parecidos
+de nome, coisas bem diferentes; ver comentário no modelo de dados em
+`firestore.rules`.
+
+A regra do Firestore (`escolas/{id}/atletas/{id}`, `allow update`) trava isso
+via `request.resource.data.diff(resource.data).affectedKeys()`: técnico pode
+mudar qualquer campo MENOS `desativado`; administrador/dono podem mudar
+qualquer um. Validei essa lógica com Firestore mockado (card mostra o botão
+só pro administrador, o toggle chama `updateDoc` certo, a etiqueta "Inativo"
+aparece condicionalmente) — a regra em si ainda não foi testada contra o
+Firestore de verdade.
+
 ### Status de pagamento do aluno — indicador visual (não é cobrança de verdade)
 
 Cada atleta tem um campo `statusPagamento` (`"em_dia"` ou `"inadimplente"`),
@@ -443,6 +480,14 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
 - **Status de pagamento do aluno** (badge em `atletas.html`, leitura em
   `responsavel.html`) — já testado ao vivo pelo Rafael em 2026-08-27,
   funcionando (badge "Em dia" aparecendo certo no card de cada atleta).
+- **Desativar/excluir atleta** (`js/atletas.js`) + contagem de **Turmas** e
+  botão **"Gestão de usuários"** em `gestor-escolas.html` + contagem de
+  alunos por turma em `configuracoes.html` (tudo adicionado em 2026-08-28,
+  ver seção "Desativar/excluir atleta" acima) — validado só com Firestore
+  mockado (botão aparece só pro administrador, some pro técnico, etiqueta
+  "Inativo" some/aparece certo, `updateDoc` chamado com o campo certo).
+  **Nada disso foi testado no Firebase real ainda**, incluindo a regra nova
+  de `atletas` (`allow update` com `diff().affectedKeys()`).
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -461,6 +506,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
+- Publicar a versão mais recente de `firestore.rules` (regra nova de
+  `atletas` pro campo `desativado`) e testar desativar/reativar um atleta
+  de verdade, como administrador e como técnico (técnico tem que apanhar
+  `permission-denied` se tentar mudar `desativado` direto).
 - Testar `responsavel.html`, Planos de assinatura, o fluxo de Solicitação de
   plano e o fluxo de "Minhas escolas"/múltiplas escolas de ponta a ponta
   (ver seções acima) — `cadastro-trial.html`, `area-do-atleta.html` e a

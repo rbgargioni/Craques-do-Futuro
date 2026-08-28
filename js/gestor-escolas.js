@@ -87,6 +87,7 @@ function atualizarBotaoCadastrar() {
 async function aplicarUsoNoCard(card, escolaId) {
   const treinadoresEl = card.querySelector("[data-uso-treinadores]");
   const alunosEl = card.querySelector("[data-uso-alunos]");
+  const turmasEl = card.querySelector("[data-uso-turmas]");
   try {
     const qTreinadores = query(
       collection(db, "usuarios"),
@@ -105,6 +106,13 @@ async function aplicarUsoNoCard(card, escolaId) {
   } catch (erro) {
     console.error("Erro ao contar alunos da escola:", erro);
     alunosEl.textContent = "—";
+  }
+  try {
+    const snapTurmas = await getCountFromServer(collection(db, "escolas", escolaId, "turmas"));
+    turmasEl.textContent = snapTurmas.data().count;
+  } catch (erro) {
+    console.error("Erro ao contar turmas da escola:", erro);
+    turmasEl.textContent = "—";
   }
 }
 
@@ -129,7 +137,7 @@ function criarCardEscola(escolaId, dados, ehDeCasa) {
 
   const stats = document.createElement("div");
   stats.className = "stat-grid";
-  stats.style.gridTemplateColumns = "repeat(2, 1fr)";
+  stats.style.gridTemplateColumns = "repeat(3, 1fr)";
   stats.style.margin = "12px 0";
 
   const statTreinadores = document.createElement("div");
@@ -160,7 +168,21 @@ function criarCardEscola(escolaId, dados, ehDeCasa) {
   wrapAlunos.append(valorAlunos, labelAlunos);
   statAlunos.append(iconeAlunos, wrapAlunos);
 
-  stats.append(statTreinadores, statAlunos);
+  const statTurmas = document.createElement("div");
+  statTurmas.className = "stat-card";
+  const iconeTurmas = document.createElement("span");
+  iconeTurmas.className = "stat-icon stat-icon--neutral";
+  iconeTurmas.textContent = "🗂";
+  const wrapTurmas = document.createElement("div");
+  const valorTurmas = document.createElement("strong");
+  valorTurmas.textContent = "—";
+  valorTurmas.dataset.usoTurmas = "";
+  const labelTurmas = document.createElement("span");
+  labelTurmas.textContent = "Turmas";
+  wrapTurmas.append(valorTurmas, labelTurmas);
+  statTurmas.append(iconeTurmas, wrapTurmas);
+
+  stats.append(statTreinadores, statAlunos, statTurmas);
 
   const foot = document.createElement("div");
   foot.className = "entity-card-foot";
@@ -187,6 +209,19 @@ function criarCardEscola(escolaId, dados, ehDeCasa) {
   btnEditar.textContent = "Editar nome";
   btnEditar.addEventListener("click", () => abrirEdicaoEscola(escolaId, dados));
   acoes.append(btnEditar);
+
+  // Atalho direto pra "Gestão de usuários" (dentro de configuracoes.html) — sem isso, precisava
+  // "Entrar na escola" e depois achar a seção no menu lateral. Mesmo mecanismo de troca de escola
+  // ativa do botão "Entrar na escola →" (ver CHAVE_ESCOLA_ATIVA_EXTRA), só que já pousa na tela certa.
+  const btnGestaoUsuarios = document.createElement("button");
+  btnGestaoUsuarios.type = "button";
+  btnGestaoUsuarios.className = "btn btn-outline btn-sm";
+  btnGestaoUsuarios.textContent = "Gestão de usuários";
+  btnGestaoUsuarios.addEventListener("click", () => {
+    localStorage.setItem(CHAVE_ESCOLA_ATIVA_EXTRA, escolaId);
+    location.href = "configuracoes.html#secaoGestaoUsuarios";
+  });
+  acoes.append(btnGestaoUsuarios);
 
   // Excluir: só escolas EXTRAS — a de casa não pode ser excluída por essa tela (só o dono).
   if (!ehDeCasa) {

@@ -338,6 +338,49 @@ function criarBadgePagamento(atletaId, dados) {
 }
 
 // ------------------------------------------------------
+// Desativar/reativar atleta — só administrador (técnico não vê o botão).
+// "Excluir" na conversa com o Rafael virou isso: nada é apagado de verdade
+// (perderia histórico de avaliação de uma criança por engano), só marca
+// `desativado`. Ver nota no modelo de dados em firestore.rules.
+// ------------------------------------------------------
+function criarBotaoDesativar(atletaId, dados) {
+  if (window.CF.role !== "administrador") return null;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn btn-outline btn-sm";
+
+  function render() {
+    btn.textContent = dados.desativado ? "Reativar atleta" : "Desativar atleta";
+  }
+  render();
+
+  btn.addEventListener("click", async () => {
+    const novoValor = !dados.desativado;
+    const confirmado = confirm(
+      novoValor
+        ? `Desativar ${dados.nome}? Ele deixa de contar como atleta ativo, mas o histórico (avaliações, frequência) continua guardado — dá pra reativar depois.`
+        : `Reativar ${dados.nome}?`
+    );
+    if (!confirmado) return;
+
+    btn.disabled = true;
+    try {
+      await updateDoc(atletaRef(atletaId), { desativado: novoValor });
+      dados.desativado = novoValor;
+      render();
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível atualizar o atleta. Tente novamente.");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  return btn;
+}
+
+// ------------------------------------------------------
 // Cards de atleta
 // ------------------------------------------------------
 function criarCardAtleta(atletaId, dados) {
@@ -428,11 +471,26 @@ function criarCardAtleta(atletaId, dados) {
   badgesWrap.style.gap = "6px";
   badgesWrap.appendChild(badge);
   badgesWrap.appendChild(criarBadgePagamento(atletaId, dados));
+  if (dados.desativado) {
+    const badgeInativo = document.createElement("span");
+    badgeInativo.className = "badge badge--bad";
+    badgeInativo.textContent = "Inativo";
+    badgesWrap.appendChild(badgeInativo);
+  }
   foot.appendChild(badgesWrap);
 
   const { linha, pronto } = criarLinhaNivel(atletaId, dados);
 
   card.append(top, foot, linha, pronto);
+
+  const botaoDesativar = criarBotaoDesativar(atletaId, dados);
+  if (botaoDesativar) {
+    const acoesAdmin = document.createElement("div");
+    acoesAdmin.style.marginTop = "10px";
+    acoesAdmin.appendChild(botaoDesativar);
+    card.appendChild(acoesAdmin);
+  }
+
   return card;
 }
 
@@ -509,6 +567,7 @@ function configurarFormCadastrarAtleta() {
         turmaId: turmaAtivaId,
         status: "ativo",
         statusPagamento: "em_dia",
+        desativado: false,
         categoriaAtual: (turma && turma.categoria) || "Sub-9",
         nivelAtual: NIVEL_INICIAL,
         nivelDesde: serverTimestamp(),

@@ -68,6 +68,12 @@
 //     categoriaAtual, nivelAtual (1-9, ajustado manualmente), nivelDesde (Timestamp — usado para o
 //       aviso de "pronto para subir" depois de um tempo mínimo no nível 9)
 //     codigoPublico (string, 6 caracteres) — código da "Área do atleta" (ver resumosPublicos abaixo)
+//     desativado: boolean — "excluir/desativar atleta" pelo administrador. NÃO é o mesmo campo que
+//       `status` (que é a saúde da avaliação, "ativo"/"atencao" — nomes parecidos, coisas
+//       diferentes, cuidado). Decisão consciente: não existe exclusão de verdade de atleta a partir
+//       do app (perderia o histórico de avaliações/frequência de uma criança por engano) — "excluir"
+//       na interface é só esse campo virando true. Só administrador (não técnico) pode mudar esse
+//       campo — ver a regra de update abaixo. Ausente/false = ativo.
 //     statusPagamento: "em_dia" | "inadimplente" — indicador VISUAL de mensalidade da escolinha
 //       em dia, ajustado manualmente pelo técnico/administrador (não tem cobrança de verdade
 //       rolando por trás, é só um marcador pra lembrete). Visível pro técnico (card do atleta em
@@ -271,7 +277,14 @@ service cloud.firestore {
       match /atletas/{atletaId} {
         allow read:  if isDono() || isStaffAtivo(escolaId)
                      || isResponsavelDe(escolaId, atletaId);
-        allow write: if isDono() || isStaffAtivo(escolaId);
+        allow create: if isDono() || isStaffAtivo(escolaId);
+        // "desativado" (excluir/desativar, ver nota no modelo de dados) só pode ser mudado por
+        // administrador/dono — técnico continua podendo editar/cadastrar atleta normalmente,
+        // só não pode desativar ninguém.
+        allow update: if isDono()
+          || (isStaffAtivo(escolaId)
+              && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['desativado'])));
+        allow delete: if isDono();
 
         match /progressao/{progressaoId} {
           allow read:  if isDono() || isStaffAtivo(escolaId)

@@ -5,7 +5,7 @@
 // ======================================================
 
 import {
-  collection, addDoc, doc, setDoc, updateDoc, onSnapshot, query, where, serverTimestamp,
+  collection, addDoc, doc, setDoc, updateDoc, onSnapshot, query, where, serverTimestamp, getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -36,10 +36,24 @@ function criarCardTurma(turmaId, dados) {
   const badge = document.createElement("span");
   badge.className = dados.ativa === false ? "badge badge--bad" : "badge badge--done";
   badge.textContent = dados.ativa === false ? "Inativa" : "Ativa";
-  foot.appendChild(badge);
+  const tagAlunos = document.createElement("span");
+  tagAlunos.className = "tag";
+  tagAlunos.textContent = "carregando...";
+  foot.append(badge, tagAlunos);
 
   card.append(top, foot);
   card.addEventListener("click", () => abrirEdicaoTurma(turmaId, dados));
+
+  getCountFromServer(query(collection(db, "escolas", window.CF.escolaId, "atletas"), where("turmaId", "==", turmaId)))
+    .then((snap) => {
+      const total = snap.data().count;
+      tagAlunos.textContent = `${total} aluno${total === 1 ? "" : "s"}`;
+    })
+    .catch((erro) => {
+      console.error("Erro ao contar alunos da turma:", erro);
+      tagAlunos.textContent = "— alunos";
+    });
+
   return card;
 }
 
