@@ -82,7 +82,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `comunicacao.html` | `comunicacao.js` | ✅ real |
 | `relatorios.html` | `relatorios.js` | ✅ real |
 | `comparativos.html` | `comparativos.js` | ✅ real |
-| `configuracoes.html` | `turmas.js` | ⚠️ turmas real; formulário de perfil do usuário ainda é mockup (`data-fake-form`) |
+| `configuracoes.html` | `turmas.js` | ✅ real — turmas, gestão de usuários; o mockup de "perfil do treinador" foi removido (nunca conectado) |
 | `responsavel.html` | `responsavel.js` | ✅ real — evolução, radar, frequência, linha do tempo e recados do técnico |
 | `area-do-atleta.html` | `area-do-atleta.js` | ✅ real — **sem login**, ver seção própria abaixo |
 | `sem-acesso.html` | `sem-acesso.js` | ✅ real — mensagem genérica, ou aviso de trial/licença vencida com link pra `escolher-plano.html` |
@@ -545,8 +545,6 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
   (`contato@craquesdofuturo.com.br`).
 - Decidir se/quando publicar preços reais nos planos de `vendas.html`
   (hoje ficam como "Valor em definição" de propósito).
-- Terminar o formulário de perfil do usuário em `configuracoes.html`
-  (ainda `data-fake-form`).
 - Validar com o sócio os pesos de fundamentos técnicos de Goleiro,
   Zagueiro e Lateral em `js/metricas.js` (Volante, Atacante e Meio de
   campo genérico já foram passados pelo sócio).
