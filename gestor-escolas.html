@@ -34,52 +34,51 @@
 
   <section class="page-header">
     <h2>Minhas escolas <span class="tag" id="totalEscolasGestor">carregando...</span></h2>
-    <div class="page-header-actions">
+    <div class="page-header-actions is-hidden" data-requer-multi-escola>
       <button class="btn btn-primary" id="btnCadastrarEscolaGestor" data-toggle-panel="painelEscolaGestor">＋ Cadastrar escola</button>
     </div>
   </section>
 
+  <p class="status-note is-hidden" data-requer-multi-escola>
+    <span>ℹ</span>
+    <span id="infoLimiteGestor">Carregando informações do seu plano...</span>
+  </p>
+
   <p id="erroGestor" class="is-hidden status-note" style="background:var(--bad-bg);color:var(--bad);border-color:#f3c8c4;"></p>
 
-  <!-- PAINEL: NOVA ESCOLA — qualquer administrador pode cadastrar escolas extras, sem depender
-       de o dono liberar nada antes (decisão de 2026-08-28: revogou o modelo anterior de
-       "limiteEscolas"). Como não tem mais um "pacote" com licencaFim pra herdar, quem cadastra
-       define a licença da escola nova na hora, igual o dono faz em admin-escolas.html. -->
-  <section class="panel is-hidden" id="painelEscolaGestor">
-    <div class="panel-head">
-      <h3>Nova escola</h3>
-    </div>
-    <form id="formCadastrarEscolaGestor" class="form-grid">
-      <div class="field field--full">
-        <label for="nomeEscolaGestor">Nome da escola</label>
-        <input type="text" id="nomeEscolaGestor" name="nome" placeholder="Ex: Escolinha Estrela do Futuro" required>
+  <!-- PAINEL: NOVA ESCOLA (só quem tem limiteEscolas no perfil — administrador comum já tem a
+       própria escola de casa, não cadastra mais). O is-hidden fica no DIV por fora, não no
+       painel: o painel já usa is-hidden pro toggle abrir/fechar; se o de fora e o de dentro
+       fossem o mesmo elemento, mostrar a seção destravaria o painel junto. -->
+  <div class="is-hidden" data-requer-multi-escola>
+    <section class="panel is-hidden" id="painelEscolaGestor">
+      <div class="panel-head">
+        <h3>Nova escola</h3>
       </div>
-      <div class="field">
-        <label for="licencaInicioGestor">Início da licença</label>
-        <input type="date" id="licencaInicioGestor" name="licencaInicio" required>
-      </div>
-      <div class="field">
-        <label for="licencaFimGestor">Fim da licença</label>
-        <input type="date" id="licencaFimGestor" name="licencaFim" required>
-      </div>
-      <div class="field field--full">
-        <label for="nomeAdminInicialGestor">Nome do administrador desta escola</label>
-        <input type="text" id="nomeAdminInicialGestor" name="nomeAdmin" placeholder="Ex: Rafael Terra" required>
-      </div>
-      <div class="field">
-        <label for="emailAdminInicialGestor">E-mail do administrador</label>
-        <input type="email" id="emailAdminInicialGestor" name="emailAdmin" placeholder="admin@email.com" required>
-      </div>
-      <div class="field">
-        <label for="senhaAdminInicialGestor">Senha provisória</label>
-        <input type="text" id="senhaAdminInicialGestor" name="senhaAdmin" placeholder="Ele pode trocar depois" required minlength="6">
-      </div>
-      <div class="form-actions field--full">
-        <button type="button" class="btn btn-outline" data-toggle-panel="painelEscolaGestor">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Criar escola</button>
-      </div>
-    </form>
-  </section>
+      <form id="formCadastrarEscolaGestor" class="form-grid">
+        <div class="field field--full">
+          <label for="nomeEscolaGestor">Nome da escola</label>
+          <input type="text" id="nomeEscolaGestor" name="nome" placeholder="Ex: Escolinha Estrela do Futuro" required>
+        </div>
+        <div class="field field--full">
+          <label for="nomeAdminInicialGestor">Nome do administrador desta escola</label>
+          <input type="text" id="nomeAdminInicialGestor" name="nomeAdmin" placeholder="Ex: Rafael Terra" required>
+        </div>
+        <div class="field">
+          <label for="emailAdminInicialGestor">E-mail do administrador</label>
+          <input type="email" id="emailAdminInicialGestor" name="emailAdmin" placeholder="admin@email.com" required>
+        </div>
+        <div class="field">
+          <label for="senhaAdminInicialGestor">Senha provisória</label>
+          <input type="text" id="senhaAdminInicialGestor" name="senhaAdmin" placeholder="Ele pode trocar depois" required minlength="6">
+        </div>
+        <div class="form-actions field--full">
+          <button type="button" class="btn btn-outline" data-toggle-panel="painelEscolaGestor">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar escola</button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <!-- PAINEL: EDITAR ESCOLA (aberto ao clicar "Editar" no card) -->
   <section class="panel is-hidden" id="painelEditarEscolaGestor">

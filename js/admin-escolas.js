@@ -185,6 +185,12 @@ function configurarFormMultiEscola() {
 
     try {
       const limiteEscolas = Number(form.limiteEscolas.value) || 0;
+      if (limiteEscolas > 5) {
+        mostrarErro("O limite de escolas extras é no máximo 5.");
+        botao.disabled = false;
+        botao.textContent = "Salvar";
+        return;
+      }
       const dados = { limiteEscolas };
       // licencaFim só é obrigatório se o limite for maior que 0 — sem escolas extras liberadas,
       // não faz sentido travar o formulário pedindo uma data.
