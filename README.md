@@ -520,10 +520,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- Publicar a versão mais recente de `firestore.rules` (regra nova de
-  `atletas` pro campo `desativado`) e testar desativar/reativar um atleta
-  de verdade, como administrador e como técnico (técnico tem que apanhar
-  `permission-denied` se tentar mudar `desativado` direto).
+- ✅ `firestore.rules` com a regra do campo `desativado` já está publicada.
+  Falta testar desativar/reativar um atleta de verdade, como administrador e
+  como técnico (técnico tem que apanhar `permission-denied` se tentar mudar
+  `desativado` direto).
 - Testar `responsavel.html`, Planos de assinatura, o fluxo de Solicitação de
   plano e o fluxo de "Minhas escolas"/múltiplas escolas de ponta a ponta
   (ver seções acima) — `cadastro-trial.html`, `area-do-atleta.html` e a
