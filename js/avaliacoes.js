@@ -267,8 +267,13 @@ function ouvirAtletasDaTurma() {
 // ------------------------------------------------------
 function criarLinhaAvaliacao(dados) {
   const tr = document.createElement("tr");
+  // Posição vem do cadastro atual do atleta (atletasCache), não fica salva na
+  // própria avaliação — mostra a posição de HOJE, mesmo que o atleta tenha
+  // trocado de posição depois dessa avaliação ter sido feita.
+  const posicaoAtleta = (atletasCache[dados.atletaId] && atletasCache[dados.atletaId].posicao) || "—";
   const celulas = [
     dados.atletaNome,
+    posicaoAtleta,
     formatarData(dados.data),
     dados.tecnico.toFixed(1).replace(".", ","),
     dados.tatico.toFixed(1).replace(".", ","),
@@ -300,11 +305,11 @@ function ouvirAvaliacoes() {
 
   const corpo = document.getElementById("corpoTabelaAvaliacoes");
   if (!turmaAtivaId) {
-    corpo.innerHTML = '<tr><td colspan="8" class="empty-state">Selecione uma turma.</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Selecione uma turma.</td></tr>';
     return;
   }
 
-  corpo.innerHTML = '<tr><td colspan="8" class="empty-state">Carregando avaliações...</td></tr>';
+  corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Carregando avaliações...</td></tr>';
   const q = query(avaliacoesRef(), where("turmaId", "==", turmaAtivaId));
   pararDeOuvirAvaliacoes = onSnapshot(
     q,
@@ -315,14 +320,14 @@ function ouvirAvaliacoes() {
 
       corpo.innerHTML = "";
       if (lista.length === 0) {
-        corpo.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhuma avaliação registrada nesta turma ainda.</td></tr>';
+        corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma avaliação registrada nesta turma ainda.</td></tr>';
         return;
       }
       lista.forEach((dados) => corpo.appendChild(criarLinhaAvaliacao(dados)));
     },
     (erro) => {
       console.error("Erro ao carregar avaliações:", erro);
-      corpo.innerHTML = '<tr><td colspan="8" class="empty-state">Não foi possível carregar as avaliações.</td></tr>';
+      corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Não foi possível carregar as avaliações.</td></tr>';
     }
   );
 }
