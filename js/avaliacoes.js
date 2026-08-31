@@ -257,6 +257,7 @@ function ouvirAtletasDaTurma() {
       atletasCache = {};
       snapshot.forEach((docSnap) => { atletasCache[docSnap.id] = docSnap.data(); });
       popularSelectAtletas();
+      renderizarTabelaAvaliacoes();
     },
     (erro) => console.error("Erro ao carregar atletas:", erro)
   );
@@ -297,6 +298,25 @@ function criarLinhaAvaliacao(dados) {
   return tr;
 }
 
+// Guarda a última lista de avaliações recebida do Firestore, pra poder
+// redesenhar a tabela quando atletasCache mudar (ex.: terminou de carregar
+// os atletas da turma DEPOIS que as avaliações já tinham chegado) — sem
+// isso, a coluna Posição ficava travada em "—" pra sempre, porque
+// ouvirAvaliacoes() é chamado antes do onSnapshot de atletas resolver
+// (ver ouvirAtletasDaTurma()) e só redesenha de novo quando uma AVALIAÇÃO
+// muda, não quando um ATLETA muda.
+let ultimaListaAvaliacoes = [];
+
+function renderizarTabelaAvaliacoes() {
+  const corpo = document.getElementById("corpoTabelaAvaliacoes");
+  corpo.innerHTML = "";
+  if (ultimaListaAvaliacoes.length === 0) {
+    corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma avaliação registrada nesta turma ainda.</td></tr>';
+    return;
+  }
+  ultimaListaAvaliacoes.forEach((dados) => corpo.appendChild(criarLinhaAvaliacao(dados)));
+}
+
 function ouvirAvaliacoes() {
   if (pararDeOuvirAvaliacoes) {
     pararDeOuvirAvaliacoes();
@@ -304,6 +324,7 @@ function ouvirAvaliacoes() {
   }
 
   const corpo = document.getElementById("corpoTabelaAvaliacoes");
+  ultimaListaAvaliacoes = [];
   if (!turmaAtivaId) {
     corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Selecione uma turma.</td></tr>';
     return;
@@ -317,13 +338,8 @@ function ouvirAvaliacoes() {
       const lista = [];
       snapshot.forEach((docSnap) => lista.push(docSnap.data()));
       lista.sort((a, b) => (b.data?.toMillis() || 0) - (a.data?.toMillis() || 0));
-
-      corpo.innerHTML = "";
-      if (lista.length === 0) {
-        corpo.innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma avaliação registrada nesta turma ainda.</td></tr>';
-        return;
-      }
-      lista.forEach((dados) => corpo.appendChild(criarLinhaAvaliacao(dados)));
+      ultimaListaAvaliacoes = lista;
+      renderizarTabelaAvaliacoes();
     },
     (erro) => {
       console.error("Erro ao carregar avaliações:", erro);
