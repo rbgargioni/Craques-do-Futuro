@@ -164,6 +164,9 @@ function renderizarBlocoTecnico(atletaId) {
   bloco.innerHTML = "";
 
   const dadosAtleta = atletasCache[atletaId];
+  const posicaoEl = document.getElementById("posicaoAtletaAvaliado");
+  if (posicaoEl) posicaoEl.textContent = dadosAtleta ? dadosAtleta.posicao : "—";
+
   if (!dadosAtleta) {
     bloco.innerHTML = '<p class="muted" style="margin:0;font-size:12px;">Selecione um atleta pra ver os fundamentos técnicos da posição dele.</p>';
     return;
