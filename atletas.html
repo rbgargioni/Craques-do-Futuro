@@ -135,6 +135,50 @@
       </form>
     </section>
 
+    <!-- PAINEL DE EDIÇÃO (aberto ao clicar "Editar" no card) -->
+    <section class="panel is-hidden" id="painelEditarAtleta">
+      <div class="panel-head">
+        <h3 id="tituloEditarAtleta">Editar atleta</h3>
+        <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelEditarAtleta">Fechar</button>
+      </div>
+      <form id="formEditarAtleta" class="form-grid">
+        <div class="field">
+          <label for="nomeEditarAtleta">Nome completo</label>
+          <input type="text" id="nomeEditarAtleta" name="nome" required>
+        </div>
+        <div class="field">
+          <label for="posicaoEditarAtleta">Posição</label>
+          <select id="posicaoEditarAtleta" name="posicao">
+            <option>Goleiro</option>
+            <option>Zagueiro</option>
+            <option>Lateral</option>
+            <option>Volante</option>
+            <option>Meia</option>
+            <option>Atacante</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="turmaEditarAtleta">Turma</label>
+          <select id="turmaEditarAtleta" name="turmaId"></select>
+        </div>
+        <div class="field">
+          <label for="nascimentoEditarAtleta">Data de nascimento</label>
+          <input type="date" id="nascimentoEditarAtleta" name="nascimento" required>
+        </div>
+        <div class="field">
+          <label for="telefoneEditarAtleta">Telefone do responsável</label>
+          <input type="tel" id="telefoneEditarAtleta" name="telefone" placeholder="(00) 00000-0000">
+        </div>
+        <div class="field field--full">
+          <label for="observacoesEditarAtleta">Observações</label>
+          <textarea id="observacoesEditarAtleta" name="observacoes" placeholder="Alguma informação importante sobre o atleta..."></textarea>
+        </div>
+        <div class="form-actions field--full">
+          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+
     <!-- GRID DE ATLETAS (preenchido pelo js/atletas.js) -->
     <section class="card-grid" id="listaAtletas">
       <p class="empty-state">Carregando atletas...</p>

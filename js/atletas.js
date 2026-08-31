@@ -381,6 +381,79 @@ function criarBotaoDesativar(atletaId, dados) {
 }
 
 // ------------------------------------------------------
+// Editar atleta — administrador e técnico podem os dois (mesmo acesso de
+// sempre a dados da escola; só "desativar" é exclusivo do administrador,
+// ver criarBotaoDesativar acima).
+// ------------------------------------------------------
+function popularSelectTurmaEditar(turmaSelecionadaId) {
+  const select = document.getElementById("turmaEditarAtleta");
+  select.innerHTML = "";
+  Object.keys(turmasCache).forEach((id) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = turmasCache[id].nome;
+    if (id === turmaSelecionadaId) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function abrirEdicaoAtleta(atletaId, dados) {
+  const form = document.getElementById("formEditarAtleta");
+  form.dataset.atletaId = atletaId;
+  form.dataset.turmaOriginal = dados.turmaId;
+  form.nome.value = dados.nome;
+  form.posicao.value = dados.posicao;
+  form.nascimento.value = dados.nascimento ? dados.nascimento.toDate().toISOString().slice(0, 10) : "";
+  form.telefone.value = dados.telefone || "";
+  form.observacoes.value = dados.observacoes || "";
+  popularSelectTurmaEditar(dados.turmaId);
+
+  document.getElementById("tituloEditarAtleta").textContent = `Editar ${dados.nome}`;
+  document.getElementById("painelCadastro").classList.add("is-hidden");
+  const painel = document.getElementById("painelEditarAtleta");
+  painel.classList.remove("is-hidden");
+  painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function configurarFormEditarAtleta() {
+  const form = document.getElementById("formEditarAtleta");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      const atletaId = form.dataset.atletaId;
+      const novaTurmaId = form.turmaId.value;
+      const mudouDeTurma = novaTurmaId !== form.dataset.turmaOriginal;
+
+      await updateDoc(atletaRef(atletaId), {
+        nome: form.nome.value.trim(),
+        posicao: form.posicao.value,
+        turmaId: novaTurmaId,
+        nascimento: Timestamp.fromDate(new Date(`${form.nascimento.value}T12:00:00`)),
+        telefone: form.telefone.value.trim(),
+        observacoes: form.observacoes.value.trim(),
+      });
+
+      showToast(
+        mudouDeTurma
+          ? `${form.nome.value.trim()} atualizado e movido pra ${turmasCache[novaTurmaId].nome}.`
+          : `${form.nome.value.trim()} atualizado.`
+      );
+      document.getElementById("painelEditarAtleta").classList.add("is-hidden");
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível salvar as alterações. Tente novamente.");
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar alterações";
+    }
+  });
+}
+
+// ------------------------------------------------------
 // Cards de atleta
 // ------------------------------------------------------
 function criarCardAtleta(atletaId, dados) {
@@ -483,13 +556,21 @@ function criarCardAtleta(atletaId, dados) {
 
   card.append(top, foot, linha, pronto);
 
+  const acoes = document.createElement("div");
+  acoes.style.display = "flex";
+  acoes.style.gap = "8px";
+  acoes.style.marginTop = "10px";
+  const botaoEditar = document.createElement("button");
+  botaoEditar.type = "button";
+  botaoEditar.className = "btn btn-outline btn-sm";
+  botaoEditar.textContent = "Editar atleta";
+  botaoEditar.addEventListener("click", () => abrirEdicaoAtleta(atletaId, dados));
+  acoes.appendChild(botaoEditar);
+
   const botaoDesativar = criarBotaoDesativar(atletaId, dados);
-  if (botaoDesativar) {
-    const acoesAdmin = document.createElement("div");
-    acoesAdmin.style.marginTop = "10px";
-    acoesAdmin.appendChild(botaoDesativar);
-    card.appendChild(acoesAdmin);
-  }
+  if (botaoDesativar) acoes.appendChild(botaoDesativar);
+
+  card.appendChild(acoes);
 
   return card;
 }
@@ -594,4 +675,10 @@ document.addEventListener("cf:pronto", () => {
   ouvirTurmas();
   montarSeletorTurma();
   configurarFormCadastrarAtleta();
+  configurarFormEditarAtleta();
+
+  // "Cadastrar atleta" e "Editar atleta" não fazem sentido abertos ao mesmo tempo
+  document.getElementById("btnCadastrarAtleta").addEventListener("click", () => {
+    document.getElementById("painelEditarAtleta").classList.add("is-hidden");
+  });
 });
