@@ -75,7 +75,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `login.html` | `login.js` | ✅ real (Firebase Auth) |
 | `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, fila de solicitações de plano, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
-| `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria |
+| `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria, edição completa (nome/posição/turma/nascimento/telefone/observações) e desativar/reativar (só administrador) |
 | `avaliacoes.html` | `avaliacoes.js` | ✅ real — inclui fundamentos técnicos por posição |
 | `frequencia.html` | `frequencia.js` | ✅ real |
 | `planos.html` | `planos.js` | ✅ real |
@@ -503,6 +503,11 @@ fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda
   "Inativo" some/aparece certo, `updateDoc` chamado com o campo certo).
   **Nada disso foi testado no Firebase real ainda**, incluindo a regra nova
   de `atletas` (`allow update` com `diff().affectedKeys()`).
+- **Editar atleta** (`js/atletas.js`, botão "Editar atleta" no card,
+  administrador e técnico) — validado só com Firestore mockado: formulário
+  populado com os dados certos, `updateDoc` salva os campos certos, e mudar
+  de turma tira o atleta da lista da turma antiga. Ainda não testado ao
+  vivo.
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
