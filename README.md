@@ -396,6 +396,27 @@ posicionamento ofensivo + leitura de jogada) e `calcularPoderDeFinalizacao()`
 (finalização + cabeceio + pé não dominante). Assim como o resto de
 fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda.
 
+### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
+
+Toda página tem um `manifest.json` (raiz do projeto) + `<link rel="manifest">`
++ `<link rel="apple-touch-icon">` + `<meta name="apple-mobile-web-app-title">`
+no `<head>` — isso é **só o suficiente pra "Adicionar à tela inicial" ficar
+com nome e ícone certos** ("Craques do Futuro", ícone verde com "CF", igual
+o `brand-badge`), tanto no Android (usa o manifest) quanto no iOS (Safari
+ignora a maior parte do manifest e usa os `<meta>`/`<link rel="apple-touch-
+icon">` em vez disso — por isso os dois jeitos estão presentes). `start_url`
+do manifest aponta pra `login.html`.
+
+**Não é um PWA de verdade** — não tem Service Worker, então não funciona
+offline nem tem "instalar app" nativo do Chrome/Android (aquele banner/
+prompt automático exige Service Worker registrado). É só o atalho com
+aparência de app. Os ícones (`img/icon-180.png`, `img/icon-192.png`,
+`img/icon-512.png`) foram gerados uma vez via `<canvas>` (desenho
+programático do mesmo quadrado verde arredondado + "CF" do `favicon.svg`,
+exportado como PNG) — não são um asset de design entregue pelo sócio; se um
+dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
+(mesmos nomes/tamanhos) e o `favicon.svg`.
+
 ## Convenções do projeto (siga estas ao adicionar código)
 
 - **Português sem acento** nos nomes de campo do Firestore e nas variáveis
