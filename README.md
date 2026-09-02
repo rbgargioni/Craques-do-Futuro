@@ -415,7 +415,10 @@ pelo certo, nada mais muda.
   de pontos fortes/fracos. Testado com dados mockados.
 - ✅ **Fase 2** — `avaliacoes.html`/`js/avaliacoes.js`: formulário novo (46
   campos, renderizados dinamicamente a partir de `PILARES_100` — nada
-  disso é escrito à mão no HTML), nota final e ponto forte/a desenvolver
+  disso é escrito à mão no HTML). Cada nota é um `<input type="number">`
+  digitado (não um slider) — decisão consciente pra celular/tablet, onde
+  arrastar uma barra pra acertar um valor com casa decimal é ruim; valor
+  fora de 0-10 é corrigido ao sair do campo. Nota final e ponto forte/a desenvolver
   calculados ao vivo. Cada avaliação salva grava `notasPorPilar` +
   `pontuacaoPorPilar` + `notaFinal`, e TAMBÉM um "espelho" de compatibilidade
   0-10 (`tecnico`/`tatico`/`fisico`/`mental`/`evolucao`/`geral`) pra Fase 3
