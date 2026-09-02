@@ -31,8 +31,9 @@ function avaliacoesRef() { return collection(db, "escolas", escolaId(), "avaliac
 function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
 
-// Soma dos pesos dos 5 pilares (98,5 até o pilar Mental ser corrigido pro
-// valor certo — ver comentário em js/metricas.js).
+// Soma dos pesos dos 5 pilares — 100, calculado a partir de PILARES_100
+// (não travado em 100 direto: se algum peso for ajustado em js/metricas.js
+// e não fechar de novo, esse número muda sozinho, denunciando o problema).
 const NOTA_FINAL_MAXIMA = ORDEM_PILARES_100.reduce((soma, chave) => soma + PILARES_100[chave].peso, 0);
 
 // Mantém a "Área do atleta" (resumosPublicos) com o radar/nota mais recentes.

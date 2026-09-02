@@ -115,18 +115,20 @@ export const PILARES_100 = {
   },
   mental: {
     label: "Mental/Comportamental",
-    // ⚠️ O enunciado original diz "peso total: 20", mas a soma das 10
-    // subcategorias abaixo dá 18.5 (conferido pelo teste automático) — até
-    // o Rafael confirmar com o técnico qual número está certo (falta 1,5
-    // ponto em algum lugar), o peso do pilar aqui é a soma REAL das
-    // subcategorias, não o total declarado. Nota final máxima possível
-    // hoje é 98,5/100, não 100/100, por causa disso.
-    peso: 18.5,
+    // ⚠️ AJUSTE PROVISÓRIO (2026-09-01): o enunciado original tinha "peso
+    // total: 20", mas as 10 subcategorias somavam 18,5 — faltavam 1,5
+    // ponto, e o Rafael/técnico ainda não confirmaram onde exatamente.
+    // Decisão do Rafael: em vez de mexer em vários números (ex.: escalar
+    // todos proporcionalmente), ajustar UM só parâmetro pra ficar fácil de
+    // corrigir depois — "confianca" foi de 1,5 pra 3,0 (+1,5). Se o técnico
+    // confirmar que era outra subcategoria, é só mudar esse peso aqui e o
+    // da subcategoria certa, mais nada.
+    peso: 20,
     subcategorias: {
       comportamentoSobPressao: { label: "Comportamento sob pressão", peso: 2.0 },
       concentracao: { label: "Concentração", peso: 2.0 },
       disciplina: { label: "Disciplina", peso: 1.5 },
-      confianca: { label: "Confiança", peso: 1.5 },
+      confianca: { label: "Confiança", peso: 3.0 },
       reacaoAoErro: { label: "Reação ao erro", peso: 2.0 },
       competitividade: { label: "Competitividade", peso: 2.0 },
       resiliencia: { label: "Resiliência", peso: 2.0 },

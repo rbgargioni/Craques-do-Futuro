@@ -385,8 +385,8 @@ direta por pilar + fundamentos técnicos DIFERENTES por posição, ver
 "⚠️ pendência" abaixo) estava desatualizada. O substituto — `PILARES_100`
 em `js/metricas.js` — muda duas coisas ao mesmo tempo:
 
-1. **Escala nova**: cada pilar tem um peso fixo que soma até 100 no total
-   (Físico 20 + Técnico 30 + Tático 20 + Mental 18,5\* + Potencial/Futuro 10),
+1. **Escala nova**: cada pilar tem um peso fixo que soma 100 no total
+   (Físico 20 + Técnico 30 + Tático 20 + Mental 20\* + Potencial/Futuro 10),
    dividido em várias **subcategorias**, cada uma avaliada de 0 a 10.
    Fórmula (o avaliador NUNCA digita peso, só a nota): `pontuação da
    subcategoria = (nota ÷ 10) × peso da subcategoria`; soma das
@@ -399,12 +399,16 @@ em `js/metricas.js` — muda duas coisas ao mesmo tempo:
    ("métricas específicas por posição" em `vendas.html`) — ainda não
    atualizei `vendas.html` pra refletir isso.
 
-\* **Pendência de dados, não de código**: o enunciado que o técnico mandou diz
+\* **Ajuste provisório (2026-09-01)**: o enunciado que o técnico mandou diz
 "Mental/Comportamental: peso total 20", mas a soma das 10 subcategorias que
-ele listou dá 18,5 — falta 1,5 ponto em algum lugar (ver comentário em
-`PILARES_100.mental` no código). Até o Rafael confirmar com o técnico qual
-número está certo, o sistema usa 18,5 (soma real das subcategorias) — a
-nota final máxima hoje é **98,5/100**, não 100/100.
+ele listou dava 18,5 — faltava 1,5 ponto em algum lugar, sem dizer onde.
+Em vez de escalar todas as notas proporcionalmente (deixaria de ter números
+redondos) ou esperar confirmação antes de destravar o resto do sistema, o
+Rafael decidiu ajustar **um único parâmetro** pra ficar fácil de corrigir
+depois: `confianca` foi de 1,5 pra 3,0 (ver comentário em `PILARES_100.mental`
+no código). Nota final máxima já fecha em **100/100** — se o técnico
+confirmar que o 1,5 extra era de outra subcategoria, é só trocar esse peso
+pelo certo, nada mais muda.
 
 **Migração em 3 fases** (pra não quebrar o site inteiro de uma vez):
 - ✅ **Fase 1** — `js/metricas.js`: `PILARES_100`, cálculo, validação, ranking
@@ -430,10 +434,11 @@ nota final máxima hoje é **98,5/100**, não 100/100.
   em `js/metricas.js` (usado por `comparativos.js`). `manual.html` também
   foi corrigido — ainda descrevia a régua antiga.
 
-Com isso a migração de código está completa nas 3 fases. Ainda faltam 2
-coisas fora do código em si: confirmar com o técnico o peso certo do pilar
-Mental (ver "⚠️ pendência" acima) e reescrever o discurso de `vendas.html`
-("métricas específicas por posição" não é mais verdade). Os indicadores
+Com isso a migração de código está completa nas 3 fases, e a nota final já
+fecha em 100/100 (com o ajuste provisório do pilar Mental, ver "⚠️" acima —
+ainda vale confirmar com o técnico se é isso mesmo). Falta reescrever o
+discurso de `vendas.html` ("métricas específicas por posição" não é mais
+verdade). Os indicadores
 combinados antigos (`calcularInteligenciaDefensiva`,
 `calcularCapacidadeDeAtaque`, `calcularPoderDeFinalizacao`) e o resto do
 sistema depreciado (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`) podem
@@ -573,14 +578,15 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   populado com os dados certos, `updateDoc` salva os campos certos, e mudar
   de turma tira o atleta da lista da turma antiga. Ainda não testado ao
   vivo.
-- **Sistema de avaliação novo (5 pilares/100 pontos)** — Fases 1 e 2 (ver
+- **Sistema de avaliação novo (5 pilares/100 pontos)** — as 3 fases (ver
   seção própria acima), validado só com Firestore mockado: os 46 campos
   renderizam certo (8+10+9+10+9 por pilar), soma dos pesos bate com o
-  declarado (exceto Mental, ver pendência), totais por pilar e nota final
-  atualizam ao vivo, salvar grava `notasPorPilar`/`pontuacaoPorPilar`/
-  `notaFinal` + o espelho de compatibilidade, e uma avaliação do formato
-  antigo continua aparecendo na tabela (com "—" nas colunas novas) em vez
-  de quebrar. **Nada disso foi testado no Firebase real ainda.**
+  declarado nos 5 pilares (nota final máxima = 100/100), totais por pilar
+  e nota final atualizam ao vivo, salvar grava `notasPorPilar`/
+  `pontuacaoPorPilar`/`notaFinal` + o espelho de compatibilidade, e uma
+  avaliação do formato antigo continua aparecendo na tabela (com "—" nas
+  colunas novas) em vez de quebrar. **Nada disso foi testado no Firebase
+  real ainda.**
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -599,10 +605,11 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
-- **Confirmar com o técnico o peso certo do pilar Mental/Comportamental**
-  (soma das subcategorias dá 18,5, o enunciado dizia 20 — ver seção "5
-  Pilares / 100 pontos" acima) e ajustar `PILARES_100.mental` em
-  `js/metricas.js`.
+- **Confirmar com o técnico se o ajuste provisório do pilar Mental está
+  certo** (`confianca` foi de 1,5 pra 3,0 pra fechar em 20 — ver seção "5
+  Pilares / 100 pontos" acima). Se ele confirmar que era outra
+  subcategoria, trocar em `PILARES_100.mental` em `js/metricas.js` (só
+  esses dois números mudam, o resto do sistema continua igual).
 - As 3 fases da migração do sistema de avaliação estão no ar — pode
   remover o sistema antigo depreciado de `js/metricas.js`
   (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`, `analisarFundamentos`,
