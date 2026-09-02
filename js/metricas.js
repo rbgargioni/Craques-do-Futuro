@@ -16,12 +16,16 @@
 // ------------------------------------------------------
 
 // Ordem/rótulos como aparecem em tabelas (Relatórios, Comparativos).
+// "evolucao" é o campo espelho de compatibilidade (ver PILARES_100 mais
+// abaixo) — hoje carrega o pilar Potencial/Futuro normalizado 0-10, por
+// isso o rótulo é "Potencial", não "Evolução" (o nome do campo em si não
+// mudou pra não precisar migrar avaliações já salvas).
 export const PILARES_TABELA = [
   { campo: "tecnico", label: "Técnico" },
   { campo: "tatico", label: "Tático" },
   { campo: "fisico", label: "Físico" },
   { campo: "mental", label: "Mental" },
-  { campo: "evolucao", label: "Evolução" },
+  { campo: "evolucao", label: "Potencial" },
 ];
 
 // Ordem ao redor do gráfico radar (pentágono) — começa no topo (Técnico) e
