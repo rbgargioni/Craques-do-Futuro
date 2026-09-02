@@ -117,24 +117,13 @@
           <input type="date" id="dataAvaliacao" name="data">
         </div>
 
-        <div class="field field--full" id="blocoTecnico" style="border:1px solid var(--border); border-radius:10px; padding:14px;">
-          <p class="muted" style="margin:0;font-size:12px;">Selecione um atleta pra ver os fundamentos técnicos da posição dele.</p>
-        </div>
-        <div class="field field--full pillar-field">
-          <div class="pillar-field-head"><label for="pilarTatico">Tático</label><strong id="outTatico">7.0</strong></div>
-          <input type="range" id="pilarTatico" name="tatico" min="0" max="10" step="0.1" value="7" data-live-output="outTatico">
-        </div>
-        <div class="field field--full pillar-field">
-          <div class="pillar-field-head"><label for="pilarFisico">Físico</label><strong id="outFisico">7.0</strong></div>
-          <input type="range" id="pilarFisico" name="fisico" min="0" max="10" step="0.1" value="7" data-live-output="outFisico">
-        </div>
-        <div class="field field--full pillar-field">
-          <div class="pillar-field-head"><label for="pilarMental">Mental</label><strong id="outMental">7.0</strong></div>
-          <input type="range" id="pilarMental" name="mental" min="0" max="10" step="0.1" value="7" data-live-output="outMental">
-        </div>
-        <div class="field field--full pillar-field">
-          <div class="pillar-field-head"><label for="pilarEvolucao">Evolução</label><strong id="outEvolucao">7.0</strong></div>
-          <input type="range" id="pilarEvolucao" name="evolucao" min="0" max="10" step="0.1" value="7" data-live-output="outEvolucao">
+        <!-- Os 5 pilares (Físico/Técnico/Tático/Mental/Potencial), cada um com suas
+             subcategorias, são montados por js/avaliacoes.js a partir de PILARES_100
+             em js/metricas.js — nada de subcategoria/peso é escrito aqui no HTML. -->
+        <div class="field field--full" id="blocoPilares100"></div>
+
+        <div class="field field--full" id="blocoResultado" style="border:1px solid var(--border); border-radius:10px; padding:14px;background:var(--bg-app);">
+          <p class="muted" style="margin:0;font-size:12px;">Preencha as notas acima pra ver o resultado da avaliação.</p>
         </div>
 
         <div class="field field--full">
@@ -157,12 +146,12 @@
               <th>Atleta</th>
               <th>Posição</th>
               <th>Data</th>
+              <th>Físico</th>
               <th>Técnico</th>
               <th>Tático</th>
-              <th>Físico</th>
               <th>Mental</th>
-              <th>Evolução</th>
-              <th>Geral</th>
+              <th>Potencial</th>
+              <th>Nota final</th>
             </tr>
           </thead>
           <tbody id="corpoTabelaAvaliacoes">

@@ -87,7 +87,19 @@
 //       -> um checkpoint por promoção/reversão, para nunca perder o histórico entre categorias
 //
 //   escolas/{escolaId}/avaliacoes/{avaliacaoId}
-//     atletaId, data, tecnico, tatico, fisico, mental, evolucao, geral, observacoes
+//     atletaId, data, observacoes
+//     notasPorPilar: { fisico: {chave: nota 0-10, ...}, tecnico: {...}, tatico: {...},
+//       mental: {...}, potencial: {...} } — nota crua que o avaliador deu por
+//       subcategoria (ver PILARES_100 em js/metricas.js, sistema novo desde 2026-09-01).
+//     pontuacaoPorPilar: { fisico: {pontos, max}, tecnico: {...}, ... } — já calculado
+//       e salvo (pontos ponderados de cada pilar, não recalcula na leitura).
+//     notaFinal: soma dos 5 pilares, 0 a ~98,5 (ver nota sobre o pilar Mental
+//       em js/metricas.js — ainda não fecha em 100 certinho).
+//     tecnico, tatico, fisico, mental, evolucao, geral: ESPELHO de compatibilidade
+//       (escala 0-10, "evolucao" = potencial normalizado) pras telas que ainda não
+//       migraram pro sistema novo (Dashboard/Relatórios/Comparativos/Responsável/
+//       Área do atleta — Fase 3 da migração). Avaliações de ANTES de 2026-09-01
+//       só têm esses campos antigos, sem notasPorPilar/pontuacaoPorPilar/notaFinal.
 //
 //   escolas/{escolaId}/frequencia/{turmaId}_{data}_{atletaId}    id determinístico -> upsert com set()
 //     turmaId, atletaId, data, estado: "presente" | "atrasado" | "ausente"

@@ -2,13 +2,21 @@
 // Craques do Futuro — avaliacoes.html (dados reais)
 // Só roda depois que auth-guard.js confirma o papel (evento "cf:pronto"),
 // que é quando window.CF.escolaId fica disponível.
+//
+// Fase 2 da migração pro novo sistema de 5 pilares/100 pontos (ver
+// js/metricas.js): o formulário agora usa PILARES_100 (universal, mesmas
+// subcategorias pra qualquer posição) em vez dos fundamentos técnicos por
+// posição antigos.
 // ======================================================
 
 import {
   collection, addDoc, doc, updateDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
-import { calcularNotaGeral, notaEhBoa, FUNDAMENTOS_POR_POSICAO, calcularNotaTecnica, analisarFundamentos } from "./metricas.js";
+import {
+  PILARES_100, ORDEM_PILARES_100, calcularAvaliacaoCompleta, analisarPontosFortesFracos,
+  normalizarPilarPara10, calcularNotaGeral, notaEhBoa,
+} from "./metricas.js";
 
 let turmasCache = {};
 let turmaAtivaId = null;
@@ -22,6 +30,10 @@ function atletasRef() { return collection(db, "escolas", escolaId(), "atletas");
 function avaliacoesRef() { return collection(db, "escolas", escolaId(), "avaliacoes"); }
 function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
+
+// Soma dos pesos dos 5 pilares (98,5 até o pilar Mental ser corrigido pro
+// valor certo — ver comentário em js/metricas.js).
+const NOTA_FINAL_MAXIMA = ORDEM_PILARES_100.reduce((soma, chave) => soma + PILARES_100[chave].peso, 0);
 
 // Mantém a "Área do atleta" (resumosPublicos) com o radar/nota mais recentes.
 // Nunca deixa um erro aqui derrubar o salvamento da avaliação em si.
@@ -44,6 +56,10 @@ async function atualizarResumoPublico(atletaId, pilares) {
 
 function formatarData(timestamp) {
   return timestamp ? timestamp.toDate().toLocaleDateString("pt-BR") : "—";
+}
+
+function formatarPt(numero) {
+  return numero.toFixed(1).replace(".", ",");
 }
 
 // ------------------------------------------------------
@@ -131,111 +147,131 @@ function popularSelectAtletas() {
       select.appendChild(opt);
     });
   select.value = atletasCache[valorAtual] ? valorAtual : "";
-  renderizarBlocoTecnico(select.value);
+  atualizarPosicaoExibida(select.value);
 }
 
-// ------------------------------------------------------
-// Bloco "Técnico" — fundamentos da posição do atleta selecionado
-// (ver js/metricas.js: FUNDAMENTOS_POR_POSICAO, calcularNotaTecnica)
-// ------------------------------------------------------
-function lerNotasFundamentos() {
-  const notas = {};
-  document.querySelectorAll("#blocoTecnico [data-fundamento-chave]").forEach((input) => {
-    notas[input.dataset.fundamentoChave] = Number(input.value);
-  });
-  return notas;
-}
-
-function atualizarNotaTecnicaCalculada(posicao) {
-  const notas = lerNotasFundamentos();
-  const nota = calcularNotaTecnica(posicao, notas);
-  const notaEl = document.getElementById("notaTecnicaCalculada");
-  if (notaEl && nota !== null) notaEl.textContent = nota.toFixed(1);
-
-  const analise = analisarFundamentos(posicao, notas);
-  const resultado = document.getElementById("resultadoFundamentos");
-  if (resultado && analise) {
-    resultado.textContent = `⭐ Melhor: ${analise.melhor.label} (${analise.melhor.nota.toFixed(1)})  ·  🔧 Ponto a melhorar: ${analise.piorAMelhorar.label} (${analise.piorAMelhorar.nota.toFixed(1)})`;
-  }
-}
-
-function renderizarBlocoTecnico(atletaId) {
-  const bloco = document.getElementById("blocoTecnico");
-  bloco.innerHTML = "";
-
-  const dadosAtleta = atletasCache[atletaId];
+function atualizarPosicaoExibida(atletaId) {
   const posicaoEl = document.getElementById("posicaoAtletaAvaliado");
+  const dadosAtleta = atletasCache[atletaId];
   if (posicaoEl) posicaoEl.textContent = dadosAtleta ? dadosAtleta.posicao : "—";
+}
 
-  if (!dadosAtleta) {
-    bloco.innerHTML = '<p class="muted" style="margin:0;font-size:12px;">Selecione um atleta pra ver os fundamentos técnicos da posição dele.</p>';
-    return;
-  }
+// ------------------------------------------------------
+// Os 5 pilares (Físico/Técnico/Tático/Mental/Potencial) — ver PILARES_100 em
+// js/metricas.js. Universal: as mesmas subcategorias pra qualquer atleta,
+// independente da posição (a posição só é exibida como informação, não
+// muda mais quais campos aparecem aqui — diferente do sistema antigo).
+// ------------------------------------------------------
+function lerNotasPorPilar() {
+  const notasPorPilar = {};
+  ORDEM_PILARES_100.forEach((pilarChave) => {
+    notasPorPilar[pilarChave] = {};
+    document.querySelectorAll(`#blocoPilares100 [data-pilar="${pilarChave}"]`).forEach((input) => {
+      notasPorPilar[pilarChave][input.dataset.subcategoria] = Number(input.value);
+    });
+  });
+  return notasPorPilar;
+}
 
-  const fundamentos = FUNDAMENTOS_POR_POSICAO[dadosAtleta.posicao];
-  if (!fundamentos) {
-    const aviso = document.createElement("p");
-    aviso.className = "muted";
-    aviso.style.margin = "0";
-    aviso.style.fontSize = "12px";
-    aviso.textContent = `Não há fundamentos técnicos configurados pra posição "${dadosAtleta.posicao}".`;
-    bloco.appendChild(aviso);
-    return;
+function atualizarResultado() {
+  const notasPorPilar = lerNotasPorPilar();
+  const { porPilar, notaFinal } = calcularAvaliacaoCompleta(notasPorPilar);
+
+  ORDEM_PILARES_100.forEach((pilarChave) => {
+    const totalEl = document.getElementById(`pilarTotal_${pilarChave}`);
+    if (totalEl) totalEl.textContent = `${formatarPt(porPilar[pilarChave].pontos)} / ${formatarPt(porPilar[pilarChave].max)}`;
+  });
+
+  const analise = analisarPontosFortesFracos(notasPorPilar);
+  const bloco = document.getElementById("blocoResultado");
+  if (bloco && analise) {
+    bloco.innerHTML = "";
+
+    const linhaNota = document.createElement("p");
+    linhaNota.style.cssText = "margin:0 0 8px;font-size:15px;";
+    const rotuloNota = document.createElement("strong");
+    rotuloNota.textContent = "Nota final: ";
+    const valorNota = document.createElement("span");
+    valorNota.textContent = `${formatarPt(notaFinal)} / ${formatarPt(NOTA_FINAL_MAXIMA)}`;
+    linhaNota.append(rotuloNota, valorNota);
+
+    const linhaAnalise = document.createElement("p");
+    linhaAnalise.className = "muted";
+    linhaAnalise.style.cssText = "margin:0;font-size:12px;";
+    linhaAnalise.textContent = `⭐ Ponto forte: ${analise.melhor.label} (${analise.melhor.pilarLabel}, ${formatarPt(analise.melhor.nota)})  ·  🔧 A desenvolver: ${analise.piorAMelhorar.label} (${analise.piorAMelhorar.pilarLabel}, ${formatarPt(analise.piorAMelhorar.nota)})`;
+
+    bloco.append(linhaNota, linhaAnalise);
   }
+}
+
+// Cria um <input type="range"> de 0 a 10 (aceita decimal) pra uma
+// subcategoria, com o valor ao lado atualizado em tempo real — mesmo padrão
+// usado antes pros fundamentos técnicos por posição (input dinâmico, sem
+// depender do listener genérico de Script.js, que só pega sliders que já
+// existiam no HTML quando a página carregou).
+function criarCampoSubcategoria(pilarChave, chave, info) {
+  const campo = document.createElement("div");
+  campo.className = "pillar-field";
+  campo.style.marginTop = "10px";
+
+  const head = document.createElement("div");
+  head.className = "pillar-field-head";
+  const label = document.createElement("span");
+  label.style.fontSize = "12px";
+  label.textContent = info.label; // peso fica só no código, não aparece pro avaliador
+  const saida = document.createElement("strong");
+  saida.textContent = "7.0";
+  head.append(label, saida);
+
+  const input = document.createElement("input");
+  input.type = "range";
+  input.min = "0";
+  input.max = "10";
+  input.step = "0.1";
+  input.value = "7";
+  input.dataset.pilar = pilarChave;
+  input.dataset.subcategoria = chave;
+  input.addEventListener("input", () => {
+    saida.textContent = Number(input.value).toFixed(1);
+    atualizarResultado();
+  });
+
+  campo.append(head, input);
+  return campo;
+}
+
+function criarBlocoPilar(pilarChave) {
+  const pilar = PILARES_100[pilarChave];
+  const bloco = document.createElement("div");
+  bloco.style.cssText = "border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;";
 
   const cabecalho = document.createElement("div");
   cabecalho.className = "pillar-field-head";
   const titulo = document.createElement("label");
-  titulo.textContent = `Técnico — ${dadosAtleta.posicao}`;
-  const notaEl = document.createElement("strong");
-  notaEl.id = "notaTecnicaCalculada";
-  notaEl.textContent = "7.0";
-  cabecalho.append(titulo, notaEl);
+  titulo.textContent = pilar.label;
+  const total = document.createElement("strong");
+  total.id = `pilarTotal_${pilarChave}`;
+  total.textContent = `0,0 / ${formatarPt(pilar.peso)}`;
+  cabecalho.append(titulo, total);
   bloco.appendChild(cabecalho);
 
-  Object.keys(fundamentos).forEach((chave) => {
-    const info = fundamentos[chave];
-    const campo = document.createElement("div");
-    campo.className = "pillar-field";
-    campo.style.marginTop = "10px";
-
-    const head = document.createElement("div");
-    head.className = "pillar-field-head";
-    const label = document.createElement("span");
-    label.style.fontSize = "12px";
-    label.textContent = info.label; // peso fica só no código (não divulgar a fórmula na interface)
-    const saida = document.createElement("strong");
-    saida.textContent = "7.0";
-    head.append(label, saida);
-
-    const input = document.createElement("input");
-    input.type = "range";
-    input.min = "1";
-    input.max = "10";
-    input.step = "0.5";
-    input.value = "7";
-    input.dataset.fundamentoChave = chave;
-    input.addEventListener("input", () => {
-      saida.textContent = Number(input.value).toFixed(1);
-      atualizarNotaTecnicaCalculada(dadosAtleta.posicao);
-    });
-
-    campo.append(head, input);
-    bloco.appendChild(campo);
+  Object.keys(pilar.subcategorias).forEach((chave) => {
+    bloco.appendChild(criarCampoSubcategoria(pilarChave, chave, pilar.subcategorias[chave]));
   });
 
-  const resultado = document.createElement("p");
-  resultado.id = "resultadoFundamentos";
-  resultado.className = "muted";
-  resultado.style.cssText = "margin:10px 0 0;font-size:12px;";
-  bloco.appendChild(resultado);
+  return bloco;
+}
 
-  atualizarNotaTecnicaCalculada(dadosAtleta.posicao);
+function renderizarBlocoPilares100() {
+  const bloco = document.getElementById("blocoPilares100");
+  bloco.innerHTML = "";
+  ORDEM_PILARES_100.forEach((pilarChave) => bloco.appendChild(criarBlocoPilar(pilarChave)));
+  atualizarResultado();
 }
 
 function montarSelectAtletaAvaliado() {
   document.getElementById("atletaAvaliado").addEventListener("change", (e) => {
-    renderizarBlocoTecnico(e.target.value);
+    atualizarPosicaoExibida(e.target.value);
   });
 }
 
@@ -272,15 +308,19 @@ function criarLinhaAvaliacao(dados) {
   // própria avaliação — mostra a posição de HOJE, mesmo que o atleta tenha
   // trocado de posição depois dessa avaliação ter sido feita.
   const posicaoAtleta = (atletasCache[dados.atletaId] && atletasCache[dados.atletaId].posicao) || "—";
+
+  // Avaliações salvas antes da Fase 2 não têm pontuacaoPorPilar/notaFinal —
+  // mostra "—" nessas colunas em vez de quebrar a tabela.
+  const pp = dados.pontuacaoPorPilar;
   const celulas = [
     dados.atletaNome,
     posicaoAtleta,
     formatarData(dados.data),
-    dados.tecnico.toFixed(1).replace(".", ","),
-    dados.tatico.toFixed(1).replace(".", ","),
-    dados.fisico.toFixed(1).replace(".", ","),
-    dados.mental.toFixed(1).replace(".", ","),
-    dados.evolucao.toFixed(1).replace(".", ","),
+    pp ? `${formatarPt(pp.fisico.pontos)}/${formatarPt(pp.fisico.max)}` : "—",
+    pp ? `${formatarPt(pp.tecnico.pontos)}/${formatarPt(pp.tecnico.max)}` : "—",
+    pp ? `${formatarPt(pp.tatico.pontos)}/${formatarPt(pp.tatico.max)}` : "—",
+    pp ? `${formatarPt(pp.mental.pontos)}/${formatarPt(pp.mental.max)}` : "—",
+    pp ? `${formatarPt(pp.potencial.pontos)}/${formatarPt(pp.potencial.max)}` : "—",
   ];
   celulas.forEach((texto) => {
     const td = document.createElement("td");
@@ -288,12 +328,16 @@ function criarLinhaAvaliacao(dados) {
     tr.appendChild(td);
   });
 
-  const tdGeral = document.createElement("td");
-  const pill = document.createElement("span");
-  pill.className = `pill ${notaEhBoa(dados.geral) ? "pill--good" : "pill--warn"}`;
-  pill.textContent = dados.geral.toFixed(1).replace(".", ",");
-  tdGeral.appendChild(pill);
-  tr.appendChild(tdGeral);
+  const tdFinal = document.createElement("td");
+  if (typeof dados.notaFinal === "number") {
+    const pill = document.createElement("span");
+    pill.className = `pill ${notaEhBoa(dados.geral) ? "pill--good" : "pill--warn"}`;
+    pill.textContent = `${formatarPt(dados.notaFinal)}/${formatarPt(NOTA_FINAL_MAXIMA)}`;
+    tdFinal.appendChild(pill);
+  } else {
+    tdFinal.textContent = "—";
+  }
+  tr.appendChild(tdFinal);
 
   return tr;
 }
@@ -365,50 +409,48 @@ function configurarFormNovaAvaliacao() {
       return;
     }
 
-    const posicao = atletasCache[atletaId].posicao;
-    const notasFundamentos = lerNotasFundamentos();
-    const tecnico = calcularNotaTecnica(posicao, notasFundamentos);
-    if (tecnico === null) {
-      showToast(`Não há fundamentos técnicos configurados pra posição "${posicao}".`);
-      return;
-    }
-
     const botao = form.querySelector("button[type=submit]");
     botao.disabled = true;
     botao.textContent = "Salvando...";
 
     try {
-      const tatico = Number(form.tatico.value);
-      const fisico = Number(form.fisico.value);
-      const mental = Number(form.mental.value);
-      const evolucao = Number(form.evolucao.value);
-      const geral = calcularNotaGeral({ tecnico, tatico, fisico, mental, evolucao });
+      const notasPorPilar = lerNotasPorPilar();
+      const { porPilar, notaFinal } = calcularAvaliacaoCompleta(notasPorPilar);
+
+      // Campos "tecnico/tatico/fisico/mental/evolucao/geral" (escala 0-10) são
+      // um espelho de compatibilidade pras telas que ainda não migraram pro
+      // sistema novo (Dashboard, Relatórios, Comparativos, Responsável, Área
+      // do atleta — Fase 3). "potencial" ocupa o lugar de "evolucao" nesse
+      // espelho só pelo formato (5 valores 0-10) — remover quando a Fase 3
+      // terminar de atualizar essas telas pros 5 pilares novos de verdade.
+      const espelho = {
+        tecnico: normalizarPilarPara10(porPilar.tecnico.pontos, porPilar.tecnico.max),
+        tatico: normalizarPilarPara10(porPilar.tatico.pontos, porPilar.tatico.max),
+        fisico: normalizarPilarPara10(porPilar.fisico.pontos, porPilar.fisico.max),
+        mental: normalizarPilarPara10(porPilar.mental.pontos, porPilar.mental.max),
+        evolucao: normalizarPilarPara10(porPilar.potencial.pontos, porPilar.potencial.max),
+      };
+      const geral = calcularNotaGeral(espelho);
 
       await addDoc(avaliacoesRef(), {
         atletaId,
         atletaNome: atletasCache[atletaId].nome,
         turmaId: turmaAtivaId,
         data: Timestamp.fromDate(new Date(`${form.data.value}T12:00:00`)),
-        tecnico,
-        fundamentosTecnicos: notasFundamentos,
-        tatico,
-        fisico,
-        mental,
-        evolucao,
+        notasPorPilar,
+        pontuacaoPorPilar: porPilar,
+        notaFinal,
+        ...espelho,
         geral,
         observacoes: form.observacoes.value.trim(),
         criadoEm: serverTimestamp(),
       });
-      await atualizarResumoPublico(atletaId, { tecnico, tatico, fisico, mental, evolucao, geral });
+      await atualizarResumoPublico(atletaId, { ...espelho, geral });
 
       showToast(`Avaliação de ${atletasCache[atletaId].nome} salva.`);
       form.reset();
-      // form.reset() volta os sliders pro value="7" do HTML — atualiza os números ao lado deles.
-      form.querySelectorAll('input[type="range"][data-live-output]').forEach((range) => {
-        const out = document.getElementById(range.dataset.liveOutput);
-        if (out) out.textContent = Number(range.value).toFixed(1);
-      });
-      renderizarBlocoTecnico(""); // volta o bloco de fundamentos pro placeholder
+      renderizarBlocoPilares100(); // volta todos os sliders pro padrão (7) e refaz o resultado
+      atualizarPosicaoExibida("");
       document.getElementById("painelAvaliacao").classList.add("is-hidden");
     } catch (erro) {
       console.error(erro);
@@ -421,6 +463,7 @@ function configurarFormNovaAvaliacao() {
 }
 
 document.addEventListener("cf:pronto", () => {
+  renderizarBlocoPilares100();
   ouvirTurmas();
   montarSeletorTurma();
   montarSelectAtletaAvaliado();
