@@ -418,21 +418,27 @@ nota final máxima hoje é **98,5/100**, não 100/100.
   não precisar acontecer no mesmo dia. Avaliações de ANTES dessa mudança
   não têm os campos novos — aparecem com "—" nas colunas novas da tabela em
   vez de quebrar.
-- ⬜ **Fase 3** (ainda não feita) — Dashboard, Relatórios, Comparativos,
-  `responsavel.html` e a "Área do atleta" ainda leem só o "espelho" 0-10
-  antigo (radar de 5 pontas Técnico/Tático/Físico/Mental/Evolução). Precisam
-  ser atualizados pra mostrar os 5 pilares novos de verdade (pontuação por
-  peso, não 0-10) — depois disso, remover o espelho de compatibilidade e as
-  funções antigas (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`,
-  `calcularNotaGeral` com os pesos antigos) de `js/metricas.js`, que hoje
-  continuam lá só com uma nota de "depreciado" pra não quebrar nada no meio
-  do caminho.
+- ✅ **Fase 3** — Dashboard, Relatórios, Comparativos, `responsavel.html` e a
+  "Área do atleta" continuam lendo o "espelho" 0-10 (o radar de 5 pontas em
+  si é normalizado por natureza — pilares de pesos diferentes, tipo 30 vs
+  10, só cabem juntos numa mesma régua visual se forem normalizados pra
+  0-10; a pontuação "por peso" de verdade já fica na tela de Avaliações,
+  Fase 2), só que o eixo/coluna que antes chamava **"Evolução" agora chama
+  "Potencial"** — o campo em si (`evolucao`) não mudou de nome (evitaria
+  migrar avaliação já salva), só o rótulo visível em `radar-label` (6
+  arquivos) e no cabeçalho da tabela de `responsavel.html` + `PILARES_TABELA`
+  em `js/metricas.js` (usado por `comparativos.js`). `manual.html` também
+  foi corrigido — ainda descrevia a régua antiga.
 
-Os indicadores combinados antigos (`calcularInteligenciaDefensiva`,
-`calcularCapacidadeDeAtaque`, `calcularPoderDeFinalizacao` — específicos de
-Volante/Atacante) ficam obsoletos com essa migração, já que não existe mais
-fundamento técnico por posição pra combinar; devem ser removidos junto com
-o resto do sistema antigo na Fase 3.
+Com isso a migração de código está completa nas 3 fases. Ainda faltam 2
+coisas fora do código em si: confirmar com o técnico o peso certo do pilar
+Mental (ver "⚠️ pendência" acima) e reescrever o discurso de `vendas.html`
+("métricas específicas por posição" não é mais verdade). Os indicadores
+combinados antigos (`calcularInteligenciaDefensiva`,
+`calcularCapacidadeDeAtaque`, `calcularPoderDeFinalizacao`) e o resto do
+sistema depreciado (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`) podem
+ser removidos de `js/metricas.js` quando quiser — não tem mais nenhuma
+tela usando eles, ficaram só documentados como "depreciado" no arquivo.
 
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
@@ -597,11 +603,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
   (soma das subcategorias dá 18,5, o enunciado dizia 20 — ver seção "5
   Pilares / 100 pontos" acima) e ajustar `PILARES_100.mental` em
   `js/metricas.js`.
-- **Fase 3 da migração do sistema de avaliação**: atualizar Dashboard,
-  Relatórios, Comparativos, `responsavel.html` e a "Área do atleta" pra
-  mostrar os 5 pilares novos (hoje ainda leem o "espelho" 0-10 antigo).
-  Depois disso, remover o espelho de compatibilidade e o sistema antigo
-  (fundamentos por posição, indicadores combinados) de `js/metricas.js`.
+- As 3 fases da migração do sistema de avaliação estão no ar — pode
+  remover o sistema antigo depreciado de `js/metricas.js`
+  (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`, `analisarFundamentos`,
+  os 3 indicadores combinados) quando quiser, não tem mais nada usando.
 - Testar o sistema de avaliação novo (5 pilares/100 pontos) no Firebase
   real de ponta a ponta — só validado com dados mockados até agora.
 - Atualizar `vendas.html` — o discurso de "métricas específicas por
