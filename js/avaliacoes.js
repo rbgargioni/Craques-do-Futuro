@@ -205,11 +205,12 @@ function atualizarResultado() {
   }
 }
 
-// Cria um <input type="range"> de 0 a 10 (aceita decimal) pra uma
-// subcategoria, com o valor ao lado atualizado em tempo real — mesmo padrão
-// usado antes pros fundamentos técnicos por posição (input dinâmico, sem
-// depender do listener genérico de Script.js, que só pega sliders que já
-// existiam no HTML quando a página carregou).
+// Campo de nota (0 a 10, aceita decimal) pra uma subcategoria — DIGITADO,
+// não é mais um slider: arrastar uma barra pra acertar um valor com casa
+// decimal é ruim no toque (celular/tablet, onde isso vai ser usado o tempo
+// todo); digitar "8,5" é mais rápido e mais preciso. Sem depender do
+// listener genérico de Script.js, que só pega inputs que já existiam no
+// HTML quando a página carregou — este é criado dinamicamente.
 function criarCampoSubcategoria(pilarChave, chave, info) {
   const campo = document.createElement("div");
   campo.className = "pillar-field";
@@ -220,24 +221,33 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   const label = document.createElement("span");
   label.style.fontSize = "12px";
   label.textContent = info.label; // peso fica só no código, não aparece pro avaliador
-  const saida = document.createElement("strong");
-  saida.textContent = "7.0";
-  head.append(label, saida);
 
   const input = document.createElement("input");
-  input.type = "range";
+  input.type = "number";
+  input.inputMode = "decimal"; // teclado numérico com vírgula/ponto no celular
   input.min = "0";
   input.max = "10";
   input.step = "0.1";
   input.value = "7";
+  input.className = "pillar-field-input";
   input.dataset.pilar = pilarChave;
   input.dataset.subcategoria = chave;
-  input.addEventListener("input", () => {
-    saida.textContent = Number(input.value).toFixed(1);
+
+  // Corrige valor fora de 0-10 (ou vazio/inválido) assim que o avaliador
+  // sai do campo — sem isso, dava pra digitar "15" ou "-3" e o cálculo por
+  // trás (que já trava a nota em 0-10) ficaria inconsistente com o que
+  // está escrito na tela.
+  input.addEventListener("blur", () => {
+    const valor = Number(input.value);
+    if (input.value === "" || Number.isNaN(valor)) input.value = "0";
+    else if (valor < 0) input.value = "0";
+    else if (valor > 10) input.value = "10";
     atualizarResultado();
   });
+  input.addEventListener("input", atualizarResultado);
 
-  campo.append(head, input);
+  head.append(label, input);
+  campo.append(head);
   return campo;
 }
 

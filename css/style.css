@@ -691,9 +691,25 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 
 .pillar-field { display: flex; flex-direction: column; gap: 6px; }
-.pillar-field-head { display: flex; justify-content: space-between; font-size: 13px; }
+.pillar-field-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
 .pillar-field-head strong { font-weight: 700; color: var(--accent-dark); }
 .pillar-field input[type="range"] { accent-color: var(--accent); width: 100%; }
+/* Nota digitada (em vez de arrastar barra) — maior e com bastante área de
+   toque, pensado pra digitar num celular/tablet em vez de mirar um slider. */
+.pillar-field-input {
+  width: 84px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  background: #fbfcfb;
+}
+.pillar-field-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pillar-field-input:invalid { border-color: var(--bad); }
 
 /* ===================================================
    TOGGLE GROUP (chamada / frequência)
