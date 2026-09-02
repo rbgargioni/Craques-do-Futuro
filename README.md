@@ -76,7 +76,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, fila de solicitações de plano, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
 | `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria, edição completa (nome/posição/turma/nascimento/telefone/observações) e desativar/reativar (só administrador) |
-| `avaliacoes.html` | `avaliacoes.js` | ✅ real — inclui fundamentos técnicos por posição |
+| `avaliacoes.html` | `avaliacoes.js` | ✅ real — sistema novo de 5 pilares/100 pontos (2026-09-01), ver seção própria abaixo |
 | `frequencia.html` | `frequencia.js` | ✅ real |
 | `planos.html` | `planos.js` | ✅ real |
 | `comunicacao.html` | `comunicacao.js` | ✅ real |
@@ -375,26 +375,64 @@ escolhido foi:
   Authentication → Users no console, e pode ser removida de lá manualmente
   se quiser limpar de vez.
 
-`js/metricas.js` centraliza toda a régua de avaliação (nota geral, corte
-bom/atenção, tendência, progressão de categoria, pesos dos fundamentos
-técnicos por posição). **Qualquer mudança de critério de avaliação deve
-mexer só nesse arquivo.**
+`js/metricas.js` centraliza toda a régua de avaliação. **Qualquer mudança
+de critério de avaliação deve mexer só nesse arquivo.**
 
-⚠️ **Pendência de dados, não de código**: os pesos dos fundamentos técnicos
-em `js/metricas.js` só foram validados de verdade pro **Volante** e pro
-**Atacante** (pesos somam 100 nos dois) e pro **Meio de campo** genérico
-usado hoje só pelo "Meia" (pesos somam 93 — conferir se não falta um
-fundamento). Goleiro, Zagueiro e Lateral ainda são rascunho — ver o
-comentário no topo do arquivo antes de confiar nesses números pra valer.
+### Sistema de avaliação — 5 Pilares / 100 pontos (substituiu o antigo em 2026-09-01)
 
-`js/metricas.js` também tem indicadores combinados 0-10 (cada um pega um
-subconjunto dos fundamentos de uma posição e recalcula a média ponderada só
-entre eles): `calcularInteligenciaDefensiva()` (Volante — posicionamento +
-interceptação + desarme antecipado + leitura de jogo), e do Atacante,
-`calcularCapacidadeDeAtaque()` (explosão na corrida + profundidade +
-posicionamento ofensivo + leitura de jogada) e `calcularPoderDeFinalizacao()`
-(finalização + cabeceio + pé não dominante). Assim como o resto de
-fundamentos, ainda é só lógica — não estão exibidos em nenhuma tela ainda.
+Um técnico consultado pelo Rafael apontou que a régua antiga (nota 0-10
+direta por pilar + fundamentos técnicos DIFERENTES por posição, ver
+"⚠️ pendência" abaixo) estava desatualizada. O substituto — `PILARES_100`
+em `js/metricas.js` — muda duas coisas ao mesmo tempo:
+
+1. **Escala nova**: cada pilar tem um peso fixo que soma até 100 no total
+   (Físico 20 + Técnico 30 + Tático 20 + Mental 18,5\* + Potencial/Futuro 10),
+   dividido em várias **subcategorias**, cada uma avaliada de 0 a 10.
+   Fórmula (o avaliador NUNCA digita peso, só a nota): `pontuação da
+   subcategoria = (nota ÷ 10) × peso da subcategoria`; soma das
+   subcategorias = nota do pilar; soma dos 5 pilares = nota final.
+2. **Técnico virou universal**: revoga de vez os "fundamentos técnicos por
+   posição" (pesos diferentes pra Volante, Atacante etc., ver "⚠️
+   pendência" abaixo) — agora TODO atleta usa as mesmas 10 subcategorias no
+   pilar Técnico, goleiro ou atacante. Decisão consciente e confirmada com
+   o Rafael, mesmo isso contradizendo o discurso de vendas anterior
+   ("métricas específicas por posição" em `vendas.html`) — ainda não
+   atualizei `vendas.html` pra refletir isso.
+
+\* **Pendência de dados, não de código**: o enunciado que o técnico mandou diz
+"Mental/Comportamental: peso total 20", mas a soma das 10 subcategorias que
+ele listou dá 18,5 — falta 1,5 ponto em algum lugar (ver comentário em
+`PILARES_100.mental` no código). Até o Rafael confirmar com o técnico qual
+número está certo, o sistema usa 18,5 (soma real das subcategorias) — a
+nota final máxima hoje é **98,5/100**, não 100/100.
+
+**Migração em 3 fases** (pra não quebrar o site inteiro de uma vez):
+- ✅ **Fase 1** — `js/metricas.js`: `PILARES_100`, cálculo, validação, ranking
+  de pontos fortes/fracos. Testado com dados mockados.
+- ✅ **Fase 2** — `avaliacoes.html`/`js/avaliacoes.js`: formulário novo (46
+  campos, renderizados dinamicamente a partir de `PILARES_100` — nada
+  disso é escrito à mão no HTML), nota final e ponto forte/a desenvolver
+  calculados ao vivo. Cada avaliação salva grava `notasPorPilar` +
+  `pontuacaoPorPilar` + `notaFinal`, e TAMBÉM um "espelho" de compatibilidade
+  0-10 (`tecnico`/`tatico`/`fisico`/`mental`/`evolucao`/`geral`) pra Fase 3
+  não precisar acontecer no mesmo dia. Avaliações de ANTES dessa mudança
+  não têm os campos novos — aparecem com "—" nas colunas novas da tabela em
+  vez de quebrar.
+- ⬜ **Fase 3** (ainda não feita) — Dashboard, Relatórios, Comparativos,
+  `responsavel.html` e a "Área do atleta" ainda leem só o "espelho" 0-10
+  antigo (radar de 5 pontas Técnico/Tático/Físico/Mental/Evolução). Precisam
+  ser atualizados pra mostrar os 5 pilares novos de verdade (pontuação por
+  peso, não 0-10) — depois disso, remover o espelho de compatibilidade e as
+  funções antigas (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`,
+  `calcularNotaGeral` com os pesos antigos) de `js/metricas.js`, que hoje
+  continuam lá só com uma nota de "depreciado" pra não quebrar nada no meio
+  do caminho.
+
+Os indicadores combinados antigos (`calcularInteligenciaDefensiva`,
+`calcularCapacidadeDeAtaque`, `calcularPoderDeFinalizacao` — específicos de
+Volante/Atacante) ficam obsoletos com essa migração, já que não existe mais
+fundamento técnico por posição pra combinar; devem ser removidos junto com
+o resto do sistema antigo na Fase 3.
 
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
@@ -529,6 +567,14 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   populado com os dados certos, `updateDoc` salva os campos certos, e mudar
   de turma tira o atleta da lista da turma antiga. Ainda não testado ao
   vivo.
+- **Sistema de avaliação novo (5 pilares/100 pontos)** — Fases 1 e 2 (ver
+  seção própria acima), validado só com Firestore mockado: os 46 campos
+  renderizam certo (8+10+9+10+9 por pilar), soma dos pesos bate com o
+  declarado (exceto Mental, ver pendência), totais por pilar e nota final
+  atualizam ao vivo, salvar grava `notasPorPilar`/`pontuacaoPorPilar`/
+  `notaFinal` + o espelho de compatibilidade, e uma avaliação do formato
+  antigo continua aparecendo na tabela (com "—" nas colunas novas) em vez
+  de quebrar. **Nada disso foi testado no Firebase real ainda.**
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -547,6 +593,19 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
+- **Confirmar com o técnico o peso certo do pilar Mental/Comportamental**
+  (soma das subcategorias dá 18,5, o enunciado dizia 20 — ver seção "5
+  Pilares / 100 pontos" acima) e ajustar `PILARES_100.mental` em
+  `js/metricas.js`.
+- **Fase 3 da migração do sistema de avaliação**: atualizar Dashboard,
+  Relatórios, Comparativos, `responsavel.html` e a "Área do atleta" pra
+  mostrar os 5 pilares novos (hoje ainda leem o "espelho" 0-10 antigo).
+  Depois disso, remover o espelho de compatibilidade e o sistema antigo
+  (fundamentos por posição, indicadores combinados) de `js/metricas.js`.
+- Testar o sistema de avaliação novo (5 pilares/100 pontos) no Firebase
+  real de ponta a ponta — só validado com dados mockados até agora.
+- Atualizar `vendas.html` — o discurso de "métricas específicas por
+  posição" não é mais verdade depois da mudança pro Técnico universal.
 - ✅ `firestore.rules` com a regra do campo `desativado` já está publicada.
   Falta testar desativar/reativar um atleta de verdade, como administrador e
   como técnico (técnico tem que apanhar `permission-denied` se tentar mudar
