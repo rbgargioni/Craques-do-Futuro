@@ -41,6 +41,201 @@ export function calcularNotaGeral(pilares) {
 }
 
 // ------------------------------------------------------
+// NOVO sistema de avaliação — 5 Pilares / 100 pontos (2026-09-01)
+//
+// Decisão do Rafael com um técnico consultado + confirmado por ele: a régua
+// antiga acima ("Os 5 Pilares", nota 0-10 direta por pilar) e os
+// "fundamentos técnicos por posição" mais abaixo (FUNDAMENTOS_POR_POSICAO)
+// estavam desatualizados. Este bloco é o substituto DEFINITIVO — inclusive
+// derruba a ideia de fundamentos técnicos DIFERENTES por posição: agora o
+// pilar Técnico (e todos os outros) usa as MESMAS subcategorias pra
+// qualquer atleta, seja goleiro ou atacante.
+//
+// Migração em fases (ver README): Fase 1 = só este arquivo (pronto). Fase 2
+// = reescrever avaliacoes.html/js pra usar isso em vez do formulário antigo.
+// Fase 3 = atualizar dashboard/relatórios/comparativos/responsável/Área do
+// atleta, que ainda leem os campos antigos (tecnico/tatico/fisico/mental/
+// evolucao 0-10). Até a Fase 2 terminar, tudo acima e FUNDAMENTOS_POR_POSICAO
+// abaixo continuam no ar pra não quebrar a tela de Avaliações atual.
+//
+// Regra de cálculo (o avaliador NUNCA digita peso, só nota de 0 a 10):
+//   pontuação da subcategoria = (nota ÷ 10) × peso da subcategoria
+//   pontuação do pilar        = soma das subcategorias dele
+//   nota final                = soma dos 5 pilares → 0 a 100
+// ------------------------------------------------------
+export const PILARES_100 = {
+  fisico: {
+    label: "Físico",
+    peso: 20,
+    subcategorias: {
+      velocidade: { label: "Velocidade", peso: 3.0 },
+      explosao: { label: "Explosão", peso: 3.0 },
+      agilidade: { label: "Agilidade", peso: 2.5 },
+      resistencia: { label: "Resistência/condicionamento", peso: 3.0 },
+      forca: { label: "Força", peso: 2.5 },
+      coordenacaoMotora: { label: "Coordenação motora", peso: 2.0 },
+      equilibrio: { label: "Equilíbrio", peso: 2.0 },
+      mobilidade: { label: "Mobilidade/flexibilidade", peso: 2.0 },
+    },
+  },
+  tecnico: {
+    label: "Técnico",
+    peso: 30,
+    subcategorias: {
+      dominioPrimeiroToque: { label: "Domínio/primeiro toque", peso: 4.0 },
+      passe: { label: "Passe", peso: 3.5 },
+      conducao: { label: "Condução", peso: 3.0 },
+      drible: { label: "Drible", peso: 3.5 },
+      finalizacao: { label: "Finalização", peso: 4.0 },
+      chute: { label: "Chute", peso: 2.5 },
+      cruzamento: { label: "Cruzamento", peso: 2.0 },
+      cabeceio: { label: "Cabeceio", peso: 1.5 },
+      desarme: { label: "Desarme", peso: 3.0 },
+      controleDeBola: { label: "Controle de bola", peso: 3.0 },
+    },
+  },
+  tatico: {
+    label: "Tático",
+    peso: 20,
+    subcategorias: {
+      posicionamento: { label: "Posicionamento", peso: 3.0 },
+      leituraDeJogo: { label: "Leitura de jogo", peso: 3.0 },
+      tomadaDeDecisao: { label: "Tomada de decisão", peso: 3.0 },
+      ocupacaoDeEspacos: { label: "Ocupação de espaços", peso: 2.0 },
+      movimentacaoSemBola: { label: "Movimentação sem bola", peso: 2.0 },
+      cobertura: { label: "Cobertura", peso: 2.0 },
+      transicaoAtaqueDefesa: { label: "Transição ataque/defesa", peso: 2.0 },
+      entendimentoDaPosicao: { label: "Entendimento da posição", peso: 2.0 },
+      funcaoColetiva: { label: "Função coletiva", peso: 1.0 },
+    },
+  },
+  mental: {
+    label: "Mental/Comportamental",
+    // ⚠️ O enunciado original diz "peso total: 20", mas a soma das 10
+    // subcategorias abaixo dá 18.5 (conferido pelo teste automático) — até
+    // o Rafael confirmar com o técnico qual número está certo (falta 1,5
+    // ponto em algum lugar), o peso do pilar aqui é a soma REAL das
+    // subcategorias, não o total declarado. Nota final máxima possível
+    // hoje é 98,5/100, não 100/100, por causa disso.
+    peso: 18.5,
+    subcategorias: {
+      comportamentoSobPressao: { label: "Comportamento sob pressão", peso: 2.0 },
+      concentracao: { label: "Concentração", peso: 2.0 },
+      disciplina: { label: "Disciplina", peso: 1.5 },
+      confianca: { label: "Confiança", peso: 1.5 },
+      reacaoAoErro: { label: "Reação ao erro", peso: 2.0 },
+      competitividade: { label: "Competitividade", peso: 2.0 },
+      resiliencia: { label: "Resiliência", peso: 2.0 },
+      aceitaCriticas: { label: "Aceita críticas/orientações", peso: 1.5 },
+      compreendeComando: { label: "Compreende o comando", peso: 2.0 },
+      executaComando: { label: "Executa o comando", peso: 2.0 },
+    },
+  },
+  // "Potencial/Futuro" é a capacidade estimada de evolução, NÃO a mesma
+  // coisa que o desempenho atual — mesmo assim entra na soma dos 100 pontos
+  // (é assim que foi especificado); a tela (Fase 2/3) deve mostrar isso
+  // separado do resto pra não confundir "nota atual" com "potencial".
+  potencial: {
+    label: "Potencial/Futuro",
+    peso: 10,
+    subcategorias: {
+      evolucao: { label: "Evolução", peso: 1.5 },
+      facilidadeParaAprender: { label: "Facilidade para aprender", peso: 1.5 },
+      potencialFisico: { label: "Potencial físico", peso: 1.0 },
+      potencialTecnico: { label: "Potencial técnico", peso: 1.5 },
+      potencialTatico: { label: "Potencial tático", peso: 1.0 },
+      potencialMental: { label: "Potencial mental", peso: 1.0 },
+      regularidade: { label: "Regularidade", peso: 1.0 },
+      adaptabilidade: { label: "Adaptabilidade", peso: 0.5 },
+      idadeXDesempenho: { label: "Idade x desempenho", peso: 1.0 },
+    },
+  },
+};
+
+// Ordem em que os pilares aparecem em telas/tabelas novas.
+export const ORDEM_PILARES_100 = ["fisico", "tecnico", "tatico", "mental", "potencial"];
+
+export const NOTA_MINIMA_SUBCATEGORIA = 0;
+export const NOTA_MAXIMA_SUBCATEGORIA = 10;
+
+export function notaSubcategoriaValida(nota) {
+  return (
+    typeof nota === "number" &&
+    !Number.isNaN(nota) &&
+    nota >= NOTA_MINIMA_SUBCATEGORIA &&
+    nota <= NOTA_MAXIMA_SUBCATEGORIA
+  );
+}
+
+// pontuação da subcategoria = (nota ÷ 10) × peso — trava a nota em 0-10
+// antes de calcular, pra um valor inválido nunca estourar o peso do pilar.
+export function calcularPontuacaoSubcategoria(nota, peso) {
+  const notaTravada = Math.min(NOTA_MAXIMA_SUBCATEGORIA, Math.max(NOTA_MINIMA_SUBCATEGORIA, nota || 0));
+  return (notaTravada / 10) * peso;
+}
+
+// notasPilar: { chaveDaSubcategoria: nota de 0 a 10, ... }
+// Retorna { pontos, max } — "pontos" já na escala do peso do pilar (ex.: até 30 pro Técnico).
+export function calcularPontuacaoPilar(pilarChave, notasPilar) {
+  const pilar = PILARES_100[pilarChave];
+  if (!pilar) return null;
+  const chaves = Object.keys(pilar.subcategorias);
+  const pontos = chaves.reduce(
+    (total, chave) => total + calcularPontuacaoSubcategoria((notasPilar || {})[chave], pilar.subcategorias[chave].peso),
+    0
+  );
+  return { pontos: Math.round(pontos * 100) / 100, max: pilar.peso };
+}
+
+// notasPorPilar: { fisico: {chave: nota, ...}, tecnico: {...}, tatico: {...}, mental: {...}, potencial: {...} }
+// Retorna { porPilar: {fisico: {pontos,max}, ...}, notaFinal } — notaFinal de 0 a 100.
+export function calcularAvaliacaoCompleta(notasPorPilar) {
+  const porPilar = {};
+  let notaFinal = 0;
+  ORDEM_PILARES_100.forEach((chave) => {
+    const resultado = calcularPontuacaoPilar(chave, (notasPorPilar || {})[chave]);
+    porPilar[chave] = resultado;
+    notaFinal += resultado.pontos;
+  });
+  return { porPilar, notaFinal: Math.round(notaFinal * 100) / 100 };
+}
+
+// Pra gráficos que precisam de uma escala comum entre pilares de peso
+// diferente (radar 0-10, por exemplo): normaliza a pontuação do pilar pro
+// tamanho do PESO dele, não pro maior peso entre todos.
+export function normalizarPilarPara10(pontos, max) {
+  if (!max) return 0;
+  return Math.round((pontos / max) * 10 * 10) / 10;
+}
+
+// Ponto forte / ponto a melhorar entre TODAS as subcategorias dos 5
+// pilares — por NOTA BRUTA (0-10) que o avaliador deu, não pela pontuação
+// ponderada: o peso decide o quanto aquilo conta na nota final, mas
+// "força"/"fraqueza" é sobre o nível de habilidade em si, não sobre o peso.
+export function analisarPontosFortesFracos(notasPorPilar) {
+  const todas = [];
+  ORDEM_PILARES_100.forEach((pilarChave) => {
+    const pilar = PILARES_100[pilarChave];
+    const notasDoPilar = (notasPorPilar || {})[pilarChave] || {};
+    Object.keys(pilar.subcategorias).forEach((chave) => {
+      todas.push({
+        pilar: pilarChave,
+        pilarLabel: pilar.label,
+        chave,
+        label: pilar.subcategorias[chave].label,
+        nota: notasDoPilar[chave] || 0,
+      });
+    });
+  });
+  todas.sort((a, b) => b.nota - a.nota);
+  return {
+    ranking: todas,
+    melhor: todas[0] || null,
+    piorAMelhorar: todas[todas.length - 1] || null,
+  };
+}
+
+// ------------------------------------------------------
 // "Bom" vs "Atenção" — usado nos pills/badges de nota em todo o site
 // ------------------------------------------------------
 export const NOTA_DE_CORTE_BOA = 7;
@@ -112,6 +307,11 @@ export function pontosEvolucao(avaliacoesOrdenadas, { xMin = 10, xMax = 270, yTo
   });
 }
 
+// ------------------------------------------------------
+// ⚠️ DEPRECIADO (2026-09-01) — substituído pelo pilar "Técnico" universal em
+// PILARES_100 acima (mesmas subcategorias pra qualquer posição). Continua
+// aqui só até a Fase 2 trocar o formulário de avaliacoes.html/js — depois
+// disso, remover tudo daqui até o fim do arquivo. Não usar em código novo.
 // ------------------------------------------------------
 // Fundamentos técnicos por posição — usados pra calcular o pilar "Técnico"
 // a partir de notas de 1 a 10 em cada fundamento, em vez de uma nota única.
