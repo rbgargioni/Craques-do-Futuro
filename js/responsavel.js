@@ -80,6 +80,7 @@ async function atualizarInfoEscolaTurma() {
   if (!atleta) {
     info.textContent = "";
     document.getElementById("badgePagamento").classList.add("is-hidden");
+    document.getElementById("secaoObservacaoFamilia").classList.add("is-hidden");
     return;
   }
 
@@ -108,6 +109,13 @@ async function atualizarInfoEscolaTurma() {
   badge.classList.remove("is-hidden");
   badge.className = `badge ${inadimplente ? "badge--bad" : "badge--done"}`;
   badge.textContent = inadimplente ? "Mensalidade pendente" : "Mensalidade em dia";
+
+  // Observação da família — texto que o técnico escreve pro responsável ler (diferente das
+  // observações internas, que nunca chegam aqui). Ver campo observacoesFamilia em firestore.rules.
+  const secaoObs = document.getElementById("secaoObservacaoFamilia");
+  const textoObs = atleta.observacoesFamilia ? atleta.observacoesFamilia.trim() : "";
+  secaoObs.classList.toggle("is-hidden", !textoObs);
+  document.getElementById("textoObservacaoFamilia").textContent = textoObs;
 }
 
 // ------------------------------------------------------

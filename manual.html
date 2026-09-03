@@ -179,7 +179,7 @@
       <p>Cadastre atletas por turma: nome, posição, data de nascimento, telefone do responsável e observações. Cada atleta ganha:</p>
       <ul>
         <li><strong>Nível de evolução</strong> — uma barra de 1 a 9 dentro da categoria atual (ex: Sub-9), ajustada com os botões "+"/"−". Ao chegar no nível máximo, aparece um aviso "pronto pra subir de categoria" com um botão de promover.</li>
-        <li><strong>Código da Área do atleta</strong> — 6 letras/números mostrados no card, que o responsável (pai/mãe) usa pra ver o resumo do filho numa página sem login. Dá pra gerar um código novo a qualquer momento (o antigo para de funcionar).</li>
+        <li><strong>Código da Área do atleta</strong> — 6 letras/números mostrados no card, que o responsável (pai/mãe) usa pra ver o resumo do filho numa página sem login. Dá pra gerar um código novo a qualquer momento (o antigo para de funcionar) e copiar com um clique no botão 📋.</li>
         <li><strong>Status de pagamento</strong> — uma etiqueta "Em dia"/"Inadimplente" que você clica pra alternar. É só um lembrete visual — não existe cobrança automática, é você quem marca manualmente quando sabe que a mensalidade está atrasada.</li>
       </ul>
       <div class="manual-example">
@@ -187,7 +187,13 @@
         <span class="badge badge--bad">Inadimplente</span>
         <span class="badge badge--bad">Inativo</span>
       </div>
-      <p style="margin-top:14px;"><strong>Editar atleta</strong>: clique em "Editar atleta" no card pra corrigir nome, posição, turma, data de nascimento, telefone ou observações a qualquer momento.</p>
+      <p style="margin-top:14px;"><strong>Perfil do atleta</strong>: clique em "Perfil do atleta" no card pra abrir um painel com três abas:</p>
+      <ul>
+        <li><strong>Dados</strong> — nome, posição, turma, nascimento, telefone e e-mail do responsável.</li>
+        <li><strong>Observações internas</strong> — anotações que só a equipe (você e outros técnicos/administradores) vê. O responsável nunca tem acesso a essa aba.</li>
+        <li><strong>Observações da família</strong> — um recado ou observação que o responsável TAMBÉM vê, no login dele. Use essa quando quiser que a família saiba de algo (a interna é só pra uso próprio da equipe).</li>
+      </ul>
+      <p>Logo abaixo das abas fica <strong>"Acesso do responsável"</strong>: se ainda não existe login criado pro responsável desse atleta, preencha nome, e-mail e uma senha provisória e clique em "Criar acesso do responsável" — a conta já fica pronta pra ele entrar (pode criar mais de um acesso pro mesmo atleta, por exemplo pai e mãe separados).</p>
       <p><strong>Desativar/reativar atleta</strong> (só administrador): não existe "excluir" de verdade — perderia o histórico de avaliações do atleta. Desativar só marca o atleta como inativo (etiqueta "Inativo" aparece pra todo mundo), sem apagar nada; dá pra reativar quando quiser.</p>
       <p><strong>Recalcular a partir do histórico</strong>: se um atleta já tinha avaliações/chamadas registradas antes de ganhar o código da Área do atleta, use esse link no card dele pra atualizar o resumo com o que já existe.</p>
     </section>
@@ -200,6 +206,7 @@
     <section id="equipe-frequencia" class="manual-card">
       <h3>Frequência</h3>
       <p>Faça a chamada de uma turma marcando cada atleta como Presente, Atrasado ou Ausente. O histórico alimenta o percentual de frequência mostrado nos relatórios e na Área do atleta.</p>
+      <p style="margin-top:14px;"><strong>Avaliação geral do treino</strong>: logo abaixo da chamada, dê uma nota de 0 a 10 pro treino do dia e escreva como a turma toda se comportou/evoluiu — diferente da avaliação individual de cada atleta, essa é sobre a sessão inteira. Fica um histórico das últimas sessões logo abaixo, e dá pra ajustar a nota/texto do dia quantas vezes quiser (não trava como a chamada).</p>
     </section>
 
     <section id="equipe-planos" class="manual-card">

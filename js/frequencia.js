@@ -8,7 +8,7 @@
 // ======================================================
 
 import {
-  collection, doc, getDocs, writeBatch, increment, serverTimestamp, onSnapshot, query, where, Timestamp,
+  collection, doc, getDoc, getDocs, setDoc, writeBatch, increment, serverTimestamp, onSnapshot, query, where, Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 
@@ -30,6 +30,8 @@ function escolaId() { return window.CF.escolaId; }
 function turmasRef() { return collection(db, "escolas", escolaId(), "turmas"); }
 function atletasRef() { return collection(db, "escolas", escolaId(), "atletas"); }
 function frequenciaRef() { return collection(db, "escolas", escolaId(), "frequencia"); }
+function sessoesTreinoRef() { return collection(db, "escolas", escolaId(), "sessoesTreino"); }
+function sessaoHojeRef() { return doc(db, "escolas", escolaId(), "sessoesTreino", `${turmaAtivaId}_${hojeISO()}`); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
 
 function hojeISO() {
@@ -63,6 +65,8 @@ async function popularSeletorTurma() {
     atualizarTurmaBar();
     await carregarEstadosDeHoje();
     ouvirAtletas();
+    await carregarSessaoDeHoje();
+    ouvirHistoricoSessoes();
     return;
   }
 
@@ -87,6 +91,8 @@ async function popularSeletorTurma() {
   atualizarTurmaBar();
   await carregarEstadosDeHoje();
   ouvirAtletas();
+  await carregarSessaoDeHoje();
+  ouvirHistoricoSessoes();
 }
 
 function ouvirTurmas() {
@@ -108,7 +114,119 @@ function montarSeletorTurma() {
     atualizarTurmaBar();
     await carregarEstadosDeHoje();
     ouvirAtletas();
+    await carregarSessaoDeHoje();
+    ouvirHistoricoSessoes();
   });
+}
+
+// ------------------------------------------------------
+// Avaliação geral do treino — uma "nota da turma" e um texto de como foi a
+// sessão, por turma+dia (mesmo padrão de id determinístico da chamada:
+// salvar de novo no mesmo dia faz upsert em vez de duplicar). Diferente da
+// chamada, não trava depois de salvo — dá pra ajustar durante o dia.
+// ------------------------------------------------------
+async function carregarSessaoDeHoje() {
+  const form = document.getElementById("formSessaoTreino");
+  form.reset();
+  document.getElementById("dataSessaoTreino").textContent = new Date().toLocaleDateString("pt-BR");
+  if (!turmaAtivaId) return;
+  try {
+    const snap = await getDoc(sessaoHojeRef());
+    if (snap.exists()) {
+      const dados = snap.data();
+      form.notaGeral.value = typeof dados.notaGeral === "number" ? dados.notaGeral : "";
+      form.observacoes.value = dados.observacoes || "";
+    }
+  } catch (erro) {
+    console.error("Erro ao carregar a avaliação do treino de hoje:", erro);
+  }
+}
+
+function configurarFormSessaoTreino() {
+  const form = document.getElementById("formSessaoTreino");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!turmaAtivaId) {
+      showToast("Selecione uma turma antes de salvar.");
+      return;
+    }
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+
+    try {
+      const iso = hojeISO();
+      await setDoc(sessaoHojeRef(), {
+        turmaId: turmaAtivaId,
+        data: Timestamp.fromDate(new Date(`${iso}T12:00:00`)),
+        notaGeral: form.notaGeral.value !== "" ? Number(form.notaGeral.value) : null,
+        observacoes: form.observacoes.value.trim(),
+        atualizadoEm: serverTimestamp(),
+      });
+      showToast("Avaliação do treino salva.");
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível salvar. Tente novamente.");
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar avaliação do treino";
+    }
+  });
+}
+
+function criarItemSessao(dados) {
+  const li = document.createElement("li");
+  li.className = "message-item";
+
+  const head = document.createElement("div");
+  head.className = "message-item-head";
+  const dataEl = document.createElement("strong");
+  dataEl.textContent = dados.data ? dados.data.toDate().toLocaleDateString("pt-BR") : "—";
+  const notaEl = document.createElement("span");
+  notaEl.textContent = typeof dados.notaGeral === "number" ? `Nota ${dados.notaGeral}` : "Sem nota";
+  head.append(dataEl, notaEl);
+
+  const paragrafo = document.createElement("p");
+  paragrafo.textContent = dados.observacoes || "";
+
+  li.append(head, paragrafo);
+  return li;
+}
+
+let pararDeOuvirSessoes = null;
+function ouvirHistoricoSessoes() {
+  if (pararDeOuvirSessoes) {
+    pararDeOuvirSessoes();
+    pararDeOuvirSessoes = null;
+  }
+
+  const lista = document.getElementById("listaSessoesTreino");
+  if (!turmaAtivaId) {
+    lista.innerHTML = '<li class="empty-state">Selecione uma turma.</li>';
+    return;
+  }
+
+  lista.innerHTML = '<li class="empty-state">Carregando...</li>';
+  const q = query(sessoesTreinoRef(), where("turmaId", "==", turmaAtivaId));
+  pararDeOuvirSessoes = onSnapshot(
+    q,
+    (snapshot) => {
+      const registros = [];
+      snapshot.forEach((docSnap) => registros.push(docSnap.data()));
+      registros.sort((a, b) => (b.data?.toMillis?.() || 0) - (a.data?.toMillis?.() || 0));
+
+      lista.innerHTML = "";
+      if (registros.length === 0) {
+        lista.innerHTML = '<li class="empty-state">Nenhuma sessão registrada ainda.</li>';
+        return;
+      }
+      registros.slice(0, 10).forEach((dados) => lista.appendChild(criarItemSessao(dados)));
+    },
+    (erro) => {
+      console.error("Erro ao carregar o histórico de sessões:", erro);
+      lista.innerHTML = '<li class="empty-state">Não foi possível carregar o histórico.</li>';
+    }
+  );
 }
 
 // ------------------------------------------------------
@@ -323,4 +441,5 @@ document.addEventListener("cf:pronto", () => {
   ouvirTurmas();
   montarSeletorTurma();
   configurarBotaoSalvar();
+  configurarFormSessaoTreino();
 });

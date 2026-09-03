@@ -5,9 +5,11 @@
 // ======================================================
 
 import {
-  collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, Timestamp, arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from "./firebase-init.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { app as appPrincipal, db } from "./firebase-init.js";
 import { PROXIMA_CATEGORIA, NIVEL_MAXIMO, NIVEL_INICIAL, estaProntoParaEvoluir } from "./metricas.js";
 
 let turmasCache = {}; // turmaId -> dados
@@ -397,6 +399,108 @@ function popularSelectTurmaEditar(turmaSelecionadaId) {
   });
 }
 
+// ------------------------------------------------------
+// Abas do perfil (Dados / Observações internas / Observações da família) —
+// só troca qual bloco aparece, não tem lógica de dados nenhuma aqui.
+// ------------------------------------------------------
+function configurarAbasPerfil() {
+  document.querySelectorAll(".perfil-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".perfil-tab").forEach((b) => b.classList.toggle("is-active", b === btn));
+      const alvo = btn.dataset.perfilTab;
+      document.querySelectorAll(".perfil-tab-panel").forEach((painel) => {
+        painel.classList.toggle("is-hidden", painel.dataset.perfilPanel !== alvo);
+      });
+    });
+  });
+}
+
+function voltarPraAbaDados() {
+  document.querySelectorAll(".perfil-tab").forEach((b) => b.classList.toggle("is-active", b.dataset.perfilTab === "dados"));
+  document.querySelectorAll(".perfil-tab-panel").forEach((p) => p.classList.toggle("is-hidden", p.dataset.perfilPanel !== "dados"));
+}
+
+// ------------------------------------------------------
+// Acesso do responsável — cria a conta de login (e-mail/senha) vinculada a
+// este atleta. Mesmo padrão de criarContaSemDeslogar() já usado em
+// admin-escolas.js/gestor-escolas.js/turmas.js: instância secundária do
+// Firebase App, só pra não deslogar quem está cadastrando.
+// ------------------------------------------------------
+async function criarContaSemDeslogar(email, senha) {
+  const appSecundario = initializeApp(appPrincipal.options, `secundario-${Date.now()}`);
+  const authSecundario = getAuth(appSecundario);
+  try {
+    const credencial = await createUserWithEmailAndPassword(authSecundario, email, senha);
+    return credencial.user.uid;
+  } finally {
+    await signOut(authSecundario).catch(() => {});
+    await deleteApp(appSecundario).catch(() => {});
+  }
+}
+
+function traduzirErroConta(erro) {
+  const codigo = erro && erro.code ? erro.code : "";
+  if (codigo.includes("email-already-in-use")) return "Esse e-mail já está sendo usado por outra conta.";
+  if (codigo.includes("weak-password")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (codigo.includes("invalid-email")) return "E-mail inválido.";
+  if (codigo.includes("permission-denied")) return "Você não tem permissão pra fazer essa ação.";
+  return (erro && erro.message) || "Algo deu errado. Tente novamente em alguns segundos.";
+}
+
+function atualizarAcessoResponsavel(atletaId, dados) {
+  const statusEl = document.getElementById("statusAcessoResponsavel");
+  const form = document.getElementById("formCriarAcessoResponsavel");
+  form.dataset.atletaId = atletaId;
+
+  const jaTemAcesso = Array.isArray(dados.responsavelUids) && dados.responsavelUids.length > 0;
+  if (jaTemAcesso) {
+    statusEl.textContent = `Já existe acesso criado (${dados.responsavelUids.length} conta${dados.responsavelUids.length === 1 ? "" : "s"} vinculada${dados.responsavelUids.length === 1 ? "" : "s"}). Criar um novo abaixo adiciona outra conta, não substitui a existente.`;
+  } else {
+    statusEl.textContent = "Nenhum acesso de responsável criado ainda pra este atleta.";
+  }
+  form.classList.remove("is-hidden");
+  form.email.value = dados.emailResponsavel || "";
+  form.nome.value = "";
+  form.senha.value = "";
+}
+
+function configurarFormCriarAcessoResponsavel() {
+  const form = document.getElementById("formCriarAcessoResponsavel");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const botao = form.querySelector("button[type=submit]");
+    botao.disabled = true;
+    botao.textContent = "Criando...";
+
+    try {
+      const atletaId = form.dataset.atletaId;
+      const nome = form.nome.value.trim();
+      const email = form.email.value.trim();
+      const senha = form.senha.value;
+
+      const novoUid = await criarContaSemDeslogar(email, senha);
+      await setDoc(doc(db, "usuarios", novoUid), {
+        role: "responsavel",
+        escolaId: escolaId(),
+        atletaIds: [atletaId],
+        nome,
+        email,
+      });
+      await updateDoc(atletaRef(atletaId), { responsavelUids: arrayUnion(novoUid) });
+
+      showToast(`Acesso criado — ${nome} já pode entrar com ${email}.`);
+      form.reset();
+      document.getElementById("statusAcessoResponsavel").textContent = "Acesso criado. Criar outro abaixo adiciona mais uma conta.";
+    } catch (erro) {
+      console.error(erro);
+      showToast(traduzirErroConta(erro));
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Criar acesso do responsável";
+    }
+  });
+}
+
 function abrirEdicaoAtleta(atletaId, dados) {
   const form = document.getElementById("formEditarAtleta");
   form.dataset.atletaId = atletaId;
@@ -405,10 +509,14 @@ function abrirEdicaoAtleta(atletaId, dados) {
   form.posicao.value = dados.posicao;
   form.nascimento.value = dados.nascimento ? dados.nascimento.toDate().toISOString().slice(0, 10) : "";
   form.telefone.value = dados.telefone || "";
+  form.emailResponsavel.value = dados.emailResponsavel || "";
   form.observacoes.value = dados.observacoes || "";
+  form.observacoesFamilia.value = dados.observacoesFamilia || "";
   popularSelectTurmaEditar(dados.turmaId);
+  voltarPraAbaDados();
+  atualizarAcessoResponsavel(atletaId, dados);
 
-  document.getElementById("tituloEditarAtleta").textContent = `Editar ${dados.nome}`;
+  document.getElementById("tituloEditarAtleta").textContent = `Perfil de ${dados.nome}`;
   document.getElementById("painelCadastro").classList.add("is-hidden");
   const painel = document.getElementById("painelEditarAtleta");
   painel.classList.remove("is-hidden");
@@ -434,7 +542,9 @@ function configurarFormEditarAtleta() {
         turmaId: novaTurmaId,
         nascimento: Timestamp.fromDate(new Date(`${form.nascimento.value}T12:00:00`)),
         telefone: form.telefone.value.trim(),
+        emailResponsavel: form.emailResponsavel.value.trim(),
         observacoes: form.observacoes.value.trim(),
+        observacoesFamilia: form.observacoesFamilia.value.trim(),
       });
 
       showToast(
@@ -505,7 +615,22 @@ function criarCardAtleta(atletaId, dados) {
       btnRegenerar.disabled = false;
     }
   });
-  codigoLinha.append(codigoValor, btnRegenerar);
+  const btnCopiar = document.createElement("button");
+  btnCopiar.type = "button";
+  btnCopiar.className = "codigo-publico-copiar";
+  btnCopiar.textContent = "📋";
+  btnCopiar.title = "Copiar código";
+  btnCopiar.setAttribute("aria-label", "Copiar código da Área do atleta");
+  btnCopiar.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(dados.codigoPublico || "");
+      showToast("Código copiado.");
+    } catch (erro) {
+      console.error(erro);
+      showToast("Não foi possível copiar. Selecione o código manualmente.");
+    }
+  });
+  codigoLinha.append(codigoValor, btnCopiar, btnRegenerar);
 
   const linkRecalcular = document.createElement("button");
   linkRecalcular.type = "button";
@@ -563,7 +688,7 @@ function criarCardAtleta(atletaId, dados) {
   const botaoEditar = document.createElement("button");
   botaoEditar.type = "button";
   botaoEditar.className = "btn btn-outline btn-sm";
-  botaoEditar.textContent = "Editar atleta";
+  botaoEditar.textContent = "Perfil do atleta";
   botaoEditar.addEventListener("click", () => abrirEdicaoAtleta(atletaId, dados));
   acoes.appendChild(botaoEditar);
 
@@ -644,7 +769,9 @@ function configurarFormCadastrarAtleta() {
         posicao: form.posicao.value,
         nascimento: Timestamp.fromDate(new Date(`${form.nascimento.value}T12:00:00`)),
         telefone: form.telefone.value.trim(),
+        emailResponsavel: form.emailResponsavel.value.trim(),
         observacoes: form.observacoes.value.trim(),
+        observacoesFamilia: "",
         turmaId: turmaAtivaId,
         status: "ativo",
         statusPagamento: "em_dia",
@@ -676,6 +803,8 @@ document.addEventListener("cf:pronto", () => {
   montarSeletorTurma();
   configurarFormCadastrarAtleta();
   configurarFormEditarAtleta();
+  configurarAbasPerfil();
+  configurarFormCriarAcessoResponsavel();
 
   // "Cadastrar atleta" e "Editar atleta" não fazem sentido abertos ao mesmo tempo
   document.getElementById("btnCadastrarAtleta").addEventListener("click", () => {

@@ -64,10 +64,15 @@
 //
 //   escolas/{escolaId}/turmas/{turmaId}          — nome, categoria, temporada, ativa
 //   escolas/{escolaId}/atletas/{atletaId}
-//     nome, posicao, nascimento, telefone, observacoes, turmaId, status, responsavelUids
+//     nome, posicao, nascimento, telefone, emailResponsavel, observacoes, turmaId, status,
+//       responsavelUids (array de uid de usuarios/{uid} com role "responsavel" vinculados)
 //     categoriaAtual, nivelAtual (1-9, ajustado manualmente), nivelDesde (Timestamp — usado para o
 //       aviso de "pronto para subir" depois de um tempo mínimo no nível 9)
 //     codigoPublico (string, 6 caracteres) — código da "Área do atleta" (ver resumosPublicos abaixo)
+//     observacoesFamilia: string — texto que técnico/administrador escreve e o responsável TAMBÉM
+//       vê (responsavel.html) — diferente de `observacoes` (que é só da equipe, nunca aparece pro
+//       responsável). Sem regra especial: é só mais um campo normal do atleta, a diferença de
+//       visibilidade já vem de quem pode LER o documento inteiro (isResponsavelDe, ver abaixo).
 //     desativado: boolean — "excluir/desativar atleta" pelo administrador. NÃO é o mesmo campo que
 //       `status` (que é a saúde da avaliação, "ativo"/"atencao" — nomes parecidos, coisas
 //       diferentes, cuidado). Decisão consciente: não existe exclusão de verdade de atleta a partir
@@ -103,6 +108,12 @@
 //
 //   escolas/{escolaId}/frequencia/{turmaId}_{data}_{atletaId}    id determinístico -> upsert com set()
 //     turmaId, atletaId, data, estado: "presente" | "atrasado" | "ausente"
+//
+//   escolas/{escolaId}/sessoesTreino/{turmaId}_{data}    id determinístico -> upsert com set()
+//     turmaId, data, notaGeral (number 0-10 | null), observacoes (como a turma se comportou),
+//     atualizadoEm
+//     -> "avaliação geral do treino", por TURMA (não por atleta — isso já existe em avaliacoes).
+//        Diferente da chamada, NÃO trava depois de salva; salvar de novo no mesmo dia atualiza.
 //
 //   escolas/{escolaId}/planos/{planoId}
 //   escolas/{escolaId}/mensagens/{mensagemId}
@@ -315,6 +326,10 @@ service cloud.firestore {
         allow read:  if isDono() || isStaffAtivo(escolaId)
                      || isResponsavelDe(escolaId, resource.data.atletaId);
         allow write: if isDono() || isStaffAtivo(escolaId);
+      }
+
+      match /sessoesTreino/{sessaoId} {
+        allow read, write: if isDono() || isStaffAtivo(escolaId);   // por turma, responsável não vê (é sobre a turma toda, não só o filho dele)
       }
 
       match /planos/{planoId} {

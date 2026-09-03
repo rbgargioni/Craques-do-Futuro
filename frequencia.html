@@ -141,6 +141,38 @@
       </div>
     </section>
 
+    <!-- AVALIAÇÃO GERAL DO TREINO -->
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h3>📊 Avaliação geral do treino</h3>
+        <span class="tag" id="dataSessaoTreino"></span>
+      </div>
+      <p class="muted" style="font-size:13px;margin:-6px 0 14px;">Como a turma toda foi na sessão de hoje — separado da avaliação individual de cada atleta.</p>
+      <form id="formSessaoTreino" class="form-grid">
+        <div class="field">
+          <label for="notaSessaoTreino">Nota geral do treino (0 a 10)</label>
+          <input type="number" id="notaSessaoTreino" name="notaGeral" min="0" max="10" step="0.5" placeholder="Ex: 8">
+        </div>
+        <div class="field field--full">
+          <label for="observacoesSessaoTreino">Como a turma se comportou / evoluiu</label>
+          <textarea id="observacoesSessaoTreino" name="observacoes" placeholder="Ex: turma respondeu bem ao treino de finalização, precisa melhorar o posicionamento defensivo..."></textarea>
+        </div>
+        <div class="form-actions field--full">
+          <button type="submit" class="btn btn-primary">Salvar avaliação do treino</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- HISTÓRICO DE SESSÕES -->
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h3>Histórico de sessões</h3>
+      </div>
+      <ul class="message-list" id="listaSessoesTreino">
+        <li class="empty-state">Carregando...</li>
+      </ul>
+    </section>
+
   </main>
 </div>
 

@@ -448,6 +448,65 @@ sistema depreciado (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`) podem
 ser removidos de `js/metricas.js` quando quiser — não tem mais nenhuma
 tela usando eles, ficaram só documentados como "depreciado" no arquivo.
 
+### Perfil do atleta — dados, observações internas e observações da família
+
+O botão "Perfil do atleta" no card (antes chamava "Editar atleta") abre um
+painel com **abas** (`js/atletas.js`, `configurarAbasPerfil()` — troca
+simples de `is-hidden`, sem lib nenhuma):
+
+- **Dados**: os campos que já existiam (nome, posição, turma, nascimento,
+  telefone) + campo novo **E-mail do responsável** (`emailResponsavel`, só
+  contato, não cria login sozinho).
+- **Observações internas**: o campo `observacoes` que já existia — **só a
+  equipe vê**, nunca aparece pro responsável.
+- **Observações da família** (campo novo, `observacoesFamilia`): o técnico
+  escreve, e o responsável **também vê** essa, em `responsavel.html`
+  ("📝 Observação da equipe" — só aparece se tiver texto). Nenhuma regra
+  nova no Firestore precisou existir pra isso: o responsável já lia o
+  documento do atleta inteiro (`isResponsavelDe`), então um campo a mais só
+  precisou ser exibido na tela dele.
+
+Abaixo das abas, uma seção separada **"Acesso do responsável"** resolve o
+que faltava: cadastrar o e-mail sozinho não criava login nenhum. Um botão
+"Criar acesso do responsável" (nome + e-mail + senha provisória) cria a
+conta de verdade — mesmo padrão de `criarContaSemDeslogar()` já usado pra
+técnico/administrador — e vincula com `atletaId` em `usuarios/{uid}.atletaIds`
+e o uid novo em `atletas/{id}.responsavelUids` (`arrayUnion`). Pré-preenche
+o e-mail com o que estiver em "Dados", se tiver. Dá pra criar mais de um
+acesso pro mesmo atleta (ex: pai e mãe, contas separadas) — o painel avisa
+quantos já existem, mas não impede criar outro. **Nenhuma regra nova
+precisou ser criada** — `podeCriarTecnico`/`isStaffAtivo` já permitiam
+administrador/técnico criar perfil `responsavel` desde sempre.
+
+### Avaliação geral do treino (por turma, separada da avaliação individual)
+
+Nova coleção `escolas/{id}/sessoesTreino/{turmaId}_{data}` (id
+determinístico, igual à chamada — salvar de novo no mesmo dia atualiza em
+vez de duplicar). Em `frequencia.html`, logo abaixo da chamada: um campo de
+**nota geral do treino (0-10)** e um texto livre de **como a turma se
+comportou/evoluiu**, com um histórico das últimas sessões da turma logo
+abaixo. **Diferente da chamada, não trava depois de salvo** — dá pra
+ajustar durante o dia. Responsável não tem acesso (é sobre a turma toda,
+não sobre o filho dele especificamente).
+
+### Botão de copiar o código da Área do atleta
+
+No card do atleta, ao lado do código de 6 caracteres, um botão "📋" copia
+pra área de transferência (`navigator.clipboard.writeText`) — pra não
+depender de selecionar o texto manualmente (fácil de errar e acabar
+clicando em algo que recarrega a página sem querer). Precisa de contexto
+seguro (HTTPS ou `localhost`) pra funcionar — já é o caso tanto local
+quanto no Firebase Hosting.
+
+### Card do atleta no celular — "Área do atleta" não empilha mais torto
+
+No card, avatar + nome + o bloco "Área do atleta" ficavam espremidos numa
+tela estreita. A partir de agora (`@media (max-width: 980px)` em
+`css/style.css`), o bloco do código vira uma faixa própria, largura cheia,
+separada por uma linha pontilhada — em vez de ficar cortado ou colado sem
+contexto. O menu lateral (que já virava gaveta/hambúrguer no celular)
+não mudou.
+
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
 Toda página tem um `manifest.json` (raiz do projeto) + `<link rel="manifest">`
@@ -590,6 +649,13 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   avaliação do formato antigo continua aparecendo na tabela (com "—" nas
   colunas novas) em vez de quebrar. **Nada disso foi testado no Firebase
   real ainda.**
+- **Perfil do atleta com abas** (Dados/Observações internas/Observações da
+  família), **acesso do responsável** (criar conta vinculada a um atleta),
+  **avaliação geral do treino** (`sessoesTreino`), **botão de copiar código**
+  e o **ajuste de CSS do card no celular** (tudo adicionado em 2026-09-01,
+  ver seções próprias acima) — validei sintaxe (import dinâmico sem erro,
+  IDs cruzados entre HTML/JS) mas **nada disso foi testado no Firebase real
+  ainda**, incluindo a regra nova de `sessoesTreino`.
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -608,6 +674,17 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
+- **Investigar a página recarregando sozinha no Firebase Hosting** — o
+  Rafael reportou isso pré-liberação pros testes (2026-09-01). Ainda
+  aguardando a URL de produção pra investigar (console/rede); como não é
+  Service Worker (não existe um, ver seção PWA acima), o mais provável é
+  algum loop de redirecionamento no `js/auth-guard.js` ou cache do
+  Firebase Hosting, não limitação do servidor em si (é hosting estático,
+  sem cold start).
+- **Recados individuais/turma** — pelo código, `destinatarioId` já é salvo
+  e `responsavel.js` já filtra por ele corretamente (parece já funcionar).
+  O Rafael reportou como quebrado antes de eu reler o código — vale
+  reconfirmar ao vivo antes de mexer em algo que já está certo.
 - **Confirmar com o técnico se o ajuste provisório do pilar Mental está
   certo** (`confianca` foi de 1,5 pra 3,0 pra fechar em 20 — ver seção "5
   Pilares / 100 pontos" acima). Se ele confirmar que era outra

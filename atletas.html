@@ -129,6 +129,10 @@
           <label for="telefoneResponsavel">Telefone do responsável</label>
           <input type="tel" id="telefoneResponsavel" name="telefone" placeholder="(00) 00000-0000">
         </div>
+        <div class="field">
+          <label for="emailResponsavelAtleta">E-mail do responsável</label>
+          <input type="email" id="emailResponsavelAtleta" name="emailResponsavel" placeholder="responsavel@email.com">
+        </div>
         <div class="field field--full">
           <label for="observacoesAtleta">Observações</label>
           <textarea id="observacoesAtleta" name="observacoes" placeholder="Alguma informação importante sobre o atleta..."></textarea>
@@ -140,46 +144,95 @@
       </form>
     </section>
 
-    <!-- PAINEL DE EDIÇÃO (aberto ao clicar "Editar" no card) -->
+    <!-- PERFIL DO ATLETA (aberto ao clicar "Perfil do atleta" no card) -->
     <section class="panel is-hidden" id="painelEditarAtleta">
       <div class="panel-head">
-        <h3 id="tituloEditarAtleta">Editar atleta</h3>
+        <h3 id="tituloEditarAtleta">Perfil do atleta</h3>
         <button type="button" class="btn btn-outline btn-sm" data-toggle-panel="painelEditarAtleta">Fechar</button>
       </div>
-      <form id="formEditarAtleta" class="form-grid">
+
+      <div class="perfil-tabs">
+        <button type="button" class="perfil-tab is-active" data-perfil-tab="dados">Dados</button>
+        <button type="button" class="perfil-tab" data-perfil-tab="internas">Observações internas</button>
+        <button type="button" class="perfil-tab" data-perfil-tab="familia">Observações da família</button>
+      </div>
+
+      <form id="formEditarAtleta">
+        <div class="perfil-tab-panel" data-perfil-panel="dados">
+          <div class="form-grid">
+            <div class="field">
+              <label for="nomeEditarAtleta">Nome completo</label>
+              <input type="text" id="nomeEditarAtleta" name="nome" required>
+            </div>
+            <div class="field">
+              <label for="posicaoEditarAtleta">Posição</label>
+              <select id="posicaoEditarAtleta" name="posicao">
+                <option>Goleiro</option>
+                <option>Zagueiro</option>
+                <option>Lateral</option>
+                <option>Volante</option>
+                <option>Meia</option>
+                <option>Atacante</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="turmaEditarAtleta">Turma</label>
+              <select id="turmaEditarAtleta" name="turmaId"></select>
+            </div>
+            <div class="field">
+              <label for="nascimentoEditarAtleta">Data de nascimento</label>
+              <input type="date" id="nascimentoEditarAtleta" name="nascimento" required>
+            </div>
+            <div class="field">
+              <label for="telefoneEditarAtleta">Telefone do responsável</label>
+              <input type="tel" id="telefoneEditarAtleta" name="telefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="field">
+              <label for="emailEditarAtleta">E-mail do responsável</label>
+              <input type="email" id="emailEditarAtleta" name="emailResponsavel" placeholder="responsavel@email.com">
+            </div>
+          </div>
+        </div>
+
+        <div class="perfil-tab-panel is-hidden" data-perfil-panel="internas">
+          <div class="field field--full">
+            <label for="observacoesEditarAtleta">Observações internas <span class="muted">(só a equipe vê — o responsável não tem acesso)</span></label>
+            <textarea id="observacoesEditarAtleta" name="observacoes" placeholder="Anotações internas sobre o atleta..."></textarea>
+          </div>
+        </div>
+
+        <div class="perfil-tab-panel is-hidden" data-perfil-panel="familia">
+          <div class="field field--full">
+            <label for="observacoesFamiliaEditarAtleta">Observações da família <span class="muted">(o responsável também vê essa, no login dele)</span></label>
+            <textarea id="observacoesFamiliaEditarAtleta" name="observacoesFamilia" placeholder="Recado ou observação que o responsável também pode ver..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions field--full" style="margin-top:14px;">
+          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </form>
+
+      <!-- ACESSO DO RESPONSÁVEL -->
+      <div class="panel-head" style="margin-top:22px;">
+        <h3>Acesso do responsável</h3>
+      </div>
+      <p class="muted" id="statusAcessoResponsavel" style="font-size:13px;">Carregando...</p>
+      <form id="formCriarAcessoResponsavel" class="form-grid is-hidden">
         <div class="field">
-          <label for="nomeEditarAtleta">Nome completo</label>
-          <input type="text" id="nomeEditarAtleta" name="nome" required>
+          <label for="nomeNovoResponsavel">Nome do responsável</label>
+          <input type="text" id="nomeNovoResponsavel" name="nome" placeholder="Nome de quem vai acompanhar" required>
         </div>
         <div class="field">
-          <label for="posicaoEditarAtleta">Posição</label>
-          <select id="posicaoEditarAtleta" name="posicao">
-            <option>Goleiro</option>
-            <option>Zagueiro</option>
-            <option>Lateral</option>
-            <option>Volante</option>
-            <option>Meia</option>
-            <option>Atacante</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="turmaEditarAtleta">Turma</label>
-          <select id="turmaEditarAtleta" name="turmaId"></select>
-        </div>
-        <div class="field">
-          <label for="nascimentoEditarAtleta">Data de nascimento</label>
-          <input type="date" id="nascimentoEditarAtleta" name="nascimento" required>
-        </div>
-        <div class="field">
-          <label for="telefoneEditarAtleta">Telefone do responsável</label>
-          <input type="tel" id="telefoneEditarAtleta" name="telefone" placeholder="(00) 00000-0000">
+          <label for="emailNovoResponsavel">E-mail</label>
+          <input type="email" id="emailNovoResponsavel" name="email" placeholder="responsavel@email.com" required>
         </div>
         <div class="field field--full">
-          <label for="observacoesEditarAtleta">Observações</label>
-          <textarea id="observacoesEditarAtleta" name="observacoes" placeholder="Alguma informação importante sobre o atleta..."></textarea>
+          <label for="senhaNovoResponsavel">Senha provisória</label>
+          <input type="text" id="senhaNovoResponsavel" name="senha" placeholder="Ele pode trocar depois, no primeiro acesso" required minlength="6">
         </div>
         <div class="form-actions field--full">
-          <button type="submit" class="btn btn-primary">Salvar alterações</button>
+          <button type="submit" class="btn btn-outline">Criar acesso do responsável</button>
         </div>
       </form>
     </section>

@@ -589,6 +589,15 @@ select.btn-ghost option {
 }
 .codigo-publico-recalcular:hover { color: var(--accent-dark); }
 .codigo-publico-recalcular:disabled { color: var(--border); cursor: default; text-decoration: none; }
+.codigo-publico-copiar {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.codigo-publico-copiar:hover { color: var(--accent-dark); }
 .entity-card-foot {
   display: flex;
   justify-content: space-between;
@@ -727,6 +736,19 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .toggle-btn.is-active[data-state="presente"] { background: var(--good-bg); color: var(--good); border-color: var(--good); }
 .toggle-btn.is-active[data-state="atrasado"] { background: var(--warn-bg); color: var(--warn); border-color: var(--warn); }
 .toggle-btn.is-active[data-state="ausente"] { background: var(--bad-bg); color: var(--bad); border-color: var(--bad); }
+
+/* ===================================================
+   ABAS (perfil do atleta, etc.)
+=================================================== */
+.perfil-tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+.perfil-tab {
+  border: none; background: transparent; padding: 9px 6px; margin-bottom: -1px;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+}
+.perfil-tab:hover { color: var(--text); }
+.perfil-tab.is-active { color: var(--accent-dark); border-bottom-color: var(--accent-dark); }
+.perfil-tab-panel.is-hidden { display: none; }
 
 /* ===================================================
    BADGE
@@ -918,4 +940,18 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .simple-topbar { padding: 16px 18px; }
   .simple-main { padding: 20px 18px 40px; }
   .auth-card { padding: 26px 20px; }
+
+  /* Card do atleta: avatar + nome + "Área do atleta" não cabem lado a lado
+     numa tela estreita — em vez de espremer/empilhar torto, o bloco do
+     código vira uma faixa própria, largura cheia, separada por uma linha,
+     em vez de ficar colado (ou por baixo) do nome sem contexto nenhum. */
+  .entity-card-top { flex-wrap: wrap; }
+  .codigo-publico {
+    width: 100%;
+    align-items: flex-start;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .codigo-publico-linha { align-self: flex-start; }
 }
