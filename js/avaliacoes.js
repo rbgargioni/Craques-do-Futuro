@@ -219,7 +219,7 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   const head = document.createElement("div");
   head.className = "pillar-field-head";
   const label = document.createElement("span");
-  label.style.fontSize = "12px";
+  label.className = "pillar-sub-label";
   label.textContent = info.label; // peso fica só no código, não aparece pro avaliador
 
   const input = document.createElement("input");

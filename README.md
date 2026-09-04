@@ -419,7 +419,21 @@ pelo certo, nada mais muda.
   digitado (não um slider) — decisão consciente pra celular/tablet, onde
   arrastar uma barra pra acertar um valor com casa decimal é ruim; valor
   fora de 0-10 é corrigido ao sair do campo. Nota final e ponto forte/a desenvolver
-  calculados ao vivo. Cada avaliação salva grava `notasPorPilar` +
+  calculados ao vivo.
+  ⚠️ **Achado num vídeo real do Rafael usando no celular (2026-09-04)**: pra
+  ler o rótulo da subcategoria e acertar o campo de nota (ambos pequenos),
+  ele dava zoom com os dedos — e depois de ampliado, rótulo (esquerda) e
+  campo (direita, `justify-content: space-between` em `.pillar-field-head`)
+  não cabiam mais juntos na tela, exigindo arrastar a tela pros dois lados a
+  cada nota alterada (confirmado analisando o vídeo quadro a quadro, não só
+  relatado). Corrigido em `css/style.css`/`js/avaliacoes.js`: rótulo da
+  subcategoria virou uma classe (`pillar-sub-label`, antes era inline)
+  aumentada no mobile (`@media max-width:980px`), campo de nota também
+  ficou maior/mais fácil de tocar, e as setinhas nativas de +/- do
+  `<input type="number">` (pequenas demais pra tocar, e nem servem pra nada
+  aqui — o campo é pra digitar) foram escondidas. **Só validado
+  visualmente** (página de teste isolada reproduzindo o bloco, em 375px de
+  largura) — ainda não confirmado com o Rafael se resolveu no celular dele. Cada avaliação salva grava `notasPorPilar` +
   `pontuacaoPorPilar` + `notaFinal`, e TAMBÉM um "espelho" de compatibilidade
   0-10 (`tecnico`/`tatico`/`fisico`/`mental`/`evolucao`/`geral`) pra Fase 3
   não precisar acontecer no mesmo dia. Avaliações de ANTES dessa mudança
@@ -674,6 +688,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
+- **Confirmar com o Rafael, no celular dele, se o ajuste de tamanho dos
+  campos de nota em Avaliações (ver "⚠️ Achado num vídeo real" na seção "5
+  Pilares / 100 pontos" acima) realmente tira a necessidade de dar zoom** —
+  corrigido e validado só visualmente numa página de teste isolada.
 - **Investigar a página recarregando sozinha no Firebase Hosting** — o
   Rafael reportou isso pré-liberação pros testes (2026-09-01). Ainda
   aguardando a URL de produção pra investigar (console/rede); como não é

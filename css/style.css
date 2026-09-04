@@ -719,6 +719,14 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 .pillar-field-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .pillar-field-input:invalid { border-color: var(--bad); }
+/* As setinhas nativas de +/- convidam a tentar tocar nelas, mas são
+   pequenas demais no celular — o campo é pra digitar, não pra clicar nelas
+   (ver comentário em criarCampoSubcategoria em js/avaliacoes.js). Escondendo,
+   sobra só a caixa inteira como alvo de toque. */
+.pillar-field-input::-webkit-outer-spin-button,
+.pillar-field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pillar-field-input[type="number"] { -moz-appearance: textfield; }
+.pillar-sub-label { font-size: 12px; }
 
 /* ===================================================
    TOGGLE GROUP (chamada / frequência)
@@ -954,4 +962,13 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     border-top: 1px dashed var(--border);
   }
   .codigo-publico-linha { align-self: flex-start; }
+
+  /* Avaliação (5 Pilares) no celular: o rótulo da subcategoria e o campo de
+     nota ficavam pequenos demais pra ler/tocar com confiança, o que levava
+     a dar zoom com os dedos — e depois de ampliar, rótulo e campo (nas
+     pontas opostas da linha, "space-between") não cabiam mais juntos na
+     tela, exigindo arrastar pros dois lados a cada nota alterada. Aumentando
+     os dois de cara, ninguém precisa dar zoom pra usar o formulário. */
+  .pillar-sub-label { font-size: 14px; }
+  .pillar-field-input { width: 104px; padding: 14px 10px; font-size: 17px; }
 }
