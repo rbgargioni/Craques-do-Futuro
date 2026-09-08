@@ -975,10 +975,22 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
   /* Avaliação (5 Pilares) no celular: o rótulo da subcategoria e o campo de
      nota ficavam pequenos demais pra ler/tocar com confiança, o que levava
-     a dar zoom com os dedos — e depois de ampliar, rótulo e campo (nas
-     pontas opostas da linha, "space-between") não cabiam mais juntos na
-     tela, exigindo arrastar pros dois lados a cada nota alterada. Aumentando
-     os dois de cara, ninguém precisa dar zoom pra usar o formulário. */
+     a dar zoom com os dedos. Aumentando os dois de cara, ninguém precisa
+     dar zoom pra usar o formulário. */
   .pillar-sub-label { font-size: 14px; }
   .pillar-field-input { width: 104px; padding: 14px 10px; font-size: 17px; }
+
+  /* Mesmo maiores, rótulo e campo continuavam lado a lado ("space-between")
+     e vários rótulos são compridos (ex: "Resistência/condicionamento",
+     "Movimentação sem bola") — na tela estreita, o texto encostava/entrava
+     embaixo do campo de nota em vez de ficar legível. Empilhando (rótulo em
+     cima, campo embaixo, .pillar-campo-linha) cada um usa a largura cheia
+     da tela; word-break é só uma rede de segurança pro rótulo mais comprido
+     que não tem espaço nenhum pra quebrar sozinho. Só a linha
+     rótulo+campo muda — o cabeçalho do pilar (título + total, mesma classe
+     pillar-field-head sem o "pillar-campo-linha") continua lado a lado,
+     sempre coube. */
+  .pillar-campo-linha { flex-direction: column; align-items: stretch; gap: 8px; }
+  .pillar-campo-linha .pillar-sub-label { word-break: break-word; }
+  .pillar-campo-linha .pillar-field-input { align-self: flex-start; }
 }

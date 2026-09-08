@@ -217,7 +217,10 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   campo.style.marginTop = "10px";
 
   const head = document.createElement("div");
-  head.className = "pillar-field-head";
+  // "pillar-campo-linha" é o gancho pra empilhar rótulo/campo no celular
+  // (ver @media em css/style.css) — não usar em pillar-field-head do
+  // cabeçalho do pilar (título + total), que sempre cabe lado a lado.
+  head.className = "pillar-field-head pillar-campo-linha";
   const label = document.createElement("span");
   label.className = "pillar-sub-label";
   label.textContent = info.label; // peso fica só no código, não aparece pro avaliador

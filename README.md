@@ -431,9 +431,25 @@ pelo certo, nada mais muda.
   aumentada no mobile (`@media max-width:980px`), campo de nota também
   ficou maior/mais fácil de tocar, e as setinhas nativas de +/- do
   `<input type="number">` (pequenas demais pra tocar, e nem servem pra nada
-  aqui — o campo é pra digitar) foram escondidas. **Só validado
-  visualmente** (página de teste isolada reproduzindo o bloco, em 375px de
-  largura) — ainda não confirmado com o Rafael se resolveu no celular dele. Cada avaliação salva grava `notasPorPilar` +
+  aqui — o campo é pra digitar) foram escondidas.
+  ⚠️ **Ainda fora do padrão no celular, achado 2026-09-08**: mesmo maiores,
+  rótulo e campo continuavam lado a lado (`justify-content: space-between`)
+  — e vários rótulos são compridos (`Resistência/condicionamento`,
+  `Domínio/primeiro toque`, `Movimentação sem bola`...), então o texto
+  encostava/entrava embaixo do campo de nota em telas estreitas, sem
+  precisar nem de zoom pra acontecer. Corrigido empilhando (rótulo em cima,
+  campo embaixo — classe nova `pillar-campo-linha`, só na linha
+  rótulo+campo; o cabeçalho do pilar com título+total continua lado a lado,
+  esse sempre coube) e `word-break: break-word` no rótulo como rede de
+  segurança pro caso de um rótulo comprido sem espaço nenhum pra quebrar
+  sozinho. **Validado visualmente**: reproduzi o bloco numa página de teste
+  isolada servida por HTTP, com os rótulos reais de `PILARES_100`, em
+  375px — confirmei que o documento não passa mais da largura da tela (sem
+  o fix, um rótulo comprido colava no campo; testei também um rótulo
+  propositalmente sem espaço nenhum, e ele quebra em vez de estourar) — e
+  que acima de 980px o layout volta ao lado a lado original, sem mudança
+  nenhuma pro desktop. **Ainda não confirmado com o Rafael no celular
+  dele.** Cada avaliação salva grava `notasPorPilar` +
   `pontuacaoPorPilar` + `notaFinal`, e TAMBÉM um "espelho" de compatibilidade
   0-10 (`tecnico`/`tatico`/`fisico`/`mental`/`evolucao`/`geral`) pra Fase 3
   não precisar acontecer no mesmo dia. Avaliações de ANTES dessa mudança
@@ -727,10 +743,12 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
   tela (ver seção "Botões cortados no celular" acima) realmente pararam de
   exigir arrastar a tela pro lado** — corrigido e validado só visualmente
   numa página de teste isolada, não na tela real logada.
-- **Confirmar com o Rafael, no celular dele, se o ajuste de tamanho dos
-  campos de nota em Avaliações (ver "⚠️ Achado num vídeo real" na seção "5
-  Pilares / 100 pontos" acima) realmente tira a necessidade de dar zoom** —
-  corrigido e validado só visualmente numa página de teste isolada.
+- **Confirmar com o Rafael, no celular dele, se o formulário de Avaliações
+  no celular está redondo agora** — dois achados na mesma tela, os dois só
+  validados visualmente até aqui: o de zoom (rótulo/campo pequenos demais,
+  "⚠️ Achado num vídeo real" na seção "5 Pilares / 100 pontos" acima) e o de
+  rótulo/campo colidindo mesmo depois de maiores ("⚠️ Ainda fora do padrão
+  no celular, achado 2026-09-08", mesma seção).
 - **Investigar a página recarregando sozinha no Firebase Hosting** — o
   Rafael reportou isso pré-liberação pros testes (2026-09-01). Ainda
   aguardando a URL de produção pra investigar (console/rede); como não é
