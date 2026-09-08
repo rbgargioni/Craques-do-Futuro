@@ -683,6 +683,7 @@ function criarCardAtleta(atletaId, dados) {
 
   const acoes = document.createElement("div");
   acoes.style.display = "flex";
+  acoes.style.flexWrap = "wrap";
   acoes.style.gap = "8px";
   acoes.style.marginTop = "10px";
   const botaoEditar = document.createElement("button");

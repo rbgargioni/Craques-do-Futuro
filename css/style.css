@@ -731,7 +731,10 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 /* ===================================================
    TOGGLE GROUP (chamada / frequência)
 =================================================== */
-.toggle-group { display: flex; gap: 6px; }
+/* flex-wrap: os 3 botões (Presente/Atrasado/Ausente) juntos passam da
+   largura da célula no celular — sem isso, tocar no botão certo exigia
+   arrastar a tabela pro lado a cada linha da chamada. */
+.toggle-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .toggle-btn {
   border: 1px solid var(--border);
   background: #fff;
@@ -809,7 +812,10 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   border-radius: 12px;
   background: var(--bg-app);
 }
-.message-item-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+/* flex-wrap: nome + e-mail/data juntos podem passar da largura do card
+   (e-mail é uma string sem espaço, não quebra sozinha) — sem isso a linha
+   estourava a largura do card e exigia arrastar a tela pro lado. */
+.message-item-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .message-item-head strong { color: var(--text); font-size: 13px; }
 .message-item p { margin: 0; font-size: 13px; color: var(--text); }
 
@@ -939,6 +945,10 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .main { padding: 76px 18px 40px; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col { grid-template-columns: 1fr; }
+  /* #listaEscolasGestor tem minmax(300px, 420px) — num celular bem estreito
+     (~320px) isso é mais largo que a tela inteira e empurra a página pro
+     lado, não só o card. Uma coluna cheia resolve. */
+  #listaEscolasGestor { grid-template-columns: 1fr; }
   .chart-grid { grid-template-columns: 1fr; }
   .actions-grid { grid-template-columns: repeat(2, 1fr); }
   .topbar { flex-direction: column; }

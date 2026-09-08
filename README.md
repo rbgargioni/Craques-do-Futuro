@@ -521,6 +521,41 @@ separada por uma linha pontilhada — em vez de ficar cortado ou colado sem
 contexto. O menu lateral (que já virava gaveta/hambúrguer no celular)
 não mudou.
 
+### Botões cortados no celular — linhas de ação sem `flex-wrap` (2026-09-08)
+
+Vários lugares montam uma linha de 2-3 botões via JS com
+`estilo.display = "flex"` **sem** `flex-wrap`, e por serem estilo inline não
+passam pela media query de `css/style.css` — em tela estreita a linha
+estourava a largura do card/página, e pra tocar no botão de fora era preciso
+arrastar a tela pro lado (relatado pelo Rafael, "muita tela que pra ver os
+botões temos que correr a tela pro lado"). Corrigido adicionando
+`flexWrap = "wrap"` nos 3 pontos afetados — os botões agora quebram linha em
+vez de vazar:
+
+- `acoes` em `js/atletas.js` ("Perfil do atleta" + "Desativar/Reativar atleta").
+- `acoes` em `js/gestor-escolas.js` ("Editar nome" + "Gestão de usuários" +
+  "Excluir escola", card de escola em "Minhas escolas").
+- `acoes` em `js/admin-escolas.js` ("Confirmar"/"Recusar" solicitação de plano).
+
+Junto, dois ajustes em `css/style.css`:
+- `.message-item-head` (nome + e-mail/data lado a lado, usado em recados,
+  lista de técnicos e solicitações de plano) ganhou `flex-wrap: wrap` — um
+  e-mail longo (sem espaço pra quebrar sozinho) também estourava a linha.
+- `.toggle-group` (botões Presente/Atrasado/Ausente da chamada, em
+  `frequencia.html`) ganhou `flex-wrap: wrap` — os 3 juntos não cabiam numa
+  célula da tabela em tela estreita.
+- `#listaEscolasGestor` (grid de "Minhas escolas", que usa
+  `minmax(300px, 420px)`) ganhou override pra `1fr` dentro do
+  `@media (max-width: 980px)` — sem isso, num celular bem estreito (~320px)
+  o card sozinho já era mais largo que a tela, empurrando a página inteira
+  pro lado (não só um elemento interno).
+
+Validado só visualmente, reproduzindo os 4 componentes numa página de teste
+isolada em 375px de largura (confirmado com/sem o fix: sem `flex-wrap` o
+documento ficava 36px mais largo que o viewport; com o fix, fica exatamente
+do tamanho do viewport). **Ainda não confirmado com o Rafael no celular
+dele.**
+
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
 Toda página tem um `manifest.json` (raiz do projeto) + `<link rel="manifest">`
@@ -688,6 +723,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 
 ## Próximos passos conhecidos
 
+- **Confirmar com o Rafael, no celular dele, se os botões que estouravam a
+  tela (ver seção "Botões cortados no celular" acima) realmente pararam de
+  exigir arrastar a tela pro lado** — corrigido e validado só visualmente
+  numa página de teste isolada, não na tela real logada.
 - **Confirmar com o Rafael, no celular dele, se o ajuste de tamanho dos
   campos de nota em Avaliações (ver "⚠️ Achado num vídeo real" na seção "5
   Pilares / 100 pontos" acima) realmente tira a necessidade de dar zoom** —

@@ -608,6 +608,7 @@ function renderizarSolicitacoesPlano(docs) {
 
     const acoes = document.createElement("div");
     acoes.style.display = "flex";
+    acoes.style.flexWrap = "wrap";
     acoes.style.gap = "8px";
     const btnConfirmar = document.createElement("button");
     btnConfirmar.type = "button";
