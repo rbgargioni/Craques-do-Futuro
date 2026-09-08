@@ -957,9 +957,17 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
      largura de conteúdo (min-width:auto, padrão de item flex) mesmo sem
      espaço, então a faixa inteira (com o fundo escuro) vazava pra fora da
      tela em vez de quebrar linha. Empilhando, os dois usam a largura cheia
-     da faixa. */
-  .turma-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .turma-bar select { width: 100%; }
+     da faixa.
+     Achado num iPhone real (2026-09-08): com `align-items: flex-start` +
+     `width: 100%` no <select>, o Chrome (onde validei antes) empilhava
+     certinho, mas no Safari/iOS o <select> não esticava — ficava do tamanho
+     do próprio texto, e a faixa continuava saindo da tela. Trocado pro
+     `align-items: stretch` (não depende de resolver `width: 100%` num item
+     flex — mais robusto entre navegadores) + `display: block` no select,
+     que evita o `inline-block` nativo do <select> tratar largura de forma
+     diferente em cada motor de renderização. */
+  .turma-bar { flex-direction: column; align-items: stretch; gap: 14px; }
+  .turma-bar select { display: block; width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .search-bar { width: 100%; }

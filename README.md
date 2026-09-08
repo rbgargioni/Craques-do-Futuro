@@ -586,8 +586,24 @@ em cima e o select embaixo, ocupando a largura toda. Validado visualmente
 reproduzindo a faixa numa página de teste isolada em 375px, com o texto
 real do print ("Sexta feira · Veteranos · 26") — sem o fix o texto
 quebrava tortinho competindo por espaço com o select espremido; com o fix,
-cada um fica numa linha própria, sem sobra nem corte. **Ainda não
-reconfirmado com o Rafael.**
+cada um fica numa linha própria, sem sobra nem corte.
+
+⚠️ **Esse fix não funcionou no iPhone real do Rafael (segundo print,
+2026-09-08)** — no Chrome (onde validei) o `<select>` esticava certinho,
+mas no Safari/iOS ele continuava do tamanho do próprio texto, então a
+faixa continuava saindo da tela. Causa provável: a regra original tinha
+`align-items: flex-start` na `.turma-bar` (pra não esticar o bloco de
+texto) + `width: 100%` no `<select>` — isso é exatamente a combinação que
+o WebKit/Safari é conhecido por não resolver bem (`<select>` não respeita
+`width` percentual quando o container flex não usa `align-items: stretch`).
+Trocado pro padrão mais robusto entre navegadores: `.turma-bar` volta a
+usar `align-items: stretch` (padrão do resto do app, não depende de
+resolver porcentagem por item) e o `<select>` ganhou `display: block`
+(evita o `<select>` nativo, que é `inline-block` por padrão, tratar
+largura de formas diferentes em cada motor). Revalidei no Chrome — segue
+funcionando igual — mas **essa correção específica eu não tenho como
+testar num Safari/iOS de verdade daqui**, então preciso que o Rafael
+confirme no celular dele antes de eu marcar isso como resolvido.
 
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
