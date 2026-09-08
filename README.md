@@ -572,6 +572,23 @@ documento ficava 36px mais largo que o viewport; com o fix, fica exatamente
 do tamanho do viewport). **Ainda não confirmado com o Rafael no celular
 dele.**
 
+**Achado extra, com print real do celular do Rafael**: a faixa "Turma
+ativa" (`.turma-bar`, em todas as páginas com turma — Avaliações,
+Frequência, Atletas etc.) também não tinha nenhum ajuste pra celular. Ela
+tem dois itens flex (o nome da turma, ex: "Sexta feira · Veteranos · 26" +
+o `<select>` de trocar de turma) lado a lado sem `flex-wrap` — como item
+flex sem `flex-wrap` não encolhe abaixo do próprio conteúdo, num nome de
+turma comprido o `<select>` ficava espremido ou saía da área visível,
+conforme o print. Corrigido com o mesmo padrão já usado no resto do app:
+`.turma-bar { flex-direction: column; }` + `.turma-bar select { width:
+100%; }` dentro do `@media (max-width: 980px)`, empilhando nome da turma
+em cima e o select embaixo, ocupando a largura toda. Validado visualmente
+reproduzindo a faixa numa página de teste isolada em 375px, com o texto
+real do print ("Sexta feira · Veteranos · 26") — sem o fix o texto
+quebrava tortinho competindo por espaço com o select espremido; com o fix,
+cada um fica numa linha própria, sem sobra nem corte. **Ainda não
+reconfirmado com o Rafael.**
+
 ### "Adicionar à tela inicial" no celular (PWA leve, sem Service Worker)
 
 Toda página tem um `manifest.json` (raiz do projeto) + `<link rel="manifest">`
@@ -740,9 +757,10 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
 ## Próximos passos conhecidos
 
 - **Confirmar com o Rafael, no celular dele, se os botões que estouravam a
-  tela (ver seção "Botões cortados no celular" acima) realmente pararam de
-  exigir arrastar a tela pro lado** — corrigido e validado só visualmente
-  numa página de teste isolada, não na tela real logada.
+  tela (ver seção "Botões cortados no celular" acima, inclusive o achado
+  extra da faixa "Turma ativa") realmente pararam de exigir arrastar a
+  tela pro lado** — corrigido e validado só visualmente numa página de
+  teste isolada, não na tela real logada.
 - **Confirmar com o Rafael, no celular dele, se o formulário de Avaliações
   no celular está redondo agora** — dois achados na mesma tela, os dois só
   validados visualmente até aqui: o de zoom (rótulo/campo pequenos demais,

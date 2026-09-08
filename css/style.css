@@ -952,6 +952,14 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .chart-grid { grid-template-columns: 1fr; }
   .actions-grid { grid-template-columns: repeat(2, 1fr); }
   .topbar { flex-direction: column; }
+  /* Nome da turma (h2, ex: "Sexta feira · Veteranos · 26") + o <select> de
+     trocar de turma são dois itens flex sem flex-wrap — cada um mantém sua
+     largura de conteúdo (min-width:auto, padrão de item flex) mesmo sem
+     espaço, então a faixa inteira (com o fundo escuro) vazava pra fora da
+     tela em vez de quebrar linha. Empilhando, os dois usam a largura cheia
+     da faixa. */
+  .turma-bar { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .turma-bar select { width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .search-bar { width: 100%; }
