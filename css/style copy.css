@@ -30,15 +30,12 @@
    quem está logado — evita um flash de conteúdo errado antes do redirecionamento. */
 html:not(.is-authorized) body { visibility: hidden; }
 
-html, body {
+body {
   margin: 0;
-  padding: 0;
   font-family: var(--font-body);
   background: var(--bg-app);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  max-width: 100vw;
 }
 
 h1, h2, h3 {
@@ -58,14 +55,11 @@ ul { list-style: none; margin: 0; padding: 0; }
   display: grid;
   grid-template-columns: 264px 1fr;
   min-height: 100vh;
-  width: 100%;
-  overflow-x: hidden;
 }
 
 .main {
   padding: 28px 36px 60px;
   max-width: 1180px;
-  width: 100%;
 }
 
 /* ===================================================
@@ -229,6 +223,9 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .btn-ghost:hover { background: rgba(255,255,255,0.18); }
 
+/* select.btn-ghost (ex: seletor de turma) — o popup nativo do <select> tem fundo
+   claro, então sem isso as opções herdavam o "color: #fff" do botão e ficavam
+   com texto branco em fundo branco (só a opção destacada aparecia). */
 select.btn-ghost { cursor: pointer; }
 select.btn-ghost option {
   color: var(--text);
@@ -529,7 +526,10 @@ select.btn-ghost option {
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 16px;
 }
-
+/* gestor-escolas.html ("Minhas escolas") normalmente tem só 1-3 cards, bem maiores
+   (2 linhas de stats) que os de atletas/turmas — auto-fill deixava o card espremido
+   num canto com um monte de colunas vazias ao lado numa tela grande. auto-fit some
+   com as colunas vazias e deixa o(s) card(s) que existem crescer até um teto razoável. */
 #listaEscolasGestor {
   grid-template-columns: repeat(auto-fit, minmax(300px, 420px));
 }
@@ -664,7 +664,7 @@ select.btn-ghost option {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch; /* Garante rolagem suave nos iPhones/iOS */
 }
 table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .data-table th {
@@ -708,7 +708,8 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .pillar-field-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
 .pillar-field-head strong { font-weight: 700; color: var(--accent-dark); }
 .pillar-field input[type="range"] { accent-color: var(--accent); width: 100%; }
-
+/* Nota digitada (em vez de arrastar barra) — maior e com bastante área de
+   toque, pensado pra digitar num celular/tablet em vez de mirar um slider. */
 .pillar-field-input {
   width: 84px;
   text-align: center;
@@ -723,7 +724,10 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 .pillar-field-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .pillar-field-input:invalid { border-color: var(--bad); }
-
+/* As setinhas nativas de +/- convidam a tentar tocar nelas, mas são
+   pequenas demais no celular — o campo é pra digitar, não pra clicar nelas
+   (ver comentário em criarCampoSubcategoria em js/avaliacoes.js). Escondendo,
+   sobra só a caixa inteira como alvo de toque. */
 .pillar-field-input::-webkit-outer-spin-button,
 .pillar-field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .pillar-field-input[type="number"] { -moz-appearance: textfield; }
@@ -732,6 +736,9 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 /* ===================================================
    TOGGLE GROUP (chamada / frequência)
 =================================================== */
+/* flex-wrap: os 3 botões (Presente/Atrasado/Ausente) juntos passam da
+   largura da célula no celular — sem isso, tocar no botão certo exigia
+   arrastar a tabela pro lado a cada linha da chamada. */
 .toggle-group { display: flex; flex-wrap: wrap; gap: 6px; }
 .toggle-btn {
   border: 1px solid var(--border);
@@ -810,6 +817,9 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   border-radius: 12px;
   background: var(--bg-app);
 }
+/* flex-wrap: nome + e-mail/data juntos podem passar da largura do card
+   (e-mail é uma string sem espaço, não quebra sozinha) — sem isso a linha
+   estourava a largura do card e exigia arrastar a tela pro lado. */
 .message-item-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .message-item-head strong { color: var(--text); font-size: 13px; }
 .message-item p { margin: 0; font-size: 13px; color: var(--text); }
@@ -894,8 +904,6 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   padding: 18px 32px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
-  width: 100%;
-  box-sizing: border-box;
 }
 .simple-topbar .brand { padding: 0; }
 .simple-topbar .brand-text strong { color: var(--text); }
@@ -903,8 +911,6 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   max-width: 1180px;
   margin: 0 auto;
   padding: 28px 32px 60px;
-  width: 100%;
-  box-sizing: border-box;
 }
 .simple-topbar-right { display: flex; align-items: center; gap: 16px; }
 .link-sair { font-size: 13px; font-weight: 600; color: var(--text-muted); }
@@ -941,14 +947,12 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   }
   .sidebar.is-open { transform: translateX(0); }
   .menu-toggle { display: flex; }
-  .main { 
-    padding: 76px 16px 40px;
-    width: 100%;
-    max-width: 100vw;
-    box-sizing: border-box;
-  }
+  .main { padding: 76px 18px 40px; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col { grid-template-columns: 1fr; }
+  /* #listaEscolasGestor tem minmax(300px, 420px) — num celular bem estreito
+     (~320px) isso é mais largo que a tela inteira e empurra a página pro
+     lado, não só o card. Uma coluna cheia resolve. */
   #listaEscolasGestor { grid-template-columns: 1fr; }
   .chart-grid { grid-template-columns: 1fr; }
   .actions-grid { grid-template-columns: repeat(2, 1fr); }
@@ -957,33 +961,37 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
-    width: 100%;
-    box-sizing: border-box;
   }
   .topbar-right {
     flex-wrap: wrap;
     justify-content: space-between;
     width: 100%;
-    max-width: 100%;
   }
 
+  /* Nome da turma (h2, ex: "Sexta feira · Veteranos · 26") + o <select> de
+     trocar de turma são dois itens flex sem flex-wrap — cada um mantém sua
+     largura de conteúdo (min-width:auto, padrão de item flex) mesmo sem
+     espaço, então a faixa inteira (com o fundo escuro) vazava pra fora da
+     tela em vez de quebrar linha. Empilhando, os dois usam a largura cheia
+     da faixa.
+     Achado num iPhone real (2026-09-08): com `align-items: flex-start` +
+     `width: 100%` no <select>, o Chrome (onde validei antes) empilhava
+     certinho, mas no Safari/iOS o <select> não esticava — ficava do tamanho
+     do próprio texto, e a faixa continuava saindo da tela. Trocado pro
+     `align-items: stretch` (não depende de resolver `width: 100%` num item
+     flex — mais robusto entre navegadores) + `display: block` no select,
+     que evita o `inline-block` nativo do <select> tratar largura de forma
+     diferente em cada motor de renderização. */
   .form-actions {
-    flex-direction: column-reverse;
+    flex-direction: column-reverse; /* Coloca o "Salvar" no topo e o "Cancelar" embaixo */
     width: 100%;
   }
   
   .form-actions .btn {
-    width: 100%;
+    width: 100%; /* Faz os botões ocuparem 100% da largura no celular */
   }
 
-  .turma-bar { 
-    flex-direction: column; 
-    align-items: stretch; 
-    gap: 14px;
-    width: 100%;
-    box-sizing: border-box;
-    word-break: break-word;
-  }
+  .turma-bar { flex-direction: column; align-items: stretch; gap: 14px; }
   .turma-bar select { display: block; width: 100%; }
   .form-grid { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; }
@@ -992,6 +1000,10 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .simple-main { padding: 20px 18px 40px; }
   .auth-card { padding: 26px 20px; }
 
+  /* Card do atleta: avatar + nome + "Área do atleta" não cabem lado a lado
+     numa tela estreita — em vez de espremer/empilhar torto, o bloco do
+     código vira uma faixa própria, largura cheia, separada por uma linha,
+     em vez de ficar colado (ou por baixo) do nome sem contexto nenhum. */
   .entity-card-top { flex-wrap: wrap; }
   .codigo-publico {
     width: 100%;
@@ -1002,9 +1014,23 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   }
   .codigo-publico-linha { align-self: flex-start; }
 
+  /* Avaliação (5 Pilares) no celular: o rótulo da subcategoria e o campo de
+     nota ficavam pequenos demais pra ler/tocar com confiança, o que levava
+     a dar zoom com os dedos. Aumentando os dois de cara, ninguém precisa
+     dar zoom pra usar o formulário. */
   .pillar-sub-label { font-size: 14px; }
   .pillar-field-input { width: 104px; padding: 14px 10px; font-size: 17px; }
 
+  /* Mesmo maiores, rótulo e campo continuavam lado a lado ("space-between")
+     e vários rótulos são compridos (ex: "Resistência/condicionamento",
+     "Movimentação sem bola") — na tela estreita, o texto encostava/entrava
+     embaixo do campo de nota em vez de ficar legível. Empilhando (rótulo em
+     cima, campo embaixo, .pillar-campo-linha) cada um usa a largura cheia
+     da tela; word-break é só uma rede de segurança pro rótulo mais comprido
+     que não tem espaço nenhum pra quebrar sozinho. Só a linha
+     rótulo+campo muda — o cabeçalho do pilar (título + total, mesma classe
+     pillar-field-head sem o "pillar-campo-linha") continua lado a lado,
+     sempre coube. */
   .pillar-campo-linha { flex-direction: column; align-items: stretch; gap: 8px; }
   .pillar-campo-linha .pillar-sub-label { word-break: break-word; }
   .pillar-campo-linha .pillar-field-input { align-self: flex-start; }
