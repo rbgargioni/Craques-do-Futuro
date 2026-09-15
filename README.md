@@ -478,6 +478,19 @@ sistema depreciado (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`) podem
 ser removidos de `js/metricas.js` quando quiser — não tem mais nenhuma
 tela usando eles, ficaram só documentados como "depreciado" no arquivo.
 
+### Avaliação sem campo pré-preenchido — obriga preencher tudo (2026-09-15)
+
+Os 46 campos de nota (5 Pilares/100 pontos) começavam com `7` já
+preenchido — dava pra clicar "Salvar avaliação" sem tocar em nada e sair
+uma avaliação inteira de notas 7, sem ninguém perceber que passou batido.
+Agora cada campo começa **vazio** e ganhou `required`: o navegador bloqueia
+o salvamento e aponta (com scroll automático) o primeiro campo vazio,
+enquanto tiver algum sem preencher — sem precisar de validação própria pra
+isso, é o mesmo mecanismo nativo que já travava o `<select>` de atleta e a
+data. O resultado ao vivo (nota por pilar/final, no rodapé do formulário)
+trata campo vazio como 0 enquanto o avaliador ainda está preenchendo — é só
+uma prévia, não impede nada; quem trava o salvamento é o `required`.
+
 ### Perfil do atleta — dados, observações internas e observações da família
 
 O botão "Perfil do atleta" no card (antes chamava "Editar atleta") abre um
@@ -571,6 +584,21 @@ isolada em 375px de largura (confirmado com/sem o fix: sem `flex-wrap` o
 documento ficava 36px mais largo que o viewport; com o fix, fica exatamente
 do tamanho do viewport). **Ainda não confirmado com o Rafael no celular
 dele.**
+
+**Rodada seguinte de hardening geral (2026-09-10)**: `html, body` ganharam
+`overflow-x: hidden` + `max-width: 100vw` como rede de segurança geral (além
+dos fixes pontuais já documentados acima), `.app`/`.main`/`.simple-topbar`/
+`.simple-main`/`.topbar`/`.turma-bar` ganharam `width: 100%` +
+`box-sizing: border-box`, `.topbar-right` ganhou `flex-wrap`, e
+`.form-actions` no celular passou a empilhar os botões
+(`flex-direction: column-reverse` + largura cheia, botão principal
+embaixo). ⚠️ Nessa mesma edição, os comentários explicativos de "por que"
+de vários desses ajustes de celular (ex: por que o `<select>` da turma
+quebrava no Safari/iOS, por que os botões precisavam de `flex-wrap`) foram
+perdidos do arquivo — o CSS em si continua certo, só a documentação inline
+ficou mais fina que o padrão do resto do projeto. Também sobrou um arquivo
+`css/style copy.css` (cópia de antes dessa edição) — o Rafael confirmou
+que pode deixar os dois do jeito que estão.
 
 **Achado extra, com print real do celular do Rafael**: a faixa "Turma
 ativa" (`.turma-bar`, em todas as páginas com turma — Avaliações,
@@ -754,6 +782,11 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   ver seções próprias acima) — validei sintaxe (import dinâmico sem erro,
   IDs cruzados entre HTML/JS) mas **nada disso foi testado no Firebase real
   ainda**, incluindo a regra nova de `sessoesTreino`.
+- **Campos de avaliação vazios/`required`** (ver seção própria acima,
+  2026-09-15) — confirmei que os 46 campos ficam vazios ao carregar e que
+  `#blocoPilares100` está dentro de `formNovaAvaliacao` (então `required`
+  tem efeito de verdade). Não testei ao vivo o navegador realmente barrando
+  o submit com campo vazio numa conta real.
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",

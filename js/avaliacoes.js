@@ -231,18 +231,25 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   input.min = "0";
   input.max = "10";
   input.step = "0.1";
-  input.value = "7";
+  // Começa vazio de propósito — o avaliador precisa preencher todo campo,
+  // sem um valor "neutro" (7) pré-marcado que dava pra ignorar e salvar do
+  // jeito que veio. `required` faz o navegador bloquear o "Salvar avaliação"
+  // e apontar (com scroll automático) o primeiro campo vazio, sem precisar
+  // de validação própria pra isso.
+  input.value = "";
+  input.required = true;
   input.className = "pillar-field-input";
   input.dataset.pilar = pilarChave;
   input.dataset.subcategoria = chave;
 
-  // Corrige valor fora de 0-10 (ou vazio/inválido) assim que o avaliador
-  // sai do campo — sem isso, dava pra digitar "15" ou "-3" e o cálculo por
-  // trás (que já trava a nota em 0-10) ficaria inconsistente com o que
-  // está escrito na tela.
+  // Corrige valor fora de 0-10 assim que o avaliador sai do campo — sem
+  // isso, dava pra digitar "15" ou "-3" e o cálculo por trás (que já trava
+  // a nota em 0-10) ficaria inconsistente com o que está escrito na tela.
+  // Campo vazio fica vazio (é o `required` que cuida disso no submit).
   input.addEventListener("blur", () => {
+    if (input.value === "") return;
     const valor = Number(input.value);
-    if (input.value === "" || Number.isNaN(valor)) input.value = "0";
+    if (Number.isNaN(valor)) input.value = "";
     else if (valor < 0) input.value = "0";
     else if (valor > 10) input.value = "10";
     atualizarResultado();
@@ -463,7 +470,7 @@ function configurarFormNovaAvaliacao() {
 
       showToast(`Avaliação de ${atletasCache[atletaId].nome} salva.`);
       form.reset();
-      renderizarBlocoPilares100(); // volta todos os sliders pro padrão (7) e refaz o resultado
+      renderizarBlocoPilares100(); // limpa todos os campos de novo pra próxima avaliação
       atualizarPosicaoExibida("");
       document.getElementById("painelAvaliacao").classList.add("is-hidden");
     } catch (erro) {
