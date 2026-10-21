@@ -95,16 +95,18 @@
 //     atletaId, data, observacoes
 //     notasPorPilar: { fisico: {chave: nota 0-10, ...}, tecnico: {...}, tatico: {...},
 //       mental: {...}, potencial: {...} } — nota crua que o avaliador deu por
-//       subcategoria (ver PILARES_100 em js/metricas.js, sistema novo desde 2026-09-01).
+//       atributo (23 no total, ver PILARES_100 em js/metricas.js; sistema de
+//       2026-10-21 — antes eram 46 subcategorias com chaves diferentes).
 //     pontuacaoPorPilar: { fisico: {pontos, max}, tecnico: {...}, ... } — já calculado
-//       e salvo (pontos ponderados de cada pilar, não recalcula na leitura).
-//     notaFinal: soma dos 5 pilares, 0 a ~98,5 (ver nota sobre o pilar Mental
-//       em js/metricas.js — ainda não fecha em 100 certinho).
-//     tecnico, tatico, fisico, mental, evolucao, geral: ESPELHO de compatibilidade
-//       (escala 0-10, "evolucao" = potencial normalizado) pras telas que ainda não
-//       migraram pro sistema novo (Dashboard/Relatórios/Comparativos/Responsável/
-//       Área do atleta — Fase 3 da migração). Avaliações de ANTES de 2026-09-01
-//       só têm esses campos antigos, sem notasPorPilar/pontuacaoPorPilar/notaFinal.
+//       e salvo. Desde 2026-10-21 "pontos" é a MÉDIA do pilar e max = 10; avaliações
+//       de antes têm pontos ponderados (max 20/30/20/20/10).
+//     notaFinal / notaFinalMax: nota geral ponderada 30/20/20/20/10, 0 a 10
+//       (notaFinalMax = 10). Avaliações de antes não têm notaFinalMax e a notaFinal
+//       delas é 0 a ~98,5 / 100.
+//     tecnico, tatico, fisico, mental, evolucao, geral: o que Dashboard/Relatórios/
+//       Comparativos/Responsável/Área do atleta leem (escala 0-10, "evolucao" =
+//       pilar Evolução e Potencial). Avaliações de ANTES de 2026-09-01 só têm
+//       esses campos, sem notasPorPilar/pontuacaoPorPilar/notaFinal.
 //
 //   escolas/{escolaId}/frequencia/{turmaId}_{data}_{atletaId}    id determinístico -> upsert com set()
 //     turmaId, atletaId, data, estado: "presente" | "atrasado" | "ausente"

@@ -33,130 +33,81 @@ export const PILARES_TABELA = [
 // já desenhados no SVG de cada página (Dashboard, Relatórios, Comparativos).
 export const PILARES_RADAR = ["tecnico", "tatico", "mental", "fisico", "evolucao"];
 
-// Nota geral de uma avaliação = média simples dos 5 Pilares.
-// Pra mudar pra média ponderada, é só ajustar os pesos aqui.
-const PESO_PILAR = { tecnico: 1, tatico: 1, fisico: 1, mental: 1, evolucao: 1 };
-
-export function calcularNotaGeral(pilares) {
-  const chaves = Object.keys(PESO_PILAR);
-  const somaPesos = chaves.reduce((soma, campo) => soma + PESO_PILAR[campo], 0);
-  const soma = chaves.reduce((total, campo) => total + (pilares[campo] || 0) * PESO_PILAR[campo], 0);
-  return Math.round((soma / somaPesos) * 10) / 10;
-}
-
 // ------------------------------------------------------
-// NOVO sistema de avaliação — 5 Pilares / 100 pontos (2026-09-01)
+// Sistema de avaliação — 5 Pilares / 23 atributos / nota 0 a 10 (2026-10-21)
 //
-// Decisão do Rafael com um técnico consultado + confirmado por ele: a régua
-// antiga acima ("Os 5 Pilares", nota 0-10 direta por pilar) e os
-// "fundamentos técnicos por posição" mais abaixo (FUNDAMENTOS_POR_POSICAO)
-// estavam desatualizados. Este bloco é o substituto DEFINITIVO — inclusive
-// derruba a ideia de fundamentos técnicos DIFERENTES por posição: agora o
-// pilar Técnico (e todos os outros) usa as MESMAS subcategorias pra
-// qualquer atleta, seja goleiro ou atacante.
-//
-// Migração em fases (ver README): Fase 1 = só este arquivo (pronto). Fase 2
-// = reescrever avaliacoes.html/js pra usar isso em vez do formulário antigo.
-// Fase 3 = atualizar dashboard/relatórios/comparativos/responsável/Área do
-// atleta, que ainda leem os campos antigos (tecnico/tatico/fisico/mental/
-// evolucao 0-10). Até a Fase 2 terminar, tudo acima e FUNDAMENTOS_POR_POSICAO
-// abaixo continuam no ar pra não quebrar a tela de Avaliações atual.
+// Substitui o sistema anterior de 46 subcategorias com pesos que somavam 100
+// pontos (2026-09-01). Estrutura enviada pelo Rafael pra simplificar a
+// avaliação do professor: no máximo 5 atributos por pilar (Mental e
+// Comportamental tem só 3), todos universais (mesmos pra qualquer posição) e
+// cada um com nota 0-10. NÃO criar atributos extras dentro dos pilares.
 //
 // Regra de cálculo (o avaliador NUNCA digita peso, só nota de 0 a 10):
-//   pontuação da subcategoria = (nota ÷ 10) × peso da subcategoria
-//   pontuação do pilar        = soma das subcategorias dele
-//   nota final                = soma dos 5 pilares → 0 a 100
+//   média do pilar = soma das notas dos atributos ÷ quantidade de atributos
+//   nota geral     = Σ (média do pilar × peso do pilar ÷ 100) → 0 a 10
 // ------------------------------------------------------
 export const PILARES_100 = {
   fisico: {
     label: "Físico",
     peso: 20,
     subcategorias: {
-      velocidade: { label: "Velocidade", peso: 3.0 },
-      explosao: { label: "Explosão", peso: 3.0 },
-      agilidade: { label: "Agilidade", peso: 2.5 },
-      resistencia: { label: "Resistência/condicionamento", peso: 3.0 },
-      forca: { label: "Força", peso: 2.5 },
-      coordenacaoMotora: { label: "Coordenação motora", peso: 2.0 },
-      equilibrio: { label: "Equilíbrio", peso: 2.0 },
-      mobilidade: { label: "Mobilidade/flexibilidade", peso: 2.0 },
+      velocidadeArranque: { label: "Velocidade e Arranque", descricao: "Velocidade de corrida e capacidade de acelerar rapidamente." },
+      agilidadeCoordenacao: { label: "Agilidade e Coordenação", descricao: "Mudanças de direção, equilíbrio corporal e coordenação dos movimentos." },
+      forcaEquilibrio: { label: "Força e Equilíbrio", descricao: "Força física, estabilidade e capacidade de disputar jogadas." },
+      resistencia: { label: "Resistência", descricao: "Capacidade de manter um bom rendimento durante toda a atividade." },
+      mobilidadeCondicionamento: { label: "Mobilidade e Condicionamento", descricao: "Mobilidade corporal, flexibilidade e condição física geral." },
     },
   },
   tecnico: {
     label: "Técnico",
     peso: 30,
     subcategorias: {
-      dominioPrimeiroToque: { label: "Domínio/primeiro toque", peso: 4.0 },
-      passe: { label: "Passe", peso: 3.5 },
-      conducao: { label: "Condução", peso: 3.0 },
-      drible: { label: "Drible", peso: 3.5 },
-      finalizacao: { label: "Finalização", peso: 4.0 },
-      chute: { label: "Chute", peso: 2.5 },
-      cruzamento: { label: "Cruzamento", peso: 2.0 },
-      cabeceio: { label: "Cabeceio", peso: 1.5 },
-      desarme: { label: "Desarme", peso: 3.0 },
-      controleDeBola: { label: "Controle de bola", peso: 3.0 },
+      dominioControle: { label: "Domínio e Controle", descricao: "Primeiro toque, domínio da bola e controle orientado." },
+      passe: { label: "Passe", descricao: "Precisão, força e qualidade na execução dos passes." },
+      conducaoDrible: { label: "Condução e Drible", descricao: "Condução da bola, habilidade individual e capacidade de superar adversários." },
+      finalizacao: { label: "Finalização", descricao: "Qualidade dos chutes, precisão e capacidade de finalizar as jogadas." },
+      fundamentosEspecificos: { label: "Fundamentos Específicos", descricao: "Cabeceio, cruzamento, uso do pé não dominante e outros fundamentos importantes para a posição." },
     },
   },
   tatico: {
     label: "Tático",
     peso: 20,
     subcategorias: {
-      posicionamento: { label: "Posicionamento", peso: 3.0 },
-      leituraDeJogo: { label: "Leitura de jogo", peso: 3.0 },
-      tomadaDeDecisao: { label: "Tomada de decisão", peso: 3.0 },
-      ocupacaoDeEspacos: { label: "Ocupação de espaços", peso: 2.0 },
-      movimentacaoSemBola: { label: "Movimentação sem bola", peso: 2.0 },
-      cobertura: { label: "Cobertura", peso: 2.0 },
-      transicaoAtaqueDefesa: { label: "Transição ataque/defesa", peso: 2.0 },
-      entendimentoDaPosicao: { label: "Entendimento da posição", peso: 2.0 },
-      funcaoColetiva: { label: "Função coletiva", peso: 1.0 },
+      posicionamento: { label: "Posicionamento", descricao: "Ocupação correta dos espaços de acordo com a função do atleta." },
+      leituraDeJogo: { label: "Leitura de Jogo", descricao: "Capacidade de perceber, antecipar e entender o que acontece durante a partida." },
+      tomadaDeDecisao: { label: "Tomada de Decisão", descricao: "Escolha da melhor ação diante de cada situação." },
+      movimentacao: { label: "Movimentação", descricao: "Movimentação com e sem bola, criação de espaços e apoio aos companheiros." },
+      comportamentoColetivo: { label: "Comportamento Coletivo", descricao: "Participação na organização da equipe, marcação, cobertura e transições." },
     },
   },
+  // Só 3 atributos, de propósito — não adicionar outros aqui.
   mental: {
-    label: "Mental/Comportamental",
-    // ⚠️ AJUSTE PROVISÓRIO (2026-09-01): o enunciado original tinha "peso
-    // total: 20", mas as 10 subcategorias somavam 18,5 — faltavam 1,5
-    // ponto, e o Rafael/técnico ainda não confirmaram onde exatamente.
-    // Decisão do Rafael: em vez de mexer em vários números (ex.: escalar
-    // todos proporcionalmente), ajustar UM só parâmetro pra ficar fácil de
-    // corrigir depois — "confianca" foi de 1,5 pra 3,0 (+1,5). Se o técnico
-    // confirmar que era outra subcategoria, é só mudar esse peso aqui e o
-    // da subcategoria certa, mais nada.
+    label: "Mental e Comportamental",
     peso: 20,
     subcategorias: {
-      comportamentoSobPressao: { label: "Comportamento sob pressão", peso: 2.0 },
-      concentracao: { label: "Concentração", peso: 2.0 },
-      disciplina: { label: "Disciplina", peso: 1.5 },
-      confianca: { label: "Confiança", peso: 3.0 },
-      reacaoAoErro: { label: "Reação ao erro", peso: 2.0 },
-      competitividade: { label: "Competitividade", peso: 2.0 },
-      resiliencia: { label: "Resiliência", peso: 2.0 },
-      aceitaCriticas: { label: "Aceita críticas/orientações", peso: 1.5 },
-      compreendeComando: { label: "Compreende o comando", peso: 2.0 },
-      executaComando: { label: "Executa o comando", peso: 2.0 },
+      controleEmocionalPressao: { label: "Controle Emocional e Pressão", descricao: "Concentração, controle das emoções e reação diante de erros ou situações difíceis." },
+      disciplinaCompreensao: { label: "Disciplina e Compreensão", descricao: "Capacidade de compreender orientações, respeitar regras e executar os comandos recebidos." },
+      comprometimentoEquipe: { label: "Comprometimento e Equipe", descricao: "Dedicação, responsabilidade, respeito e capacidade de trabalhar em equipe." },
     },
   },
-  // "Potencial/Futuro" é a capacidade estimada de evolução, NÃO a mesma
-  // coisa que o desempenho atual — mesmo assim entra na soma dos 100 pontos
-  // (é assim que foi especificado); a tela (Fase 2/3) deve mostrar isso
-  // separado do resto pra não confundir "nota atual" com "potencial".
+  // A chave continua "potencial" (e o campo espelho "evolucao") pra não
+  // migrar avaliações já salvas — só o rótulo visível mudou.
   potencial: {
-    label: "Potencial/Futuro",
+    label: "Evolução e Potencial",
     peso: 10,
     subcategorias: {
-      evolucao: { label: "Evolução", peso: 1.5 },
-      facilidadeParaAprender: { label: "Facilidade para aprender", peso: 1.5 },
-      potencialFisico: { label: "Potencial físico", peso: 1.0 },
-      potencialTecnico: { label: "Potencial técnico", peso: 1.5 },
-      potencialTatico: { label: "Potencial tático", peso: 1.0 },
-      potencialMental: { label: "Potencial mental", peso: 1.0 },
-      regularidade: { label: "Regularidade", peso: 1.0 },
-      adaptabilidade: { label: "Adaptabilidade", peso: 0.5 },
-      idadeXDesempenho: { label: "Idade x desempenho", peso: 1.0 },
+      capacidadeAprendizagem: { label: "Capacidade de Aprendizagem", descricao: "Facilidade para aprender novos fundamentos, conceitos e movimentos." },
+      evolucao: { label: "Evolução", descricao: "Desenvolvimento apresentado pelo atleta ao longo do tempo." },
+      potencialTecnico: { label: "Potencial Técnico", descricao: "Possibilidade de desenvolver ainda mais suas habilidades técnicas." },
+      potencialFisicoTatico: { label: "Potencial Físico e Tático", descricao: "Possibilidade de evolução nas capacidades físicas e na compreensão do jogo." },
+      adaptabilidade: { label: "Adaptabilidade", descricao: "Capacidade de se adaptar a novas funções, posições e situações de jogo." },
     },
   },
 };
+
+// Todo pilar fecha em nota 0-10 (média dos atributos), e a nota geral
+// também — por isso `max` de cada pilar em pontuacaoPorPilar é sempre 10.
+export const NOTA_MAXIMA_AVALIACAO = 10;
 
 // Ordem em que os pilares aparecem em telas/tabelas novas.
 export const ORDEM_PILARES_100 = ["fisico", "tecnico", "tatico", "mental", "potencial"];
@@ -173,45 +124,34 @@ export function notaSubcategoriaValida(nota) {
   );
 }
 
-// pontuação da subcategoria = (nota ÷ 10) × peso — trava a nota em 0-10
-// antes de calcular, pra um valor inválido nunca estourar o peso do pilar.
-export function calcularPontuacaoSubcategoria(nota, peso) {
-  const notaTravada = Math.min(NOTA_MAXIMA_SUBCATEGORIA, Math.max(NOTA_MINIMA_SUBCATEGORIA, nota || 0));
-  return (notaTravada / 10) * peso;
+// Trava a nota em 0-10 antes de calcular, pra um valor inválido nunca
+// estourar a média do pilar.
+function travarNota(nota) {
+  return Math.min(NOTA_MAXIMA_SUBCATEGORIA, Math.max(NOTA_MINIMA_SUBCATEGORIA, nota || 0));
 }
 
-// notasPilar: { chaveDaSubcategoria: nota de 0 a 10, ... }
-// Retorna { pontos, max } — "pontos" já na escala do peso do pilar (ex.: até 30 pro Técnico).
+// notasPilar: { chaveDoAtributo: nota de 0 a 10, ... }
+// Retorna { pontos, max } — "pontos" é a MÉDIA do pilar (0-10) e max é sempre 10.
 export function calcularPontuacaoPilar(pilarChave, notasPilar) {
   const pilar = PILARES_100[pilarChave];
   if (!pilar) return null;
   const chaves = Object.keys(pilar.subcategorias);
-  const pontos = chaves.reduce(
-    (total, chave) => total + calcularPontuacaoSubcategoria((notasPilar || {})[chave], pilar.subcategorias[chave].peso),
-    0
-  );
-  return { pontos: Math.round(pontos * 100) / 100, max: pilar.peso };
+  const soma = chaves.reduce((total, chave) => total + travarNota((notasPilar || {})[chave]), 0);
+  return { pontos: Math.round((soma / chaves.length) * 100) / 100, max: NOTA_MAXIMA_AVALIACAO };
 }
 
 // notasPorPilar: { fisico: {chave: nota, ...}, tecnico: {...}, tatico: {...}, mental: {...}, potencial: {...} }
-// Retorna { porPilar: {fisico: {pontos,max}, ...}, notaFinal } — notaFinal de 0 a 100.
+// Retorna { porPilar: {fisico: {pontos,max}, ...}, notaFinal } — notaFinal de 0 a 10,
+// média dos pilares ponderada pelo `peso` de cada um (30/20/20/20/10).
 export function calcularAvaliacaoCompleta(notasPorPilar) {
   const porPilar = {};
   let notaFinal = 0;
   ORDEM_PILARES_100.forEach((chave) => {
     const resultado = calcularPontuacaoPilar(chave, (notasPorPilar || {})[chave]);
     porPilar[chave] = resultado;
-    notaFinal += resultado.pontos;
+    notaFinal += (resultado.pontos * PILARES_100[chave].peso) / 100;
   });
   return { porPilar, notaFinal: Math.round(notaFinal * 100) / 100 };
-}
-
-// Pra gráficos que precisam de uma escala comum entre pilares de peso
-// diferente (radar 0-10, por exemplo): normaliza a pontuação do pilar pro
-// tamanho do PESO dele, não pro maior peso entre todos.
-export function normalizarPilarPara10(pontos, max) {
-  if (!max) return 0;
-  return Math.round((pontos / max) * 10 * 10) / 10;
 }
 
 // Ponto forte / ponto a melhorar entre TODAS as subcategorias dos 5

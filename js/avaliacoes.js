@@ -3,10 +3,9 @@
 // Só roda depois que auth-guard.js confirma o papel (evento "cf:pronto"),
 // que é quando window.CF.escolaId fica disponível.
 //
-// Fase 2 da migração pro novo sistema de 5 pilares/100 pontos (ver
-// js/metricas.js): o formulário agora usa PILARES_100 (universal, mesmas
-// subcategorias pra qualquer posição) em vez dos fundamentos técnicos por
-// posição antigos.
+// O formulário usa PILARES_100 (js/metricas.js): 23 atributos universais
+// (mesmos pra qualquer posição), nota 0-10 em cada um, média por pilar e
+// nota geral ponderada 0-10.
 // ======================================================
 
 import {
@@ -14,8 +13,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from "./firebase-init.js";
 import {
-  PILARES_100, ORDEM_PILARES_100, calcularAvaliacaoCompleta, analisarPontosFortesFracos,
-  normalizarPilarPara10, calcularNotaGeral, notaEhBoa,
+  PILARES_100, ORDEM_PILARES_100, NOTA_MAXIMA_AVALIACAO, calcularAvaliacaoCompleta,
+  analisarPontosFortesFracos, notaEhBoa,
 } from "./metricas.js";
 
 let turmasCache = {};
@@ -31,10 +30,9 @@ function avaliacoesRef() { return collection(db, "escolas", escolaId(), "avaliac
 function resumoPublicoRef(codigo) { return doc(db, "resumosPublicos", codigo); }
 function chaveTurmaAtiva() { return `cf_turmaAtiva_${escolaId()}`; }
 
-// Soma dos pesos dos 5 pilares — 100, calculado a partir de PILARES_100
-// (não travado em 100 direto: se algum peso for ajustado em js/metricas.js
-// e não fechar de novo, esse número muda sozinho, denunciando o problema).
-const NOTA_FINAL_MAXIMA = ORDEM_PILARES_100.reduce((soma, chave) => soma + PILARES_100[chave].peso, 0);
+// Avaliações salvas no sistema anterior (46 subcategorias, 0-100) não têm
+// `notaFinalMax` — a nota final delas é em escala 100.
+const NOTA_FINAL_MAXIMA_LEGADO = 100;
 
 // Mantém a "Área do atleta" (resumosPublicos) com o radar/nota mais recentes.
 // Nunca deixa um erro aqui derrubar o salvamento da avaliação em si.
@@ -180,7 +178,7 @@ function atualizarResultado() {
 
   ORDEM_PILARES_100.forEach((pilarChave) => {
     const totalEl = document.getElementById(`pilarTotal_${pilarChave}`);
-    if (totalEl) totalEl.textContent = `${formatarPt(porPilar[pilarChave].pontos)} / ${formatarPt(porPilar[pilarChave].max)}`;
+    if (totalEl) totalEl.textContent = `Média ${formatarPt(porPilar[pilarChave].pontos)} / ${formatarPt(porPilar[pilarChave].max)}`;
   });
 
   const analise = analisarPontosFortesFracos(notasPorPilar);
@@ -193,7 +191,7 @@ function atualizarResultado() {
     const rotuloNota = document.createElement("strong");
     rotuloNota.textContent = "Nota final: ";
     const valorNota = document.createElement("span");
-    valorNota.textContent = `${formatarPt(notaFinal)} / ${formatarPt(NOTA_FINAL_MAXIMA)}`;
+    valorNota.textContent = `${formatarPt(notaFinal)} / ${formatarPt(NOTA_MAXIMA_AVALIACAO)}`;
     linhaNota.append(rotuloNota, valorNota);
 
     const linhaAnalise = document.createElement("p");
@@ -221,9 +219,15 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   // (ver @media em css/style.css) — não usar em pillar-field-head do
   // cabeçalho do pilar (título + total), que sempre cabe lado a lado.
   head.className = "pillar-field-head pillar-campo-linha";
+  const textos = document.createElement("div");
+  textos.className = "pillar-sub-textos";
   const label = document.createElement("span");
   label.className = "pillar-sub-label";
-  label.textContent = info.label; // peso fica só no código, não aparece pro avaliador
+  label.textContent = info.label;
+  const descricao = document.createElement("span");
+  descricao.className = "pillar-sub-desc muted";
+  descricao.textContent = info.descricao;
+  textos.append(label, descricao);
 
   const input = document.createElement("input");
   input.type = "number";
@@ -256,7 +260,7 @@ function criarCampoSubcategoria(pilarChave, chave, info) {
   });
   input.addEventListener("input", atualizarResultado);
 
-  head.append(label, input);
+  head.append(textos, input);
   campo.append(head);
   return campo;
 }
@@ -272,7 +276,7 @@ function criarBlocoPilar(pilarChave) {
   titulo.textContent = pilar.label;
   const total = document.createElement("strong");
   total.id = `pilarTotal_${pilarChave}`;
-  total.textContent = `0,0 / ${formatarPt(pilar.peso)}`;
+  total.textContent = `Média 0,0 / ${formatarPt(NOTA_MAXIMA_AVALIACAO)}`;
   cabecalho.append(titulo, total);
   bloco.appendChild(cabecalho);
 
@@ -353,7 +357,7 @@ function criarLinhaAvaliacao(dados) {
   if (typeof dados.notaFinal === "number") {
     const pill = document.createElement("span");
     pill.className = `pill ${notaEhBoa(dados.geral) ? "pill--good" : "pill--warn"}`;
-    pill.textContent = `${formatarPt(dados.notaFinal)}/${formatarPt(NOTA_FINAL_MAXIMA)}`;
+    pill.textContent = `${formatarPt(dados.notaFinal)}/${formatarPt(dados.notaFinalMax || NOTA_FINAL_MAXIMA_LEGADO)}`;
     tdFinal.appendChild(pill);
   } else {
     tdFinal.textContent = "—";
@@ -439,19 +443,18 @@ function configurarFormNovaAvaliacao() {
       const { porPilar, notaFinal } = calcularAvaliacaoCompleta(notasPorPilar);
 
       // Campos "tecnico/tatico/fisico/mental/evolucao/geral" (escala 0-10) são
-      // um espelho de compatibilidade pras telas que ainda não migraram pro
-      // sistema novo (Dashboard, Relatórios, Comparativos, Responsável, Área
-      // do atleta — Fase 3). "potencial" ocupa o lugar de "evolucao" nesse
-      // espelho só pelo formato (5 valores 0-10) — remover quando a Fase 3
-      // terminar de atualizar essas telas pros 5 pilares novos de verdade.
+      // o que Dashboard, Relatórios, Comparativos, Responsável e Área do
+      // atleta leem. "evolucao" guarda o pilar Evolução e Potencial (o nome
+      // do campo ficou pra não migrar avaliações já salvas). `geral` é a nota
+      // geral ponderada (30/20/20/20/10), arredondada em 1 casa.
       const espelho = {
-        tecnico: normalizarPilarPara10(porPilar.tecnico.pontos, porPilar.tecnico.max),
-        tatico: normalizarPilarPara10(porPilar.tatico.pontos, porPilar.tatico.max),
-        fisico: normalizarPilarPara10(porPilar.fisico.pontos, porPilar.fisico.max),
-        mental: normalizarPilarPara10(porPilar.mental.pontos, porPilar.mental.max),
-        evolucao: normalizarPilarPara10(porPilar.potencial.pontos, porPilar.potencial.max),
+        tecnico: porPilar.tecnico.pontos,
+        tatico: porPilar.tatico.pontos,
+        fisico: porPilar.fisico.pontos,
+        mental: porPilar.mental.pontos,
+        evolucao: porPilar.potencial.pontos,
       };
-      const geral = calcularNotaGeral(espelho);
+      const geral = Math.round(notaFinal * 10) / 10;
 
       await addDoc(avaliacoesRef(), {
         atletaId,
@@ -461,6 +464,7 @@ function configurarFormNovaAvaliacao() {
         notasPorPilar,
         pontuacaoPorPilar: porPilar,
         notaFinal,
+        notaFinalMax: NOTA_MAXIMA_AVALIACAO,
         ...espelho,
         geral,
         observacoes: form.observacoes.value.trim(),

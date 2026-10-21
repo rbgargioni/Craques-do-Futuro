@@ -728,6 +728,9 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .pillar-field-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .pillar-field-input[type="number"] { -moz-appearance: textfield; }
 .pillar-sub-label { font-size: 12px; }
+.pillar-sub-textos { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; padding-right: 12px; }
+.pillar-sub-textos .pillar-sub-label { font-weight: 600; }
+.pillar-sub-desc { font-size: 11px; line-height: 1.35; word-break: break-word; }
 
 /* ===================================================
    TOGGLE GROUP (chamada / frequência)
@@ -1003,9 +1006,77 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .codigo-publico-linha { align-self: flex-start; }
 
   .pillar-sub-label { font-size: 14px; }
+  .pillar-sub-desc { font-size: 12px; }
+  .pillar-campo-linha .pillar-sub-textos { padding-right: 0; flex: none; }
   .pillar-field-input { width: 104px; padding: 14px 10px; font-size: 17px; }
 
   .pillar-campo-linha { flex-direction: column; align-items: stretch; gap: 8px; }
   .pillar-campo-linha .pillar-sub-label { word-break: break-word; }
   .pillar-campo-linha .pillar-field-input { align-self: flex-start; }
+}
+
+/* ===================================================
+   QUADRO TÁTICO (botão flutuante + campo em tela cheia pra desenhar jogada)
+=================================================== */
+.quadro-tatico-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  font-size: 26px;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(11, 32, 26, 0.32);
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quadro-tatico-fab:hover { background: var(--accent-dark); }
+
+.quadro-tatico-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #071812;
+  display: flex;
+  flex-direction: column;
+}
+.quadro-tatico-overlay.is-hidden { display: none; }
+/* Trava o scroll da página por baixo enquanto o quadro está aberto. */
+html.quadro-tatico-aberto, html.quadro-tatico-aberto body { overflow: hidden; }
+
+.quadro-tatico-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--bg-sidebar);
+  color: #fff;
+  flex-shrink: 0;
+}
+.quadro-tatico-topo strong { font-family: var(--font-display); }
+.quadro-tatico-acoes { display: flex; gap: 8px; }
+
+.quadro-tatico-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 14px;
+}
+.quadro-tatico-campo { position: relative; width: 100%; height: 100%; }
+.quadro-tatico-svg, .quadro-tatico-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.quadro-tatico-canvas { touch-action: none; cursor: crosshair; }
+
+@media (max-width: 980px) {
+  .quadro-tatico-fab { right: 14px; bottom: 14px; width: 50px; height: 50px; font-size: 22px; }
+  .quadro-tatico-area { padding: 8px; }
 }

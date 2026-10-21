@@ -76,7 +76,7 @@ redireciona pra página certa de cada papel. Toda página protegida declara
 | `admin-escolas.html` (dono) | `admin-escolas.js` | ✅ real — cria/edita escola, sócios, administradores, catálogo de planos de assinatura + uso por escola, fila de solicitações de plano, e revisão/exclusão de trials vencidos |
 | `index.html` (dashboard) | `dashboard.js` | ✅ real |
 | `atletas.html` | `atletas.js` | ✅ real — inclui nível de evolução/promoção de categoria, edição completa (nome/posição/turma/nascimento/telefone/observações) e desativar/reativar (só administrador) |
-| `avaliacoes.html` | `avaliacoes.js` | ✅ real — sistema novo de 5 pilares/100 pontos (2026-09-01), ver seção própria abaixo |
+| `avaliacoes.html` | `avaliacoes.js` | ✅ real — 5 pilares / 23 atributos / nota 0-10 (2026-10-21), ver seção própria abaixo |
 | `frequencia.html` | `frequencia.js` | ✅ real |
 | `planos.html` | `planos.js` | ✅ real |
 | `comunicacao.html` | `comunicacao.js` | ✅ real |
@@ -378,7 +378,56 @@ escolhido foi:
 `js/metricas.js` centraliza toda a régua de avaliação. **Qualquer mudança
 de critério de avaliação deve mexer só nesse arquivo.**
 
-### Sistema de avaliação — 5 Pilares / 100 pontos (substituiu o antigo em 2026-09-01)
+### Sistema de avaliação ATUAL — 23 atributos, nota 0 a 10 (2026-10-21)
+
+O Rafael mandou uma estrutura simplificada pra o professor avaliar rápido:
+**no máximo 5 atributos por pilar, e só 3 no Mental e Comportamental**, todos
+com nota 0-10 e com uma descrição curta (aparece embaixo do nome do atributo
+no formulário). Definida em `PILARES_100` (`js/metricas.js`) — **não criar
+atributos extras dentro dos pilares** (pedido explícito):
+
+| Pilar | Atributos | Peso |
+|---|---|---|
+| Técnico | Domínio e Controle, Passe, Condução e Drible, Finalização, Fundamentos Específicos | 30% |
+| Físico | Velocidade e Arranque, Agilidade e Coordenação, Força e Equilíbrio, Resistência, Mobilidade e Condicionamento | 20% |
+| Tático | Posicionamento, Leitura de Jogo, Tomada de Decisão, Movimentação, Comportamento Coletivo | 20% |
+| Mental e Comportamental | Controle Emocional e Pressão, Disciplina e Compreensão, Comprometimento e Equipe | 20% |
+| Evolução e Potencial | Capacidade de Aprendizagem, Evolução, Potencial Técnico, Potencial Físico e Tático, Adaptabilidade | 10% |
+
+Cálculo: média simples dos atributos de cada pilar (0-10) e **nota geral =
+Σ média × peso do pilar** (0-10; ex.: Técnico 8, Físico 6, Tático 7, Mental 9,
+Potencial 5 → 7,3). O avaliador nunca digita peso; os pesos de pilar ficam só
+no código e **não aparecem na tela** (mesma política de antes). O formulário
+mostra "Média x / 10" por pilar e a "Nota final x / 10" ao vivo, e continua
+com os campos vazios e `required` (seção "Avaliação sem campo
+pré-preenchido"). A posição do atleta segue só informativa.
+
+Compatibilidade: o que Dashboard/Relatórios/Comparativos/Responsável/Área do
+atleta leem (`tecnico/tatico/fisico/mental/evolucao/geral`, 0-10) continua
+igual — agora `tecnico..mental` e `evolucao` (= pilar Evolução e Potencial) são
+as médias dos pilares direto, e `geral` é a nota geral ponderada (antes era
+média simples dos 5 pilares). Avaliação nova também salva `notaFinalMax: 10`;
+**avaliações antigas (46 subcategorias) continuam como estão** — a tabela
+mostra a nota delas "/100" (sem `notaFinalMax`) e os pontos por pilar com o
+`max` que elas já traziam. Chaves de `notasPorPilar` mudaram (as antigas não
+existem mais em `PILARES_100`), então só avaliações novas têm o detalhe por
+atributo. `calcularNotaGeral`/`normalizarPilarPara10` foram removidas (não
+tinham mais uso). `firestore.rules` só teve comentário atualizado — **não
+precisa republicar**.
+
+**Testado** (página isolada, 375px, fora do Firebase): 23 campos (5+5+5+3+5),
+médias/nota geral batem com o exemplo acima (todos 10 → 10; todos 7 → 7;
+vazio → 0), descrição aparece embaixo de cada nome, sem estourar a largura.
+**Não testado**: salvar uma avaliação no Firebase real e ver Dashboard/
+Relatórios/Responsável com avaliações novas misturadas às antigas (as antigas
+têm `geral` já em 0-10, então a mistura deveria funcionar, mas não vi ao vivo).
+O `vendas.html` (discurso "métricas por posição") continua desatualizado.
+
+### Sistema de avaliação ANTERIOR — 5 Pilares / 100 pontos (2026-09-01; substituído em 2026-10-21, mantido só como histórico)
+
+> ⚠️ Tudo abaixo (46 subcategorias, pesos que somam 100, ajuste provisório do
+> pilar Mental) **não vale mais** — foi trocado pelo sistema de 23 atributos
+> acima. Fica aqui só pra explicar avaliações antigas já salvas.
 
 Um técnico consultado pelo Rafael apontou que a régua antiga (nota 0-10
 direta por pilar + fundamentos técnicos DIFERENTES por posição, ver
@@ -490,6 +539,55 @@ isso, é o mesmo mecanismo nativo que já travava o `<select>` de atleta e a
 data. O resultado ao vivo (nota por pilar/final, no rodapé do formulário)
 trata campo vazio como 0 enquanto o avaliador ainda está preenchendo — é só
 uma prévia, não impede nada; quem trava o salvamento é o `required`.
+
+### Quadro tático — botão flutuante com campo de futebol pra desenhar jogada (2026-09-15)
+
+Botão flutuante (⚽, canto inferior direito) que abre um campo de futebol em
+tela cheia pra desenhar jogadas com o dedo/mouse — giz digital, sem salvar
+nada em lugar nenhum (é rascunho, some ao fechar de propósito, não existe
+coleção nova no Firestore pra isso). Botões "Limpar" (apaga o desenho) e
+"Fechar" (fecha o quadro, sem confirmação — é intencional, é rascunho).
+
+Implementado inteiro em `js/Script.js` (função `montarQuadroTatico()`, uma
+seção nova no fim do arquivo) + `css/style.css` (seção "QUADRO TÁTICO" no
+fim do arquivo) — nenhuma coleção nova, nenhuma Security Rule nova. Só
+aparece pra `administrador`/`tecnico` e só em páginas com `.sidebar` (não
+faz sentido em "Minhas escolas", no painel do dono nem pro responsável);
+o botão é montado dentro do listener do evento `cf:pronto` (ver convenção
+de `auth-guard.js`), já que `Script.js` roda antes desse evento resolver e
+precisa saber o papel de quem está logado antes de decidir se mostra o
+botão. O campo é um SVG estático (sem dado do Firestore, então `innerHTML`
+é seguro aqui) com um `<canvas>` por cima; desenho usa Pointer Events
+(`pointerdown`/`pointermove`/`pointerup`) pra funcionar igual com
+mouse/touch/caneta, e o canvas é redimensionado em pixels reais
+(`devicePixelRatio`) toda vez que o quadro abre ou a janela muda de
+tamanho, senão o traço fica borrado/desalinhado em tela de retina/celular.
+
+**Campo gira com o celular (2026-09-24)**: existem duas versões do campo
+(`CAMPO_TATICO_SVG.paisagem`/`.retrato` em `js/Script.js`) — a retrato é a
+paisagem com todo x/y transposto (rotação de 90°; funciona porque um campo
+de futebol é simétrico dos dois lados/pontas, então trocar qual dimensão é
+a maior mantém tudo no lugar certo, só precisa inverter o sentido dos arcos
+de canto/área pra não ficar "espelhado ao contrário"). A escolha de qual
+versão mostrar não usa a API de orientação do aparelho — mede o retângulo
+real do `.quadro-tatico-campo` (`getBoundingClientRect()`, o mesmo já usado
+pra redimensionar o canvas) e decide pela forma: mais alto que largo =
+retrato, senão paisagem. Só troca o SVG quando a orientação muda de
+verdade, pra não redesenhar à toa em todo resize pequeno. Reavaliado ao
+abrir o quadro e em `resize`/`orientationchange` da janela.
+
+**Testado** localmente (página isolada fora do Firebase, disparando um
+`cf:pronto` sintético pra simular o papel de técnico, emulando viewport
+375×812 e depois 812×375): botão aparece, abre em tela cheia com o campo
+certo pras duas orientações (retrato com gols em cima/embaixo, paisagem
+com gols nos lados, arcos de área/canto virados pro lado certo nas duas),
+troca ao vivo ao redimensionar a janela, desenhar com arrastar funciona,
+"Limpar" apaga o traço, "Fechar" fecha e o botão continua disponível pra
+abrir de novo. **Não testado**: numa conta real logada
+(administrador/técnico) — o disparo do `cf:pronto` real depende do login
+do Firebase resolver, só simulei o evento; e não testado girando um
+celular de verdade (o teste local emula viewport, não o evento
+`orientationchange` real de um aparelho físico nem toque de verdade).
 
 ### Perfil do atleta — dados, observações internas e observações da família
 
@@ -766,7 +864,9 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   populado com os dados certos, `updateDoc` salva os campos certos, e mudar
   de turma tira o atleta da lista da turma antiga. Ainda não testado ao
   vivo.
-- **Sistema de avaliação novo (5 pilares/100 pontos)** — as 3 fases (ver
+- **Sistema de avaliação de 23 atributos** — ver seção "ATUAL" acima; o
+  item abaixo é do sistema anterior (46 subcategorias), já substituído.
+- **Sistema de avaliação anterior (5 pilares/100 pontos)** — as 3 fases (ver
   seção própria acima), validado só com Firestore mockado: os 46 campos
   renderizam certo (8+10+9+10+9 por pilar), soma dos pesos bate com o
   declarado nos 5 pilares (nota final máxima = 100/100), totais por pilar
@@ -787,6 +887,13 @@ dia tiver uma logo oficial de verdade, é só substituir esses 3 arquivos
   `#blocoPilares100` está dentro de `formNovaAvaliacao` (então `required`
   tem efeito de verdade). Não testei ao vivo o navegador realmente barrando
   o submit com campo vazio numa conta real.
+- **Quadro tático** (botão flutuante + campo pra desenhar, agora girando
+  retrato/paisagem junto com o formato da tela, ver seção própria acima,
+  2026-09-15/2026-09-24) — testado numa página isolada fora do Firebase,
+  simulando o evento `cf:pronto` e emulando viewport retrato e paisagem:
+  botão aparece, abre, campo vira certo nos dois formatos, desenha,
+  "Limpar" e "Fechar" funcionam. Não testado numa conta real logada nem
+  girando um celular físico de verdade.
 
 `area-do-atleta.html`/`js/area-do-atleta.js` **já foi testado de ponta a
 ponta no Firebase real** em 2026-08-27 (código de um atleta real, "Vicente",
@@ -827,17 +934,16 @@ achar essa escola no Firestore e corrigir/apagar o documento manualmente.
   e `responsavel.js` já filtra por ele corretamente (parece já funcionar).
   O Rafael reportou como quebrado antes de eu reler o código — vale
   reconfirmar ao vivo antes de mexer em algo que já está certo.
-- **Confirmar com o técnico se o ajuste provisório do pilar Mental está
-  certo** (`confianca` foi de 1,5 pra 3,0 pra fechar em 20 — ver seção "5
-  Pilares / 100 pontos" acima). Se ele confirmar que era outra
-  subcategoria, trocar em `PILARES_100.mental` em `js/metricas.js` (só
-  esses dois números mudam, o resto do sistema continua igual).
-- As 3 fases da migração do sistema de avaliação estão no ar — pode
-  remover o sistema antigo depreciado de `js/metricas.js`
+- ✅ O ajuste provisório do pilar Mental (`confianca` 1,5 → 3,0) deixou de
+  existir: o sistema de 23 atributos (2026-10-21) não usa mais peso por
+  atributo.
+- Pode remover o sistema antigo depreciado de `js/metricas.js`
   (`FUNDAMENTOS_POR_POSICAO`, `calcularNotaTecnica`, `analisarFundamentos`,
   os 3 indicadores combinados) quando quiser, não tem mais nada usando.
-- Testar o sistema de avaliação novo (5 pilares/100 pontos) no Firebase
-  real de ponta a ponta — só validado com dados mockados até agora.
+- Testar o sistema de avaliação novo (23 atributos/nota 0-10) no Firebase
+  real de ponta a ponta, inclusive avaliações novas misturadas às antigas
+  (antigas têm notaFinal "/100", novas "/10") — só validado numa página
+  isolada até agora.
 - Atualizar `vendas.html` — o discurso de "métricas específicas por
   posição" não é mais verdade depois da mudança pro Técnico universal.
 - ✅ `firestore.rules` com a regra do campo `desativado` já está publicada.
